@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.9.2",
+    "dotenv": "^16.4.7",
+    "uuid": "^11.1.0"
+  }
+}
