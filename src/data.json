@@ -1,0 +1,146 @@
+[
+  {
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Fabio",
+    "sku_1": "Pasta Tipo Fideos - San Remo - Paquete 250 g",
+    "dsct_1": "25%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Jesus",
+    "sku_1": "Rastrillo Prestobarba 2 - Gillette - Unidad 28 uds.",
+    "dsct_1": "7%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api retained 1 es v0",
+  "variables": {
+    "name": "Gustavo",
+    "sku_1": "Toalla Femenina Invisible c/alas - Naturella - Paquete 8 uds.",
+    "dsct_1": "6%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Tres",
+    "sku_1": "Detergente en polvo regular - Ariel - Bolsa 450 g",
+    "dsct_1": "6%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Emily",
+    "sku_1": "Vinagre Blanco - Colman´s - Tarro 500 ml",
+    "dsct_1": "20%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Angeles",
+    "sku_1": "Lavatrastes Liquido Limón - Salvo - Botella 215 ml",
+    "dsct_1": "16%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Luis",
+    "sku_1": "Mayonesa Sobres 85g - San Jorge - Caja 12 uds.",
+    "dsct_1": "6%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Ricardo",
+    "sku_1": "Detergente Salvo multiusos triple poder - Salvo - Bolsa 900 g",
+    "dsct_1": "5%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Paola",
+    "sku_1": "Cereal Edicion ot Wheels - Kellogg´s - Paquete 75 g",
+    "dsct_1": "1%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Eber",
+    "sku_1": "Jabón Frescura - Supremo - Barra 340 g",
+    "dsct_1": "8%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Monica",
+    "sku_1": "Suavizante concentrado - Downy - Botella 800 ml",
+    "dsct_1": "4%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Leandro",
+    "sku_1": "Jabón Multiusos Frescura - Supremo - Barra 240 g",
+    "dsct_1": "8%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api lead 1 es v0",
+  "variables": {
+    "name": "Elisandro",
+    "sku_1": "Gaseosa Lima Limón Sprite - Sprite - Botella pet 400 ml",
+    "dsct_1": "1%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api hibernating 1 es v0",
+  "variables": {
+    "name": "Luis",
+    "sku_1": "Six Pack Cerveza - Andina - Lata 310 ml",
+    "dsct_1": "14%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api hibernating 1 es v0",
+  "variables": {
+    "name": "Bertha",
+    "sku_1": "Arroz Blanco - Leopardo - Bolsa 500 g",
+    "dsct_1": "1%"
+  }
+},
+{
+  "client": "+573153108376",
+  "campaignName": "api hibernating 1 es v0",
+  "variables": {
+    "name": "María",
+    "sku_1": "Detergente En Polvo Poder Y Cuidado - Ariel - Bolsa 850 g",
+    "dsct_1": "3%"
+  }
+}
+]

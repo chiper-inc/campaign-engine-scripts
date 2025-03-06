@@ -1,7 +1,9 @@
-const { BigQuery } = require('@google-cloud/bigquery');
-const { v4: uuid } = require('uuid');
-const dotenv = require('dotenv');
-dotenv.config();
+import { BigQuery } from '@google-cloud/bigquery';
+import { v4 as uuid } from 'uuid';
+import * as CFG from './config.js';
+import parseMobile from 'libphonenumber-js/mobile'
+
+console.log({ CFG });
 
 // Constants 
 
@@ -194,7 +196,7 @@ const campaignsBySatatus = {
 
 // Process Gobal Variables
 
-const today = new Date().setHours(0, 0, 0, 0);
+const today = new Date('2025/03/06').setHours(0, 0, 0, 0);
 const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0);
 const UUID = uuid();
 
@@ -210,10 +212,11 @@ const queryStores = `
       reference,
       discountFormatted,
       phone,
-      ranking as ranking
+      ranking
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\`
     WHERE phone IS NOT NULL
       AND ranking <= 10
+    ORDER BY storeId, ranking
 `;
 
 // Main Function 
@@ -277,6 +280,12 @@ const generateEntries = (storesMap) => {
     const variables = generateVariables(campaign.variables, { store, skus }, utm );
     if (!variables) continue;
 
+    const client = `+${store.phone}`;
+
+    if (!parseMobile(client)) {
+      console.error(`Invalid phone number: ${client} for store ${store.storeId} on campaign ${campaign.name}`);
+    }
+
     entries.push({
       client: `+${store.phone}`,
       campaignName: campaign.name.replace(/_/g,' ').toLowerCase(),
@@ -301,6 +310,7 @@ const generateVariables = (variablesList, obj, utm) => {
     'dsct': 'discountFormatted', 
   }
   const variables = {
+    path: 'k2Qh'
     // path: `pedir/seccion/descuentos?${utm}`,
   };
   for (const variable of variablesList) {
@@ -419,5 +429,5 @@ async function executeQueryBigQuery(query) {
 
 // Run Main Function
 
-main(daysFromBaseDate(today), 5000, 5000);
+main(daysFromBaseDate(today), 11000, 0);
 
