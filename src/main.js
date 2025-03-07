@@ -1,196 +1,12 @@
 import { BigQuery } from '@google-cloud/bigquery';
 import { v4 as uuid } from 'uuid';
-import { Config } from './config.js';
 import parseMobile from 'libphonenumber-js/mobile'
 
 // Constants 
 
-const LOCATION = {
-  BOG: 2,
-  MDE: 7,
-  CLO: 2,
-  BAQ: 18,
-  CMX: 11,
-  SCL: 22,
-  SAO: 21,
-  VLN: 24,
-};
-
-// Main Input values
-
-const frequencyByStatus = {
-  Churn: {
-    _default: 0,
-    [LOCATION.BAQ]: 0, // 4,
-    [LOCATION.BOG]: 0, // 2,
-    [LOCATION.CLO]: 0, // 3,
-    [LOCATION.CMX]: 0, // 4,
-    [LOCATION.MDE]: 0, // 4,
-    [LOCATION.VLN]: 0, // 4,
-  },
-  Hibernating: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  Lead: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 8,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  New: {
-    _default: 0,
-  },
-  Resurrected: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.SCL]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  Retained: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  _default: 2,
-};
-
-const NAME = ["name"];
-const NAME_1SKU = ["name", "sku_1", "dsct_1"];
-const NAME_2SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2"];
-const NAME_3SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3"];
-const NAME_4SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3", "sku_4", "dsct_4"];
-const NAME_5SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3", "sku_4", "dsct_4", "sku_5", "dsct_5"];
-
-const campaignsBySatatus = {
-  Churn: {
-    names: [
-      "API_Churn_1_es_v0",
-      "API_Churn_2_es_v0",
-      "API_Churn_3_es_v0",
-      "API_Churn_4_es_v0",
-      "API_Churn_5_es_v0",
-      "API_Churn_6_es_v0",
-      "API_Churn_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Churn_1_es_v0: NAME_1SKU,
-      API_Churn_2_es_v0: NAME_2SKU,
-      API_Churn_3_es_v0: NAME_3SKU,
-      API_Churn_4_es_v0: NAME_4SKU,
-      API_Churn_5_es_v0: NAME_5SKU,
-    }
-  },
-  Lead: {
-    names: [
-      "API_Lead_1_es_v0",
-      "API_Lead_2_es_v0",
-      "API_Lead_3_es_v0",
-      "API_Lead_4_es_v0",
-      "API_Lead_5_es_v0",
-      "API_Lead_6_es_v0",
-      "API_Lead_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Lead_1_es_v0: NAME_1SKU,
-      API_Lead_2_es_v0: NAME_2SKU,
-      API_Lead_3_es_v0: NAME_3SKU,
-      API_Lead_4_es_v0: NAME_4SKU,
-      API_Lead_5_es_v0: NAME_5SKU,
-    }
-  },
-  New: {
-    names: [
-      "API_New_1_es_v0",
-      "API_New_2_es_v0",
-      "API_New_3_es_v0",
-      "API_New_4_es_v0",
-      "API_New_5_es_v0",
-      "API_New_6_es_v0",
-      "API_New_7_es_v0",
-    ],
-  },
-  Hibernating: {
-    names: [
-      "API_Hibernating_1_es_v0",
-      "API_Hibernating_2_es_v0",
-      "API_Hibernating_3_es_v0",
-      "API_Hibernating_4_es_v0",
-      "API_Hibernating_5_es_v0",
-      "API_Hibernating_6_es_v0",
-      "API_Hibernating_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Hibernating_1_es_v0: NAME_1SKU,
-      API_Hibernating_2_es_v0: NAME_2SKU,
-      API_Hibernating_3_es_v0: NAME_3SKU,
-      API_Hibernating_4_es_v0: NAME_4SKU,
-      API_Hibernating_5_es_v0: NAME_5SKU,
-    }
-
-  },
-  Retained: {
-    names: [
-      "API_Retained_1_es_v0",
-      "API_Retained_2_es_v0",
-      "API_Retained_3_es_v0",
-      "API_Retained_4_es_v0",
-      "API_Retained_5_es_v0",
-      "API_Retained_6_es_v0",
-      "API_Retained_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Retained_1_es_v0: NAME_1SKU,
-      API_Retained_2_es_v0: NAME_2SKU,
-      API_Retained_3_es_v0: NAME_3SKU,
-      API_Retained_4_es_v0: NAME_4SKU,
-      API_Retained_5_es_v0: NAME_5SKU,
-    }
-
-  },
-  Resurrected: {
-    names: [
-      "API_Resurrected_1_es_v0",
-      "API_Resurrected_2_es_v0",
-      "API_Resurrected_3_es_v0",
-      "API_Resurrected_4_es_v0",
-      "API_Resurrected_5_es_v0",
-      "API_Resurrected_6_es_v0",
-      "API_Resurrected_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Resurrected_1_es_v0: NAME_1SKU,
-      API_Resurrected_2_es_v0: NAME_2SKU,
-      API_Resurrected_3_es_v0: NAME_3SKU,
-      API_Resurrected_4_es_v0: NAME_4SKU,
-      API_Resurrected_5_es_v0: NAME_5SKU,
-    }
-  },
-  variables: {
-    _default: NAME,
-  }
-}
+import { Config } from './config.js';
+import {frequencyByStatus, campaignsBySatatus } from './parameters.js';
+import { PROVIDER, CITY } from './constants.js';
 
 // Process Gobal Variables
 
@@ -224,22 +40,6 @@ const queryStores = `
 
 // Main Function 
 
-// const UTM = {
-//   utmSource: 'connectly-campaign',
-//   utmMedium: '164',
-//   utmContent: UUID,
-//   utmCampaign: '1_CHIPER_WA_3_06ot_Churn',
-//   utmTerm: '060325',
-// }
-
-// const callToAction = {
-//   actionTypeId: 1,
-//   referenceId: 3,
-//   macroId,
-//   brandId,
-// };
-
-
 async function main(day, limit = 100, offset = 0) {
   const data = await executeQueryBigQuery(queryStores);
   const filteredData = data.filter(row => filterData(row, frequencyByStatus, day));
@@ -247,10 +47,7 @@ async function main(day, limit = 100, offset = 0) {
   let entries = generatePreEntries(storeMap).slice(offset, offset + limit);
   entries = await generateCallToActionShortLinks(entries);
   entries = generatePathVariable(entries);
-  reportEntries(entries.slice(offset, offset + limit));
-  // console.log('===================');
-  // console.log(JSON.stringify(entries.slice(offset, offset + limit), null, 2));
-  // console.log('===================');
+  reportEntries(entries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(`Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`);
 }
@@ -489,36 +286,15 @@ const getUtm = (day, status, locationId, name) => {
     const months = ['_', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     return `${months[Number(mpnth)]}${day}`;
   };
+
   const formatDDMMYY = (date) => date.toLocaleDateString(
     'es-US', 
     { day: '2-digit', month: '2-digit', year: '2-digit' }
   ).replace(/\//g, '');
-  const getCityId = (locationId) => {
-    const city = {
-      [LOCATION.BOG]: 1,
-      [LOCATION.MDE]: 7,
-      [LOCATION.CLO]: 2,
-      [LOCATION.BAQ]: 3,
-      [LOCATION.CMX]: 11,
-      [LOCATION.SCL]: 21,
-      [LOCATION.SAO]: 20,
-      [LOCATION.VLN]: 24,
-    };
-    return city[locationId] || 0;
-  };
-  const getProvider = (locationId) => {
-    const provider = {
-      [LOCATION.BOG]: 1377,
-      [LOCATION.MDE]: 1377,
-      [LOCATION.CLO]: 1377,
-      [LOCATION.BAQ]: 1377,
-      [LOCATION.CMX]: 1381,
-      [LOCATION.SCL]: 1379,
-      [LOCATION.SAO]: 1378,
-      [LOCATION.VLN]: 1380,
-    };
-    return provider[locationId] || 0;
-  }
+
+  const getCityId = (locationId) => CITY[locationId] || 0;
+
+  const getProvider = (locationId) => PROVIDER[locationId] || 0;
 
   const date = new Date(BASE_DATE + (day * 24 * 60 * 60 * 1000));
   const term = formatDDMMYY(date); // DDMMYY
@@ -537,7 +313,7 @@ const getUtm = (day, status, locationId, name) => {
     }_${
       status
     }_${
-      encodeURIComponent(name.replace(/[^a-zA-Z0-9]/g, '-'))
+      name.replace(/[^a-zA-Z0-9]/g, '-')
     }`;
   const source = 'connectly-campaign';
   const content = UUID; // uuid
