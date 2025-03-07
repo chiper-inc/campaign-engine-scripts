@@ -1,6 +1,6 @@
-// import data from './data.json' assert { type: "json" };
-import data from '../data.2025-03-06.json' assert { type: "json" };
-import * as CFG from './config.js';
+import data from './empty.json' assert { type: "json" };
+// import data from '../data.2025-03-06.json' assert { type: "json" };
+import { Config } from './config.js';
 
 /* 
 curl  --location 'https://api.connectly.ai/v1/businesses/1ca5c793-9859-4763-94fc-f82838fe6472/send/campaigns' \
@@ -17,11 +17,11 @@ curl  --location 'https://api.connectly.ai/v1/businesses/1ca5c793-9859-4763-94fc
 }'
 */
 
-console.log({ CFG });
+console.log({ Config });
 
-const url = `${CFG.CONNECTLY_API_URL}/${CFG.CONNECTLY_BUSINESS_ID}/send/campaigns`;
-const API_KEY = CFG.CONNECTLY_API_KEY;  // Replace with a real token if needed
-const BATCH_SIZE = CFG.BATCH_SIZE;
+const url = `${Config.connectly.apiUrl}/${Config.connectly.businessId}/send/campaigns`;
+const API_KEY = Config.connectly.apiKey;  // Replace with a real token if needed
+const BATCH_SIZE = Config.connectly.batchSize;
 
 const headers = {
     'Content-Type': 'application/json',
@@ -46,40 +46,40 @@ const batches = splitIntoBatches(data, BATCH_SIZE);
 let batchIdx = 1;
 let statuses = {};
 for (const batch of batches) {
-    await Promise.all(batch.map((entry, idx) => {
-        const payload = {
-            entries: [entry]
-        };
-        return fetch(url, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                statuses[response.status] = (statuses[response.status] || 0) + 1;
-                return response.json()
-            }) 
-            .then((response) => {
-                if (!response.data) {
-                  rejected += 1;
-                  return;
-                }
-                // console.log('Response:', response.data);
-                accepted += response.data[0].acceptedCount;
-                rejected += response.data[0].rejectedCount;
-                if (response.data[0].error) {
-                    rejected += 1;
-                }
-            })
-            .catch((error) => {
-                console.error({ error });
-                console.log('Error:', error.response?.data || error.message);
-                rejected += 1;
-            });
+  await Promise.all(batch.map((entry, idx) => {
+    const payload = {
+      entries: [entry]
+    };
+    return fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(payload)
+    })
+      .then(response => {
+        statuses[response.status] = (statuses[response.status] || 0) + 1;
+           return response.json()
+      }) 
+      .then((response) => {
+        if (!response.data) {
+          rejected += 1;
+          return;
+        }
+        // console.log('Response:', response.data);
+        accepted += response.data[0].acceptedCount;
+        rejected += response.data[0].rejectedCount;
+        if (response.data[0].error) {
+            rejected += 1;
+        }
+      })
+      .catch((error) => {
+        console.error({ error });
+        console.log('Error:', error.response?.data || error.message);
+        rejected += 1;
+      });
     })).finally(() => {
-        console.log(`batch ${batchIdx} of ${batches.length} done, accepted = ${accepted}, rejected = ${rejected}, statuses = ${JSON.stringify(statuses)}`);
+      console.log(`batch ${batchIdx} of ${batches.length} done, accepted = ${accepted}, rejected = ${rejected}, statuses = ${JSON.stringify(statuses)}`);
     });
-    batchIdx += 1;
+  batchIdx += 1;
 };
 
 

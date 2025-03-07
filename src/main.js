@@ -1,9 +1,9 @@
 import { BigQuery } from '@google-cloud/bigquery';
 import { v4 as uuid } from 'uuid';
-import * as CFG from './config.js';
+import { Config } from './config.js';
 import parseMobile from 'libphonenumber-js/mobile'
 
-console.log({ CFG });
+console.log({ Config });
 
 // Constants 
 
@@ -196,7 +196,7 @@ const campaignsBySatatus = {
 
 // Process Gobal Variables
 
-const today = new Date('2025/03/06').setHours(0, 0, 0, 0);
+const today = new Date().setHours(0, 0, 0, 0);
 const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0);
 const UUID = uuid();
 
@@ -208,6 +208,7 @@ const queryStores = `
       storeId,
       city,
       locationId,
+      storeReferenceId,
       name,
       reference,
       discountFormatted,
@@ -216,10 +217,30 @@ const queryStores = `
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\`
     WHERE phone IS NOT NULL
       AND ranking <= 10
+      AND (
+        (storeStatus = 'Churn' AND daysSinceLastOrderDelivered > 1000000) OR
+        (storeStatus <> 'Churn')
+      )
     ORDER BY storeId, ranking
 `;
 
 // Main Function 
+
+// const UTM = {
+//   utmSource: 'connectly-campaign',
+//   utmMedium: '164',
+//   utmContent: UUID,
+//   utmCampaign: '1_CHIPER_WA_3_06ot_Churn',
+//   utmTerm: '060325',
+// }
+
+// const callToAction = {
+//   actionTypeId: 1,
+//   referenceId: 3,
+//   macroId,
+//   brandId,
+// };
+
 
 async function main(day, limit = 100, offset = 0) {
   const data = await executeQueryBigQuery(queryStores);
@@ -256,7 +277,7 @@ const generateStoreMap = (filteredData, campaignsBySatatus, day) => {
   return filteredData.reduce((acc, row) => {
     const a = acc.get(row.storeId) || {
       storeStatus: row.storeStatus, city: row.city,
-      utm: getUtm(day, row.storeStatus, row.locationId),
+      utm: undefined,
       campaign: getCamapign(row.storeStatus, day, campaignsBySatatus),
       store: getStore(row),
       skus: []
@@ -275,7 +296,7 @@ const generateStoreMap = (filteredData, campaignsBySatatus, day) => {
 const generateEntries = (storesMap) => {
   const entries = [];
   for (const data of Array.from(storesMap.values())) {
-    const { store, campaign, skus, utm} = data;
+    const { store, campaign, skus, utm } = data;
 
     const variables = generateVariables(campaign.variables, { store, skus }, utm );
     if (!variables) continue;
@@ -284,12 +305,16 @@ const generateEntries = (storesMap) => {
 
     if (!parseMobile(client)) {
       console.error(`Invalid phone number: ${client} for store ${store.storeId} on campaign ${campaign.name}`);
+      continue;
     }
+
+    const callToAction = generateCallToAction(Object.keys(variables), skus);
 
     entries.push({
       client: `+${store.phone}`,
       campaignName: campaign.name.replace(/_/g,' ').toLowerCase(),
       variables,
+      _c2a: { utm, callToAction },
     });
   }
   return entries;
@@ -331,6 +356,19 @@ const generateVariables = (variablesList, obj, utm) => {
   return variables;
 }
 
+const generateCallToAction = (variables, skus) => {
+  if (variables.filter(v => v.startsWith('sku')).length === 2) {
+    return {
+      actionTypeId: Config.lbApiOperaciones.callToAction.reference,
+      storeReferenceId: skus[0].storeReferenceId,
+    }
+  } else { // 2 or more skus then C2A_OFFER_LIST
+    return {
+      actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
+    }
+  }
+}
+
 const getStore = (row) => ({
   storeId: row.storeId, 
   name: row.name,
@@ -338,6 +376,7 @@ const getStore = (row) => ({
 });
 
 const getSku = (row) => ({
+  storeReferenceId: row.storeReferenceId,
   reference: row.reference, 
   discountFormatted: row.discountFormatted
 });
@@ -391,7 +430,13 @@ const getUtm = (day, status, locationId, name) => {
   const source = 'connectly-campaign';
   const content = UUID; // uuid
   const medium = '164';
-  return `utm_campaign=${campaign}&utm_term=${term}&utm_source=${source}&utm_medium=${medium}&utm_content=${content}`;
+  return {
+    campaignName: campaign,
+    campaignContent: content,
+    campaignTerm: term,
+    campaignSource: source,
+    campaignMedium: medium,
+  };
 }
 
 const daysFromBaseDate = (date) => Math.trunc((date - BASE_DATE) / (1000 * 60 * 60 * 24));
