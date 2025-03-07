@@ -3,8 +3,6 @@ import { v4 as uuid } from 'uuid';
 import { Config } from './config.js';
 import parseMobile from 'libphonenumber-js/mobile'
 
-console.log({ Config });
-
 // Constants 
 
 const LOCATION = {
@@ -246,7 +244,9 @@ async function main(day, limit = 100, offset = 0) {
   const data = await executeQueryBigQuery(queryStores);
   const filteredData = data.filter(row => filterData(row, frequencyByStatus, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
-  const entries = generateEntries(storeMap);
+  let entries = generatePreEntries(storeMap).slice(offset, offset + limit);
+  entries = await generateCallToActionShortLinks(entries);
+  entries = generatePathVariable(entries);
   reportEntries(entries.slice(offset, offset + limit));
   // console.log('===================');
   // console.log(JSON.stringify(entries.slice(offset, offset + limit), null, 2));
@@ -257,6 +257,76 @@ async function main(day, limit = 100, offset = 0) {
 
 // Helper Functions
 
+const getUtmAndCallToActionKey = ({ utm, callToAction }) => (
+  `${
+    utm.campaignName
+  }|${
+    callToAction.actionTypeId ?? ''
+  }|${
+    callToAction.storeReferenceId ?? ''
+  }|${
+    callToAction.storeReferenceIds?.join(',') ?? ''
+  }|${
+    callToAction.macroId ?? ''
+  }|${
+    callToAction.brandId ?? ''
+  }`
+);
+
+const generatePathVariable = (entries) => {
+  return entries.map(entry => {
+    const path = getPathFromC2a(entry._c2a)
+    return {
+      ...entry,
+      variables: {
+        ...(entry?.variables || {}),
+        path
+      },
+      _c2a: undefined
+    }
+  });
+}
+
+const getPathFromC2a = (c2a)=> {
+  const { utm, shortLink } = c2a;
+  const queryParams = 
+    `utm_source=${
+      utm.campaignSource || ''
+    }&utm_medium=${
+      utm.campaignMedium || ''
+    }&utm_content=${
+      utm.campaignContent || ''
+    }&utm_campaign=${
+      utm.campaignName
+    }&utm_term=${
+      utm.campaignTerm || ''
+    }`;
+  return `${shortLink.split('/').slice(1)}?${queryParams}`;
+}
+
+const generateCallToActionShortLinks = async (entries) => {
+  const preMap = entries.reduce((acc, entry) => {
+    const key = getUtmAndCallToActionKey(entry._c2a);
+    acc.set(key, entry._c2a);
+    return acc;
+  }, new Map());
+  // console.error(Array.from(preMap.keys()), preMap.size);
+  const shortLinkMap = new Map();
+  for (const [key, value] of preMap.entries()) {
+    const response = await createshortLink(value);
+    // console.log('shortLink:', response?.data);
+    shortLinkMap.set(key, response?.data?.shortLink);
+  }
+  // console.error({ shortLinkMap });
+  return entries.map(entry => ({
+    ...entry,
+    _c2a: {
+      ...entry._c2a,
+      shortLink: shortLinkMap.get(getUtmAndCallToActionKey(entry._c2a)),
+    }
+  }));
+}
+
 const reportEntries = (entries) => {
   console.log('===================');
   console.log(JSON.stringify(entries, null, 2));
@@ -266,11 +336,10 @@ const reportEntries = (entries) => {
     acc.set(entry.campaignName, value + 1);
     return acc;
   }, new Map());
-  console.log('Summary Per Campaign');
+  console.error('Summary Per Campaign');
   for (const [key, value] of summary.entries()) {
-    console.log(`- ${key}: ${value}`);
+    console.error(`- ${key}: ${value}`);
   }
-
 }
 
 const generateStoreMap = (filteredData, campaignsBySatatus, day) => {
@@ -293,12 +362,15 @@ const generateStoreMap = (filteredData, campaignsBySatatus, day) => {
   }, new Map());
 }
 
-const generateEntries = (storesMap) => {
+const generatePreEntries = (storesMap) => {
   const entries = [];
   for (const data of Array.from(storesMap.values())) {
     const { store, campaign, skus, utm } = data;
 
-    const variables = generateVariables(campaign.variables, { store, skus }, utm );
+    const { variables, storeReferenceIds } = generateVariablesAndStoreReferenceIds(
+      campaign.variables, { store, skus }, utm
+    ) || {};
+
     if (!variables) continue;
 
     const client = `+${store.phone}`;
@@ -308,7 +380,7 @@ const generateEntries = (storesMap) => {
       continue;
     }
 
-    const callToAction = generateCallToAction(Object.keys(variables), skus);
+    const callToAction = generateCallToAction(storeReferenceIds);
 
     entries.push({
       client: `+${store.phone}`,
@@ -322,7 +394,7 @@ const generateEntries = (storesMap) => {
 
 const removeExtraSpaces = (str) => str.replace(/\s+/g, ' ').trim();
 
-const generateVariables = (variablesList, obj, utm) => {
+const generateVariablesAndStoreReferenceIds = (variablesList, obj, utm) => {
   const typeMap = {
     'name': 'store',
     'sku': 'skus',
@@ -334,6 +406,7 @@ const generateVariables = (variablesList, obj, utm) => {
     'sku': 'reference',
     'dsct': 'discountFormatted', 
   }
+  const storeReferenceIds = [];
   const variables = {
     path: 'k2Qh'
     // path: `pedir/seccion/descuentos?${utm}`,
@@ -341,28 +414,39 @@ const generateVariables = (variablesList, obj, utm) => {
   for (const variable of variablesList) {
     const [varName, varIndex] = variable.split('_');
     const property = obj[typeMap[varName] || '_'];
-    if (varIndex) {
+
+    if (!property) {
+      variables[variable] = variable;
+    } else if (varIndex) {
       const index = Number(varIndex) - 1;
       if (index >= property.length) return null;
 
-      const value = property[index]?.[subTypeMap[varName]] || '-';
-      variables[variable] = value;
+      variables[variable] = property[index]?.[subTypeMap[varName]] || variable;
+      if (varName.startsWith('sku')) {
+        storeReferenceIds.push(property[index]?.storeReferenceId || 0);
+      }
     } else {
-      const value = property[subTypeMap[varName]] || ''; 
+      const value = property[subTypeMap[varName]] || variable; 
       variables[variable] = value;
     }
     variables[variable] = removeExtraSpaces(variables[variable]);
   }
-  return variables;
+  return { variables, storeReferenceIds };;
 }
 
-const generateCallToAction = (variables, skus) => {
-  if (variables.filter(v => v.startsWith('sku')).length === 2) {
+const generateCallToAction = (storeReferenceIds) => {
+  if (storeReferenceIds.length === 1) {
     return {
       actionTypeId: Config.lbApiOperaciones.callToAction.reference,
-      storeReferenceId: skus[0].storeReferenceId,
+      storeReferenceId: storeReferenceIds[0],
     }
-  } else { // 2 or more skus then C2A_OFFER_LIST
+  } else if (storeReferenceIds.length > 1) { // 2 or more skus then C2A_OFFER_LIST
+    return {
+      actionTypeId: Config.lbApiOperaciones.callToAction.offerList, // TO DO: When new section is created
+      storeReferenceIds: undefined,
+      // storeReferenceIds: storeReferenceIds,
+    }
+  } else { // NO Sku included
     return {
       actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
     }
@@ -405,7 +489,10 @@ const getUtm = (day, status, locationId, name) => {
     const months = ['_', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     return `${months[Number(mpnth)]}${day}`;
   };
-  const formatDDMMYY = (date) => date.toLocaleDateString('es-US', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '');
+  const formatDDMMYY = (date) => date.toLocaleDateString(
+    'es-US', 
+    { day: '2-digit', month: '2-digit', year: '2-digit' }
+  ).replace(/\//g, '');
   const getCityId = (locationId) => {
     const city = {
       [LOCATION.BOG]: 1,
@@ -419,14 +506,39 @@ const getUtm = (day, status, locationId, name) => {
     };
     return city[locationId] || 0;
   };
+  const getProvider = (locationId) => {
+    const provider = {
+      [LOCATION.BOG]: 1377,
+      [LOCATION.MDE]: 1377,
+      [LOCATION.CLO]: 1377,
+      [LOCATION.BAQ]: 1377,
+      [LOCATION.CMX]: 1381,
+      [LOCATION.SCL]: 1379,
+      [LOCATION.SAO]: 1378,
+      [LOCATION.VLN]: 1380,
+    };
+    return provider[locationId] || 0;
+  }
 
-  const provider = name
-    ? name.replace(/[^a-zA-Z0-9]/g, '')
-    : 'CHIPER';
-  const cityId = getCityId(locationId);
   const date = new Date(BASE_DATE + (day * 24 * 60 * 60 * 1000));
   const term = formatDDMMYY(date); // DDMMYY
-  const campaign = `${cityId}_${provider}_${asset}_${payer}_${formatMMMDD(term)}_${type}_${status}`;
+  const campaign = `${
+      getCityId(locationId)
+    }_${
+      getProvider(locationId)
+    }_${
+      asset
+    }_${
+      payer
+    }_${
+      formatMMMDD(term)
+    }_${
+      type
+    }_${
+      status
+    }_${
+      encodeURIComponent(name.replace(/[^a-zA-Z0-9]/g, '-'))
+    }`;
   const source = 'connectly-campaign';
   const content = UUID; // uuid
   const medium = '164';
@@ -451,6 +563,30 @@ function filterData (row, filter, day) {
   if (!mod) return false;
   return (row.storeId % mod) === (day % mod);
 }
+
+async function createshortLink(payload) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': Config.lbApiOperaciones.apiKey
+      ? Config.lbApiOperaciones.apiKey
+      : `Bearer ${Config.lbApiOperaciones.apiToken}`, // Replace with a real token if needed
+  };
+  const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
+  return fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(payload)
+  }).then(response => {
+    if (response.status !== 200) {
+      throw new Error(`Error creating shortLink: ${response.status}: ${response.statusText}`);
+    }
+    return response.json()
+  }).catch((error) => {
+    console.error('ERROR:', error);
+    throw error;
+  });
+}
+
 
 
 async function executeQueryBigQuery(query) {
