@@ -22,9 +22,10 @@ async function main(day, limit = 100, offset = 0) {
   const data = await executeQueryBigQuery(queryStores);
   const filteredData = data.filter(row => filterData(row, frequencyByStatus, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
-  let entries = generatePreEntries(storeMap).slice(offset, offset + limit);
-  entries = await generateCallToActionShortLinks(entries);
-  entries = generatePathVariable(entries);
+  let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
+  preEntries = await generateCallToActionShortLinks(preEntries);
+  preEntries = generatePathVariable(preEntries);
+  const entries = preEntries.map(entry => entry.connectlyEntry);
   reportEntries(entries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(`Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`);
@@ -48,22 +49,23 @@ const getUtmAndCallToActionKey = ({ utm, callToAction }) => (
   }`
 );
 
-const generatePathVariable = (entries) => {
-  return entries.map(entry => {
-    const path = getPathFromC2a(entry._c2a)
+const generatePathVariable = (preEntries) => {
+  return preEntries.map(preEntry => {
+    const path = getPathFromPreEntry(preEntry)
+    const { connectlyEntry } = preEntry;
+    connectlyEntry.variables = {
+      ...connectlyEntry.variables,
+      path
+    };
     return {
-      ...entry,
-      variables: {
-        ...(entry?.variables || {}),
-        path
-      },
-      _c2a: undefined
+      ...preEntry,
+      connectlyEntry,
     }
   });
 }
 
-const getPathFromC2a = (c2a)=> {
-  const { utm, shortLink } = c2a;
+const getPathFromPreEntry = (preEntry)=> {
+  const { utm, shortLink } = preEntry;
   const queryParams = 
     `utm_source=${
       utm.campaignSource || ''
@@ -79,10 +81,11 @@ const getPathFromC2a = (c2a)=> {
   return `${shortLink.split('/').slice(1)}?${queryParams}`;
 }
 
-const generateCallToActionShortLinks = async (entries) => {
-  const preMap = entries.reduce((acc, entry) => {
-    const key = getUtmAndCallToActionKey(entry._c2a);
-    acc.set(key, entry._c2a);
+const generateCallToActionShortLinks = async (preEntries) => {
+  const preMap = preEntries.reduce((acc, preEntry) => {
+    const { utm, callToAction } = preEntry;
+    const key = getUtmAndCallToActionKey({ utm, callToAction});
+    acc.set(key, { utm, callToAction });
     return acc;
   }, new Map());
   // console.error(Array.from(preMap.keys()), preMap.size);
@@ -93,13 +96,13 @@ const generateCallToActionShortLinks = async (entries) => {
     shortLinkMap.set(key, response?.data?.shortLink);
   }
   // console.error({ shortLinkMap });
-  return entries.map(entry => ({
-    ...entry,
-    _c2a: {
-      ...entry._c2a,
-      shortLink: shortLinkMap.get(getUtmAndCallToActionKey(entry._c2a)),
-    }
-  }));
+  return preEntries.map(preEntry => {
+      const { utm, callToAction } = preEntry; 
+      return {
+        ...preEntry,
+        shortLink: shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction })),
+      }
+    });
 }
 
 const reportEntries = (entries) => {
@@ -156,13 +159,13 @@ const generatePreEntries = (storesMap) => {
     }
 
     const callToAction = generateCallToAction(storeReferenceIds);
-
-    entries.push({
+    const connectlyEntry = {
       client: `+${store.phone}`,
       campaignName: campaign.name.replace(/_/g,' ').toLowerCase(),
       variables,
-      _c2a: { utm, callToAction },
-    });
+    }
+
+    entries.push({ connectlyEntry, utm, callToAction });
   }
   console.error('Entries:', entries.length);
   return entries;
