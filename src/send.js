@@ -1,23 +1,6 @@
 // import data from './empty.json' assert { type: "json" };
-import data from '../data.2025-03-07.json' assert { type: "json" };
+import data from '../data.2025-03-08.json' assert { type: "json" };
 import { Config } from './config.js';
-
-/* 
-curl  --location 'https://api.connectly.ai/v1/businesses/1ca5c793-9859-4763-94fc-f82838fe6472/send/campaigns' \
-  --header 'Content-Type: application/json' \
-  --header 'x-api-key: CHANGE_TO_API_KEY' \
-  --data '{
-		"entries": [
-				{
-						"client": "CHANGE_TO_TARGET_PHONE_NUMBER",
-						"campaignName": "api lead 4 es v0",
-						"variables": {}
-				}
-		]
-}'
-*/
-
-console.log({ Config });
 
 const url = `${Config.connectly.apiUrl}/${Config.connectly.businessId}/send/campaigns`;
 const API_KEY = Config.connectly.apiKey;  // Replace with a real token if needed
@@ -30,6 +13,7 @@ const headers = {
 
 let accepted = 0;
 let rejected = 0;
+const rejections = [];
 
 function splitIntoBatches(arr, batchSize) {
     return arr.reduce((acc, _, i) => {
@@ -60,11 +44,12 @@ for (const batch of batches) {
            return response.json()
       }) 
       .then((response) => {
+        rejections.push({ request, response: response.data});
         if (!response.data) {
           rejected += 1;
           return;
         }
-        // console.log('Response:', response.data);
+        // console.log('Rejection Response:', response.data);
         accepted += response.data[0].acceptedCount;
         rejected += response.data[0].rejectedCount;
         if (response.data[0].error) {
@@ -81,5 +66,6 @@ for (const batch of batches) {
     });
   batchIdx += 1;
 };
+console.log(JSON.stringify(rejections, null,  ));
 
 

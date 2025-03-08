@@ -15,28 +15,6 @@ const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0);
 const UUID = uuid();
 
 const bigquery = new BigQuery();
-const queryStores = `
-    SELECT DISTINCT
-      country,
-      storeStatus,
-      storeId,
-      city,
-      locationId,
-      storeReferenceId,
-      name,
-      reference,
-      discountFormatted,
-      phone,
-      ranking
-    FROM \`chiperdw.dbt.BI_D-MessageGenerator\`
-    WHERE phone IS NOT NULL
-      AND ranking <= 10
-      AND (
-        (storeStatus = 'Churn' AND daysSinceLastOrderDelivered > 1000000) OR
-        (storeStatus <> 'Churn')
-      )
-    ORDER BY storeId, ranking
-`;
 
 // Main Function 
 
@@ -186,10 +164,9 @@ const generatePreEntries = (storesMap) => {
       _c2a: { utm, callToAction },
     });
   }
+  console.error('Entries:', entries.length);
   return entries;
 }
-
-const removeExtraSpaces = (str) => str.replace(/\s+/g, ' ').trim();
 
 const generateVariablesAndStoreReferenceIds = (variablesList, obj, utm) => {
   const typeMap = {
@@ -280,22 +257,6 @@ const getUtm = (day, status, locationId, name) => {
   const payer = '3';
   const type = 'ot';
 
-  const formatMMMDD = (ddmmyy) => {
-    const mpnth = ddmmyy.slice(2, 4);
-    const day = ddmmyy.slice(0, 2);
-    const months = ['_', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${months[Number(mpnth)]}${day}`;
-  };
-
-  const formatDDMMYY = (date) => date.toLocaleDateString(
-    'es-US', 
-    { day: '2-digit', month: '2-digit', year: '2-digit' }
-  ).replace(/\//g, '');
-
-  const getCityId = (locationId) => CITY[locationId] || 0;
-
-  const getProvider = (locationId) => PROVIDER[locationId] || 0;
-
   const date = new Date(BASE_DATE + (day * 24 * 60 * 60 * 1000));
   const term = formatDDMMYY(date); // DDMMYY
   const campaign = `${
@@ -327,8 +288,6 @@ const getUtm = (day, status, locationId, name) => {
   };
 }
 
-const daysFromBaseDate = (date) => Math.trunc((date - BASE_DATE) / (1000 * 60 * 60 * 24));
-
 function getModulo (status, location, filter) {
   const statusFilter = filter[status] || filter._default || {};
   return statusFilter[location] || statusFilter._default;
@@ -339,6 +298,8 @@ function filterData (row, filter, day) {
   if (!mod) return false;
   return (row.storeId % mod) === (day % mod);
 }
+
+// Integration Functions 
 
 async function createshortLink(payload) {
   const headers = {
@@ -363,7 +324,30 @@ async function createshortLink(payload) {
   });
 }
 
+// Repository functions
 
+const queryStores = `
+    SELECT DISTINCT
+      country,
+      storeStatus,
+      storeId,
+      city,
+      locationId,
+      storeReferenceId,
+      name,
+      reference,
+      discountFormatted,
+      phone,
+      ranking
+    FROM \`chiperdw.dbt.BI_D-MessageGenerator\`
+    WHERE phone IS NOT NULL
+      AND ranking <= 10
+      AND (
+        (storeStatus = 'Churn' AND daysSinceLastOrderDelivered > 1000000) OR
+        (storeStatus <> 'Churn')
+      )
+    ORDER BY storeId, ranking
+`;
 
 async function executeQueryBigQuery(query) {
   const options = {
@@ -383,6 +367,28 @@ async function executeQueryBigQuery(query) {
     throw error;
   }
 }
+
+// Utility Functions
+
+const daysFromBaseDate = (date) => Math.trunc((date - BASE_DATE) / (1000 * 60 * 60 * 24));
+
+const formatMMMDD = (ddmmyy) => {
+  const mpnth = ddmmyy.slice(2, 4);
+  const day = ddmmyy.slice(0, 2);
+  const months = ['_', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  return `${months[Number(mpnth)]}${day}`;
+};
+
+const formatDDMMYY = (date) => date.toLocaleDateString(
+  'es-US', 
+  { day: '2-digit', month: '2-digit', year: '2-digit' }
+).replace(/\//g, '');
+
+const getCityId = (locationId) => CITY[locationId] || 0;
+
+const getProvider = (locationId) => PROVIDER[locationId] || 0;
+
+const removeExtraSpaces = (str) => str.replace(/\s+/g, ' ').trim();
 
 // Run Main Function
 
