@@ -1,5 +1,6 @@
 // import data from './empty.json' assert { type: "json" };
-import data from '../data.2025-03-08.json' assert { type: "json" };
+import data from '../data.2025-03-09.json' assert { type: "json" };
+// import data from '../xx.json' assert { type: "json" };
 import { Config } from './config.js';
 
 const url = `${Config.connectly.apiUrl}/${Config.connectly.businessId}/send/campaigns`;
@@ -44,7 +45,7 @@ for (const batch of batches) {
            return response.json()
       }) 
       .then((response) => {
-        rejections.push({ request, response: response.data});
+        rejections.push({ request: payload, response: response.data});
         if (!response.data) {
           rejected += 1;
           return;

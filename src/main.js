@@ -5,7 +5,7 @@ import parseMobile from 'libphonenumber-js/mobile'
 // Constants 
 
 import { Config } from './config.js';
-import {frequencyByStatus, campaignsBySatatus } from './parameters.js';
+import { frequencyByStatus, campaignsBySatatus } from './parameters.js';
 import { PROVIDER, CITY } from './constants.js';
 
 // Process Gobal Variables
@@ -24,7 +24,10 @@ async function main(day, limit = 100, offset = 0) {
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
   let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
   preEntries = await generateCallToActionShortLinks(preEntries);
-  preEntries = generatePathVariable(preEntries);
+  preEntries = generatePathVariable(
+    preEntries,
+    ["path_1", "path", "path_2"],
+  );
   const entries = preEntries.map(entry => entry.connectlyEntry);
   reportEntries(entries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
@@ -41,7 +44,7 @@ const getUtmAndCallToActionKey = ({ utm, callToAction }) => (
   }|${
     callToAction.storeReferenceId ?? ''
   }|${
-    callToAction.storeReferenceIds?.join(',') ?? ''
+    (callToAction.storeReferenceIds || []).sort((a, b) => a - b).join(',')
   }|${
     callToAction.macroId ?? ''
   }|${
@@ -49,13 +52,22 @@ const getUtmAndCallToActionKey = ({ utm, callToAction }) => (
   }`
 );
 
-const generatePathVariable = (preEntries) => {
+const generatePathVariable = (preEntries, paths) => {
   return preEntries.map(preEntry => {
-    const path = getPathFromPreEntry(preEntry)
+    const pathObj = {};
+    const { utm, shortLinks } = preEntry;
+    console.log({ paths, shortLinks });
+    paths.forEach((path, i) => {
+      const shortLink = getPathFromPreEntry({
+        utm, 
+        shortLink: shortLinks[i] || ''
+      });
+      pathObj[path] = shortLink;
+    });
     const { connectlyEntry } = preEntry;
     connectlyEntry.variables = {
       ...connectlyEntry.variables,
-      path
+      ...pathObj
     };
     return {
       ...preEntry,
@@ -64,8 +76,8 @@ const generatePathVariable = (preEntries) => {
   });
 }
 
-const getPathFromPreEntry = (preEntry)=> {
-  const { utm, shortLink } = preEntry;
+const getPathFromPreEntry = ({ utm, shortLink })=> {
+  console.log ('************', { utm, shortLink });
   const queryParams = 
     `utm_source=${
       utm.campaignSource || ''
@@ -83,24 +95,31 @@ const getPathFromPreEntry = (preEntry)=> {
 
 const generateCallToActionShortLinks = async (preEntries) => {
   const preMap = preEntries.reduce((acc, preEntry) => {
-    const { utm, callToAction } = preEntry;
-    const key = getUtmAndCallToActionKey({ utm, callToAction});
-    acc.set(key, { utm, callToAction });
+    const { utm, callToActions } = preEntry;
+    for (const callToAction of callToActions) {
+      const key = getUtmAndCallToActionKey({ utm, callToAction});
+      acc.set(key, { utm, callToAction });
+      console.error(callToAction);
+    };
     return acc;
   }, new Map());
-  // console.error(Array.from(preMap.keys()), preMap.size);
+  console.error(Array.from(preMap.keys()).sort((a, b) => a === b ? 0 : a < b ? -1 : 1), preMap.size);
   const shortLinkMap = new Map();
   for (const [key, value] of preMap.entries()) {
-    const response = await createshortLink(value);
-    // console.log('shortLink:', response?.data);
-    shortLinkMap.set(key, response?.data?.shortLink);
+    // const response = await createshortLink(value);
+    // // console.log('shortLink:', response?.data);
+    // shortLinkMap.set(key, response?.data?.shortLink);
+    shortLinkMap.set(key, encodeURIComponent(`path/${key}`));
   }
   // console.error({ shortLinkMap });
   return preEntries.map(preEntry => {
-      const { utm, callToAction } = preEntry; 
+      const { utm, callToAction, callToActions } = preEntry; 
       return {
         ...preEntry,
         shortLink: shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction })),
+        shortLinks: callToActions.map(callToAction => `sl.chiper.co/${
+          shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction }))
+        }`),
       }
     });
 }
@@ -146,7 +165,8 @@ const generatePreEntries = (storesMap) => {
     const { store, campaign, skus, utm } = data;
 
     const { variables, storeReferenceIds } = generateVariablesAndStoreReferenceIds(
-      campaign.variables, { store, skus }, utm
+      campaign.variables,
+      { store, skus },
     ) || {};
 
     if (!variables) continue;
@@ -158,6 +178,15 @@ const generatePreEntries = (storesMap) => {
       continue;
     }
 
+    const callToActions = generateCallToActionPaths(
+      ["path_1", "path", "path_2"],
+      storeReferenceIds,
+    );
+
+    if (!callToActions) continue;
+
+    // console.log(callToActions)
+
     const callToAction = generateCallToAction(storeReferenceIds);
     const connectlyEntry = {
       client: `+${store.phone}`,
@@ -165,13 +194,40 @@ const generatePreEntries = (storesMap) => {
       variables,
     }
 
-    entries.push({ connectlyEntry, utm, callToAction });
+    entries.push({ connectlyEntry, utm, callToAction, callToActions });
   }
   console.error('Entries:', entries.length);
   return entries;
 }
 
-const generateVariablesAndStoreReferenceIds = (variablesList, obj, utm) => {
+const generateCallToActionPaths = (paths, storeReferenceIds) => {
+  const pathObj = [];
+  for (const path of paths.filter((e) => e.startsWith('path'))) {
+    const [ , index] = path.split('_');
+    if (!path) return null;
+    if (index) {
+      if (isNaN(index)) { // path_n
+        pathObj.push({
+          actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
+          storeReferenceIds: storeReferenceIds,
+        });
+      } else {
+        pathObj.push({
+          actionTypeId: Config.lbApiOperaciones.callToAction.reference,
+          storeReferenceId: storeReferenceIds[index - 1],
+        });
+      }
+    } else {
+      pathObj.push({
+        actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
+      });
+    }
+  }
+
+  return pathObj.length ? pathObj : null;
+}
+ 
+const generateVariablesAndStoreReferenceIds = (variablesList, obj) => {
   const typeMap = {
     'name': 'store',
     'sku': 'skus',
@@ -185,7 +241,7 @@ const generateVariablesAndStoreReferenceIds = (variablesList, obj, utm) => {
   }
   const storeReferenceIds = [];
   const variables = {
-    path: 'k2Qh'
+    // path: 'k2Qh'
     // path: `pedir/seccion/descuentos?${utm}`,
   };
   for (const variable of variablesList) {
