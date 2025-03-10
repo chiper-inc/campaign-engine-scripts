@@ -10,7 +10,7 @@ import { PROVIDER, CITY } from './constants.js';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.js';
 // Process Gobal Variables
 
-const today = new Date('2025/03/09').setHours(0, 0, 0, 0);
+const today = new Date().setHours(0, 0, 0, 0);
 const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0);
 const UUID = uuid();
 
@@ -111,19 +111,23 @@ const generateCallToActionShortLinks = async (preEntries) => {
     // shortLinkMap.set(key, response?.data?.shortLink);
     // const integration = new LbApiOperacionesIntegration(16);
     // await integration.createOneShortLink(value);
-    shortLinkMap.set(key, `path/${key}`);
+    // shortLinkMap.set(key, `path/${key}`);
   }
   // console.error({ shortLinkMap });
   const shortLinksMap = await xxxx(preMap);
-  // console.error({ shortLinksMap });
+
+  for (const [key, value] of shortLinksMap.entries()) {
+    shortLinkMap.set(key, value);
+  }
+  console.error({ shortLinksMap });
   return preEntries.map(preEntry => {
       const { utm, callToAction, callToActions } = preEntry; 
       return {
         ...preEntry,
         shortLink: shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction })),
-        shortLinks: callToActions.map(callToAction => `sl.chiper.co/${
+        shortLinks: callToActions.map(callToAction => 
           shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction }))
-        }`),
+        ),
       }
     });
 }

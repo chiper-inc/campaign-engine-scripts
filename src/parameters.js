@@ -78,6 +78,7 @@ export const campaignsBySatatus = {
       API_Churn_3_es_v0: NAME_3SKU,
       API_Churn_4_es_v0: NAME_4SKU,
       API_Churn_5_es_v0: NAME_5SKU,
+      API_Churn_6_es_v0: NAME_1SKU,
     }
   },
   Lead: {
@@ -97,6 +98,7 @@ export const campaignsBySatatus = {
       API_Lead_3_es_v0: NAME_3SKU,
       API_Lead_4_es_v0: NAME_4SKU,
       API_Lead_5_es_v0: NAME_5SKU,
+      API_Lead_6_es_v0: NAME_1SKU,
     }
   },
   New: {
@@ -127,6 +129,7 @@ export const campaignsBySatatus = {
       API_Hibernating_3_es_v0: NAME_3SKU,
       API_Hibernating_4_es_v0: NAME_4SKU,
       API_Hibernating_5_es_v0: NAME_5SKU,
+      API_Hibernating_6_es_v0: NAME_1SKU,
     }
 
   },
@@ -147,6 +150,7 @@ export const campaignsBySatatus = {
       API_Retained_3_es_v0: NAME_3SKU,
       API_Retained_4_es_v0: NAME_4SKU,
       API_Retained_5_es_v0: NAME_5SKU,
+      API_Retained_6_es_v0: NAME_1SKU,
     }
 
   },
@@ -167,6 +171,7 @@ export const campaignsBySatatus = {
       API_Resurrected_3_es_v0: NAME_3SKU,
       API_Resurrected_4_es_v0: NAME_4SKU,
       API_Resurrected_5_es_v0: NAME_5SKU,
+      API_Resurrected_6_es_v0: NAME_1SKU,
     }
   },
   variables: {
