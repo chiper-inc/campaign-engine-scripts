@@ -7,10 +7,10 @@ import parseMobile from 'libphonenumber-js/mobile'
 import { Config } from './config.js';
 import { frequencyByStatus, campaignsBySatatus } from './parameters.js';
 import { PROVIDER, CITY } from './constants.js';
-
+import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.js';
 // Process Gobal Variables
 
-const today = new Date().setHours(0, 0, 0, 0);
+const today = new Date('2025/03/09').setHours(0, 0, 0, 0);
 const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0);
 const UUID = uuid();
 
@@ -26,7 +26,7 @@ async function main(day, limit = 100, offset = 0) {
   preEntries = await generateCallToActionShortLinks(preEntries);
   preEntries = generatePathVariable(
     preEntries,
-    ["path_1", "path", "path_2"],
+    [/* "path_1", */ "path_1", /* "path_2" */],
   );
   const entries = preEntries.map(entry => entry.connectlyEntry);
   reportEntries(entries);
@@ -56,7 +56,7 @@ const generatePathVariable = (preEntries, paths) => {
   return preEntries.map(preEntry => {
     const pathObj = {};
     const { utm, shortLinks } = preEntry;
-    console.log({ paths, shortLinks });
+    // console.log({ paths, shortLinks });
     paths.forEach((path, i) => {
       const shortLink = getPathFromPreEntry({
         utm, 
@@ -77,7 +77,7 @@ const generatePathVariable = (preEntries, paths) => {
 }
 
 const getPathFromPreEntry = ({ utm, shortLink })=> {
-  console.log ('************', { utm, shortLink });
+  // console.log ('************', { utm, shortLink });
   const queryParams = 
     `utm_source=${
       utm.campaignSource || ''
@@ -106,12 +106,16 @@ const generateCallToActionShortLinks = async (preEntries) => {
   console.error(Array.from(preMap.keys()).sort((a, b) => a === b ? 0 : a < b ? -1 : 1), preMap.size);
   const shortLinkMap = new Map();
   for (const [key, value] of preMap.entries()) {
-    // const response = await createshortLink(value);
+    // const response = await createShortLink(value);
     // // console.log('shortLink:', response?.data);
     // shortLinkMap.set(key, response?.data?.shortLink);
-    shortLinkMap.set(key, encodeURIComponent(`path/${key}`));
+    // const integration = new LbApiOperacionesIntegration(16);
+    // await integration.createOneShortLink(value);
+    shortLinkMap.set(key, `path/${key}`);
   }
   // console.error({ shortLinkMap });
+  const shortLinksMap = await xxxx(preMap);
+  // console.error({ shortLinksMap });
   return preEntries.map(preEntry => {
       const { utm, callToAction, callToActions } = preEntry; 
       return {
@@ -122,6 +126,24 @@ const generateCallToActionShortLinks = async (preEntries) => {
         }`),
       }
     });
+}
+
+const xxxx = async (preMap) => {
+  const integration = new LbApiOperacionesIntegration();
+  const responses = await integration.createAllShortLink(
+    Array.from(
+      preMap.entries()
+    ).map(([key, value]) => ({ 
+      key, 
+      value
+    }))
+  );
+  return responses.reduce((acc, obj) => {
+    const { key, response } = obj;
+    console.log(JSON.stringify(response.data));
+    acc.set(key, response?.data?.shortLink || '');
+    return acc;
+  }, new Map());
 }
 
 const reportEntries = (entries) => {
@@ -179,7 +201,7 @@ const generatePreEntries = (storesMap) => {
     }
 
     const callToActions = generateCallToActionPaths(
-      ["path_1", "path", "path_2"],
+      [/* "path_1" */, "path_1", /* "path_2" */],
       storeReferenceIds,
     );
 
@@ -360,7 +382,7 @@ function filterData (row, filter, day) {
 
 // Integration Functions 
 
-async function createshortLink(payload) {
+async function createShortLink(payload) {
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': Config.lbApiOperaciones.apiKey
@@ -406,6 +428,7 @@ const queryStores = `
         (storeStatus <> 'Churn')
       )
     ORDER BY storeId, ranking
+    LIMIT 5000000
 `;
 
 async function executeQueryBigQuery(query) {

@@ -31,7 +31,7 @@ const batches = splitIntoBatches(data, BATCH_SIZE);
 let batchIdx = 1;
 let statuses = {};
 for (const batch of batches) {
-  await Promise.all(batch.map((entry, idx) => {
+  await Promise.all(batch.map(async (entry, idx)=> {
     const payload = {
       entries: [entry]
     };
