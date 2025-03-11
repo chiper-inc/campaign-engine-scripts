@@ -1,5 +1,5 @@
 // import data from './empty.json' assert { type: "json" };
-import data from '../data.2025-03-10.json' assert { type: "json" };
+import data from '../data.2025-03-11.json' assert { type: "json" };
 // import data from '../xx.json' assert { type: "json" };
 import { Config } from './config.js';
 
@@ -45,8 +45,8 @@ for (const batch of batches) {
            return response.json()
       }) 
       .then((response) => {
-        rejections.push({ request: payload, response: response.data});
         if (!response.data) {
+          rejections.push({ request: payload, response });
           rejected += 1;
           return;
         }
@@ -54,10 +54,12 @@ for (const batch of batches) {
         accepted += response.data[0].acceptedCount;
         rejected += response.data[0].rejectedCount;
         if (response.data[0].error) {
-            rejected += 1;
+          rejections.push({ request: payload, response: response.data });
+          rejected += 1;
         }
       })
       .catch((error) => {
+        rejections.push({ request: payload, response: error.response });
         console.error({ error });
         console.log('Error:', error.response?.data || error.message);
         rejected += 1;
@@ -67,6 +69,9 @@ for (const batch of batches) {
     });
   batchIdx += 1;
 };
-console.log(JSON.stringify(rejections, null,  ));
+
+rejections.forEach((r, idx) => {
+  console.log(`Rejection ${idx}: ${JSON.stringify(r)}`);
+});
 
 

@@ -30,6 +30,12 @@ export const frequencyByStatus = {
   },
   New: {
     _default: 0,
+    [LOCATION.BAQ]: 2,
+    [LOCATION.BOG]: 2,
+    [LOCATION.CLO]: 2,
+    [LOCATION.CMX]: 8,
+    [LOCATION.MDE]: 2,
+    [LOCATION.VLN]: 2,
   },
   Resurrected: {
     _default: 0,
@@ -38,7 +44,6 @@ export const frequencyByStatus = {
     [LOCATION.CLO]: 2,
     [LOCATION.CMX]: 4,
     [LOCATION.MDE]: 2,
-    [LOCATION.SCL]: 2,
     [LOCATION.VLN]: 2,
   },
   Retained: {
@@ -53,12 +58,13 @@ export const frequencyByStatus = {
   _default: 2,
 };
 
+const generateParams = (params, length) => 
+  Array.from({ length }, (_, i) => params.map(p => `${p}_${i + 1}`)).flat();
+
 const NAME = ["name"];
-const NAME_1SKU = ["name", "sku_1", "dsct_1"];
-const NAME_2SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2"];
-const NAME_3SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3"];
-const NAME_4SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3", "sku_4", "dsct_4"];
-const NAME_5SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3", "sku_4", "dsct_4", "sku_5", "dsct_5"];
+const DEFAULT = NAME.concat(generateParams(["sku", "dsct"], 2));
+const SKU_DSCT = ["sku", "dsct"];
+const SKU_DSCT_IMG = ["sku", "dsct", "img"];
 
 export const campaignsBySatatus = {
   Churn: {
@@ -72,13 +78,14 @@ export const campaignsBySatatus = {
       "API_Churn_7_es_v0",
     ],
     variables: {
-      _default: NAME_4SKU,
-      API_Churn_1_es_v0: NAME_1SKU,
-      API_Churn_2_es_v0: NAME_2SKU,
-      API_Churn_3_es_v0: NAME_3SKU,
-      API_Churn_4_es_v0: NAME_4SKU,
-      API_Churn_5_es_v0: NAME_5SKU,
-      API_Churn_6_es_v0: NAME_1SKU,
+      _default: DEFAULT,
+      API_Churn_1_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Churn_2_es_v0: NAME.concat(generateParams(SKU_DSCT, 2)),
+      API_Churn_3_es_v0: NAME.concat(generateParams(SKU_DSCT, 3)),
+      API_Churn_4_es_v0: NAME.concat(generateParams(SKU_DSCT, 4)),
+      API_Churn_5_es_v0: NAME.concat(generateParams(SKU_DSCT, 5)),
+      API_Churn_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Churn_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
   },
   Lead: {
@@ -92,13 +99,14 @@ export const campaignsBySatatus = {
       "API_Lead_7_es_v0",
     ],
     variables: {
-      _default: NAME_4SKU,
-      API_Lead_1_es_v0: NAME_1SKU,
-      API_Lead_2_es_v0: NAME_2SKU,
-      API_Lead_3_es_v0: NAME_3SKU,
-      API_Lead_4_es_v0: NAME_4SKU,
-      API_Lead_5_es_v0: NAME_5SKU,
-      API_Lead_6_es_v0: NAME_1SKU,
+      _default: DEFAULT,
+      API_Lead_1_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Lead_2_es_v0: NAME.concat(generateParams(SKU_DSCT, 2)),
+      API_Lead_3_es_v0: NAME.concat(generateParams(SKU_DSCT, 3)),
+      API_Lead_4_es_v0: NAME.concat(generateParams(SKU_DSCT, 4)),
+      API_Lead_5_es_v0: NAME.concat(generateParams(SKU_DSCT, 5)),
+      API_Lead_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Lead_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
   },
   New: {
@@ -111,6 +119,16 @@ export const campaignsBySatatus = {
       "API_New_6_es_v0",
       "API_New_7_es_v0",
     ],
+    variables: {
+      _default: DEFAULT,
+      API_New_1_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_New_2_es_v0: NAME.concat(generateParams(SKU_DSCT, 2)),
+      API_New_3_es_v0: NAME.concat(generateParams(SKU_DSCT, 3)),
+      API_New_4_es_v0: NAME.concat(generateParams(SKU_DSCT, 4)),
+      API_New_5_es_v0: NAME.concat(generateParams(SKU_DSCT, 5)),
+      API_New_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_New_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
+    },
   },
   Hibernating: {
     names: [
@@ -120,16 +138,17 @@ export const campaignsBySatatus = {
       "API_Hibernating_4_es_v0",
       "API_Hibernating_5_es_v0",
       "API_Hibernating_6_es_v0",
-      "API_Hibernating_7_es_v0",
+      "API_Hibernating_7_es_v1",
     ],
     variables: {
-      _default: NAME_4SKU,
-      API_Hibernating_1_es_v0: NAME_1SKU,
-      API_Hibernating_2_es_v0: NAME_2SKU,
-      API_Hibernating_3_es_v0: NAME_3SKU,
-      API_Hibernating_4_es_v0: NAME_4SKU,
-      API_Hibernating_5_es_v0: NAME_5SKU,
-      API_Hibernating_6_es_v0: NAME_1SKU,
+      _default: DEFAULT,
+      API_Hibernating_1_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Hibernating_2_es_v0: NAME.concat(generateParams(SKU_DSCT, 2)),
+      API_Hibernating_3_es_v0: NAME.concat(generateParams(SKU_DSCT, 3)),
+      API_Hibernating_4_es_v0: NAME.concat(generateParams(SKU_DSCT, 4)),
+      API_Hibernating_5_es_v0: NAME.concat(generateParams(SKU_DSCT, 5)),
+      API_Hibernating_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Hibernating_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
 
   },
@@ -144,13 +163,14 @@ export const campaignsBySatatus = {
       "API_Retained_7_es_v0",
     ],
     variables: {
-      _default: NAME_4SKU,
-      API_Retained_1_es_v0: NAME_1SKU,
-      API_Retained_2_es_v0: NAME_2SKU,
-      API_Retained_3_es_v0: NAME_3SKU,
-      API_Retained_4_es_v0: NAME_4SKU,
-      API_Retained_5_es_v0: NAME_5SKU,
-      API_Retained_6_es_v0: NAME_1SKU,
+      _default: DEFAULT,
+      API_Retained_1_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Retained_2_es_v0: NAME.concat(generateParams(SKU_DSCT, 2)),
+      API_Retained_3_es_v0: NAME.concat(generateParams(SKU_DSCT, 3)),
+      API_Retained_4_es_v0: NAME.concat(generateParams(SKU_DSCT, 4)),
+      API_Retained_5_es_v0: NAME.concat(generateParams(SKU_DSCT, 5)),
+      API_Retained_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Retained_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
 
   },
@@ -162,20 +182,20 @@ export const campaignsBySatatus = {
       "API_Resurrected_4_es_v0",
       "API_Resurrected_5_es_v0",
       "API_Resurrected_6_es_v0",
-      "API_Resurrected_7_es_v0",
+      "API_Resurrected_7_es_v1",
     ],
     variables: {
-      _default: NAME_4SKU,
-      API_Resurrected_1_es_v0: NAME_1SKU,
-      API_Resurrected_2_es_v0: NAME_2SKU,
-      API_Resurrected_3_es_v0: NAME_3SKU,
-      API_Resurrected_4_es_v0: NAME_4SKU,
-      API_Resurrected_5_es_v0: NAME_5SKU,
-      API_Resurrected_6_es_v0: NAME_1SKU,
+      _default: DEFAULT,
+      API_Resurrected_1_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Resurrected_2_es_v0: NAME.concat(generateParams(SKU_DSCT, 2)),
+      API_Resurrected_3_es_v0: NAME.concat(generateParams(SKU_DSCT, 3)),
+      API_Resurrected_4_es_v0: NAME.concat(generateParams(SKU_DSCT, 4)),
+      API_Resurrected_5_es_v0: NAME.concat(generateParams(SKU_DSCT, 5)),
+      API_Resurrected_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
+      API_Resurrected_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
   },
   variables: {
     _default: NAME,
   }
 }
-

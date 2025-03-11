@@ -8,6 +8,7 @@ import { Config } from './config.js';
 import { frequencyByStatus, campaignsBySatatus } from './parameters.js';
 import { PROVIDER, CITY } from './constants.js';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.js';
+import { StoreReferenceMap } from './store-reference.mock.js';
 // Process Gobal Variables
 
 const today = new Date().setHours(0, 0, 0, 0);
@@ -26,7 +27,7 @@ async function main(day, limit = 100, offset = 0) {
   preEntries = await generateCallToActionShortLinks(preEntries);
   preEntries = generatePathVariable(
     preEntries,
-    [/* "path_1", */ "path_1", /* "path_2" */],
+    [/* "path_1", */ "path_1", "path_2"],
   );
   const entries = preEntries.map(entry => entry.connectlyEntry);
   reportEntries(entries);
@@ -49,7 +50,7 @@ const getUtmAndCallToActionKey = ({ utm, callToAction }) => (
     callToAction.macroId ?? ''
   }|${
     callToAction.brandId ?? ''
-  }`
+  }` 
 );
 
 const generatePathVariable = (preEntries, paths) => {
@@ -99,11 +100,10 @@ const generateCallToActionShortLinks = async (preEntries) => {
     for (const callToAction of callToActions) {
       const key = getUtmAndCallToActionKey({ utm, callToAction});
       acc.set(key, { utm, callToAction });
-      console.error(callToAction);
+      // console.error(callToAction);
     };
     return acc;
   }, new Map());
-  console.error(Array.from(preMap.keys()).sort((a, b) => a === b ? 0 : a < b ? -1 : 1), preMap.size);
   const shortLinkMap = new Map();
   for (const [key, value] of preMap.entries()) {
     // const response = await createShortLink(value);
@@ -119,7 +119,7 @@ const generateCallToActionShortLinks = async (preEntries) => {
   for (const [key, value] of shortLinksMap.entries()) {
     shortLinkMap.set(key, value);
   }
-  console.error({ shortLinksMap });
+  // console.error({ shortLinksMap });
   return preEntries.map(preEntry => {
       const { utm, callToAction, callToActions } = preEntry; 
       return {
@@ -144,7 +144,6 @@ const xxxx = async (preMap) => {
   );
   return responses.reduce((acc, obj) => {
     const { key, response } = obj;
-    console.log(JSON.stringify(response.data));
     acc.set(key, response?.data?.shortLink || '');
     return acc;
   }, new Map());
@@ -205,7 +204,7 @@ const generatePreEntries = (storesMap) => {
     }
 
     const callToActions = generateCallToActionPaths(
-      [/* "path_1" */, "path_1", /* "path_2" */],
+      [/* "path_1" */, "path_1", "path_2"],
       storeReferenceIds,
     );
 
@@ -258,24 +257,23 @@ const generateVariablesAndStoreReferenceIds = (variablesList, obj) => {
     'name': 'store',
     'sku': 'skus',
     'dsct': 'skus',
+    "img": 'skus',
     // prc: 'skus',
   }
   const subTypeMap = {
     'name': 'name',
     'sku': 'reference',
     'dsct': 'discountFormatted', 
+    "img": 'image',
   }
   const storeReferenceIds = [];
-  const variables = {
-    // path: 'k2Qh'
-    // path: `pedir/seccion/descuentos?${utm}`,
-  };
+  const variables = {};
   for (const variable of variablesList) {
     const [varName, varIndex] = variable.split('_');
     const property = obj[typeMap[varName] || '_'];
 
     if (!property) {
-      variables[variable] = variable;
+      variables[variable] = `1: ${variable}`;
     } else if (varIndex) {
       const index = Number(varIndex) - 1;
       if (index >= property.length) return null;
@@ -285,7 +283,7 @@ const generateVariablesAndStoreReferenceIds = (variablesList, obj) => {
         storeReferenceIds.push(property[index]?.storeReferenceId || 0);
       }
     } else {
-      const value = property[subTypeMap[varName]] || variable; 
+      const value = property[subTypeMap[varName]] || `2: ${variable}`;; 
       variables[variable] = value;
     }
     variables[variable] = removeExtraSpaces(variables[variable]);
@@ -321,7 +319,8 @@ const getStore = (row) => ({
 const getSku = (row) => ({
   storeReferenceId: row.storeReferenceId,
   reference: row.reference, 
-  discountFormatted: row.discountFormatted
+  discountFormatted: row.discountFormatted,
+  image: StoreReferenceMap.get(row.storeReferenceId)?.regular,
 });
 
 const getCamapign = (status, day, campaignsBySatatus) => {
@@ -339,7 +338,7 @@ const getCamapign = (status, day, campaignsBySatatus) => {
 
 const getUtm = (day, status, locationId, name) => {
   const asset = 'WA';
-  const payer = '3';
+  const payer = '1'; // Fix value
   const type = 'ot';
 
   const date = new Date(BASE_DATE + (day * 24 * 60 * 60 * 1000));
@@ -431,6 +430,7 @@ const queryStores = `
         (storeStatus = 'Churn' AND daysSinceLastOrderDelivered > 1000000) OR
         (storeStatus <> 'Churn')
       )
+      AND phone NOT LIKE '5_9613739%'
     ORDER BY storeId, ranking
     LIMIT 5000000
 `;
@@ -478,5 +478,5 @@ const removeExtraSpaces = (str) => str.replace(/\s+/g, ' ').trim();
 
 // Run Main Function
 
-main(daysFromBaseDate(today), 11000, 0);
+main(daysFromBaseDate(today), 15000, 0);
 

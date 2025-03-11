@@ -6,7 +6,7 @@ export const C2A_OFFER_LIST = 17;
 export const LOCATION = {
   BOG: 2,
   MDE: 7,
-  CLO: 2,
+  CLO: 3,
   BAQ: 18,
   CMX: 11,
   SCL: 22,

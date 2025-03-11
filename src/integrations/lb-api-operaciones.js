@@ -12,8 +12,9 @@ export class LbApiOperacionesIntegration {
   apiKey;  // Replace with a real token if needed
   BATCH_SIZE;
   headers;
+  watingTime = 1000;
   
-  constructor(batchSize = 5) {
+  constructor(batchSize = 10) {
     this.BATCH_SIZE = batchSize;
   
     this.url = `${Config.lbApiOperaciones.apiUrl}`;
@@ -31,7 +32,8 @@ export class LbApiOperacionesIntegration {
   async createOneShortLink(payload) {
     const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
     if (payload?.callToAction?.storeReferenceId) {
-      payload.callToAction.referenceId = StoreReferenceMap.get(payload.callToAction.storeReferenceId);
+      payload.callToAction.referenceId = 
+        StoreReferenceMap.get(payload.callToAction.storeReferenceId)?.referenceId;
     }
     // console.log({ headers: this.headers, payload });
     return fetch(url, {
@@ -69,6 +71,7 @@ export class LbApiOperacionesIntegration {
     );
     const batchCount = batches.length;
     let batchIdx = 0;
+    console.error(`Creating ${payloadsAndKeys.length} shortLinks in ${batchCount} batches of ${this.BATCH_SIZE}...`);
     for (const batch of batches) {
       const batchResponse = await Promise.all(batch.map(async (
         { key, value }
@@ -79,15 +82,15 @@ export class LbApiOperacionesIntegration {
             resolve({ key, response: result });
           })
           .catch(error => {
-            console.error('ERROR:', error, value, key);
+            console.error('ERROR - :', error, value, key, '-');
             reject(error);
           });
-        })
+        });
       }));
       // console.log(JSON.stringify(batchResponse, null, 2));
       responses = responses.concat(batchResponse);
       console.error(`batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`);
-      await sleep(750 + Math.floor(Math.random() * 500));
+      await sleep(this.watingTime + Math.floor(Math.random() * this.watingTime / 2));
     }
     // console.log('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;
