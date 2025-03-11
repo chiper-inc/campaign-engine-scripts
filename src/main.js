@@ -1,197 +1,14 @@
 import { BigQuery } from '@google-cloud/bigquery';
 import { v4 as uuid } from 'uuid';
-import { Config } from './config.js';
 import parseMobile from 'libphonenumber-js/mobile'
 
 // Constants 
 
-const LOCATION = {
-  BOG: 2,
-  MDE: 7,
-  CLO: 2,
-  BAQ: 18,
-  CMX: 11,
-  SCL: 22,
-  SAO: 21,
-  VLN: 24,
-};
-
-// Main Input values
-
-const frequencyByStatus = {
-  Churn: {
-    _default: 0,
-    [LOCATION.BAQ]: 0, // 4,
-    [LOCATION.BOG]: 0, // 2,
-    [LOCATION.CLO]: 0, // 3,
-    [LOCATION.CMX]: 0, // 4,
-    [LOCATION.MDE]: 0, // 4,
-    [LOCATION.VLN]: 0, // 4,
-  },
-  Hibernating: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  Lead: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 8,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  New: {
-    _default: 0,
-  },
-  Resurrected: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.SCL]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  Retained: {
-    _default: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  _default: 2,
-};
-
-const NAME = ["name"];
-const NAME_1SKU = ["name", "sku_1", "dsct_1"];
-const NAME_2SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2"];
-const NAME_3SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3"];
-const NAME_4SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3", "sku_4", "dsct_4"];
-const NAME_5SKU = ["name", "sku_1", "dsct_1", "sku_2", "dsct_2", "sku_3", "dsct_3", "sku_4", "dsct_4", "sku_5", "dsct_5"];
-
-const campaignsBySatatus = {
-  Churn: {
-    names: [
-      "API_Churn_1_es_v0",
-      "API_Churn_2_es_v0",
-      "API_Churn_3_es_v0",
-      "API_Churn_4_es_v0",
-      "API_Churn_5_es_v0",
-      "API_Churn_6_es_v0",
-      "API_Churn_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Churn_1_es_v0: NAME_1SKU,
-      API_Churn_2_es_v0: NAME_2SKU,
-      API_Churn_3_es_v0: NAME_3SKU,
-      API_Churn_4_es_v0: NAME_4SKU,
-      API_Churn_5_es_v0: NAME_5SKU,
-    }
-  },
-  Lead: {
-    names: [
-      "API_Lead_1_es_v0",
-      "API_Lead_2_es_v0",
-      "API_Lead_3_es_v0",
-      "API_Lead_4_es_v0",
-      "API_Lead_5_es_v0",
-      "API_Lead_6_es_v0",
-      "API_Lead_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Lead_1_es_v0: NAME_1SKU,
-      API_Lead_2_es_v0: NAME_2SKU,
-      API_Lead_3_es_v0: NAME_3SKU,
-      API_Lead_4_es_v0: NAME_4SKU,
-      API_Lead_5_es_v0: NAME_5SKU,
-    }
-  },
-  New: {
-    names: [
-      "API_New_1_es_v0",
-      "API_New_2_es_v0",
-      "API_New_3_es_v0",
-      "API_New_4_es_v0",
-      "API_New_5_es_v0",
-      "API_New_6_es_v0",
-      "API_New_7_es_v0",
-    ],
-  },
-  Hibernating: {
-    names: [
-      "API_Hibernating_1_es_v0",
-      "API_Hibernating_2_es_v0",
-      "API_Hibernating_3_es_v0",
-      "API_Hibernating_4_es_v0",
-      "API_Hibernating_5_es_v0",
-      "API_Hibernating_6_es_v0",
-      "API_Hibernating_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Hibernating_1_es_v0: NAME_1SKU,
-      API_Hibernating_2_es_v0: NAME_2SKU,
-      API_Hibernating_3_es_v0: NAME_3SKU,
-      API_Hibernating_4_es_v0: NAME_4SKU,
-      API_Hibernating_5_es_v0: NAME_5SKU,
-    }
-
-  },
-  Retained: {
-    names: [
-      "API_Retained_1_es_v0",
-      "API_Retained_2_es_v0",
-      "API_Retained_3_es_v0",
-      "API_Retained_4_es_v0",
-      "API_Retained_5_es_v0",
-      "API_Retained_6_es_v0",
-      "API_Retained_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Retained_1_es_v0: NAME_1SKU,
-      API_Retained_2_es_v0: NAME_2SKU,
-      API_Retained_3_es_v0: NAME_3SKU,
-      API_Retained_4_es_v0: NAME_4SKU,
-      API_Retained_5_es_v0: NAME_5SKU,
-    }
-
-  },
-  Resurrected: {
-    names: [
-      "API_Resurrected_1_es_v0",
-      "API_Resurrected_2_es_v0",
-      "API_Resurrected_3_es_v0",
-      "API_Resurrected_4_es_v0",
-      "API_Resurrected_5_es_v0",
-      "API_Resurrected_6_es_v0",
-      "API_Resurrected_7_es_v0",
-    ],
-    variables: {
-      _default: NAME_4SKU,
-      API_Resurrected_1_es_v0: NAME_1SKU,
-      API_Resurrected_2_es_v0: NAME_2SKU,
-      API_Resurrected_3_es_v0: NAME_3SKU,
-      API_Resurrected_4_es_v0: NAME_4SKU,
-      API_Resurrected_5_es_v0: NAME_5SKU,
-    }
-  },
-  variables: {
-    _default: NAME,
-  }
-}
-
+import { Config } from './config.js';
+import { frequencyByStatus, campaignsBySatatus } from './parameters.js';
+import { PROVIDER, CITY } from './constants.js';
+import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.js';
+import { StoreReferenceMap } from './store-reference.mock.js';
 // Process Gobal Variables
 
 const today = new Date().setHours(0, 0, 0, 0);
@@ -199,58 +16,21 @@ const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0);
 const UUID = uuid();
 
 const bigquery = new BigQuery();
-const queryStores = `
-    SELECT DISTINCT
-      country,
-      storeStatus,
-      storeId,
-      city,
-      locationId,
-      storeReferenceId,
-      name,
-      reference,
-      discountFormatted,
-      phone,
-      ranking
-    FROM \`chiperdw.dbt.BI_D-MessageGenerator\`
-    WHERE phone IS NOT NULL
-      AND ranking <= 10
-      AND (
-        (storeStatus = 'Churn' AND daysSinceLastOrderDelivered > 1000000) OR
-        (storeStatus <> 'Churn')
-      )
-    ORDER BY storeId, ranking
-`;
 
 // Main Function 
-
-// const UTM = {
-//   utmSource: 'connectly-campaign',
-//   utmMedium: '164',
-//   utmContent: UUID,
-//   utmCampaign: '1_CHIPER_WA_3_06ot_Churn',
-//   utmTerm: '060325',
-// }
-
-// const callToAction = {
-//   actionTypeId: 1,
-//   referenceId: 3,
-//   macroId,
-//   brandId,
-// };
-
 
 async function main(day, limit = 100, offset = 0) {
   const data = await executeQueryBigQuery(queryStores);
   const filteredData = data.filter(row => filterData(row, frequencyByStatus, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
-  let entries = generatePreEntries(storeMap).slice(offset, offset + limit);
-  entries = await generateCallToActionShortLinks(entries);
-  entries = generatePathVariable(entries);
-  reportEntries(entries.slice(offset, offset + limit));
-  // console.log('===================');
-  // console.log(JSON.stringify(entries.slice(offset, offset + limit), null, 2));
-  // console.log('===================');
+  let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
+  preEntries = await generateCallToActionShortLinks(preEntries);
+  preEntries = generatePathVariable(
+    preEntries,
+    [/* "path_1", */ "path_1", "path_2"],
+  );
+  const entries = preEntries.map(entry => entry.connectlyEntry);
+  reportEntries(entries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(`Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`);
 }
@@ -265,30 +45,40 @@ const getUtmAndCallToActionKey = ({ utm, callToAction }) => (
   }|${
     callToAction.storeReferenceId ?? ''
   }|${
-    callToAction.storeReferenceIds?.join(',') ?? ''
+    (callToAction.storeReferenceIds || []).sort((a, b) => a - b).join(',')
   }|${
     callToAction.macroId ?? ''
   }|${
     callToAction.brandId ?? ''
-  }`
+  }` 
 );
 
-const generatePathVariable = (entries) => {
-  return entries.map(entry => {
-    const path = getPathFromC2a(entry._c2a)
+const generatePathVariable = (preEntries, paths) => {
+  return preEntries.map(preEntry => {
+    const pathObj = {};
+    const { utm, shortLinks } = preEntry;
+    // console.log({ paths, shortLinks });
+    paths.forEach((path, i) => {
+      const shortLink = getPathFromPreEntry({
+        utm, 
+        shortLink: shortLinks[i] || ''
+      });
+      pathObj[path] = shortLink;
+    });
+    const { connectlyEntry } = preEntry;
+    connectlyEntry.variables = {
+      ...connectlyEntry.variables,
+      ...pathObj
+    };
     return {
-      ...entry,
-      variables: {
-        ...(entry?.variables || {}),
-        path
-      },
-      _c2a: undefined
+      ...preEntry,
+      connectlyEntry,
     }
   });
 }
 
-const getPathFromC2a = (c2a)=> {
-  const { utm, shortLink } = c2a;
+const getPathFromPreEntry = ({ utm, shortLink })=> {
+  // console.log ('************', { utm, shortLink });
   const queryParams = 
     `utm_source=${
       utm.campaignSource || ''
@@ -304,27 +94,59 @@ const getPathFromC2a = (c2a)=> {
   return `${shortLink.split('/').slice(1)}?${queryParams}`;
 }
 
-const generateCallToActionShortLinks = async (entries) => {
-  const preMap = entries.reduce((acc, entry) => {
-    const key = getUtmAndCallToActionKey(entry._c2a);
-    acc.set(key, entry._c2a);
+const generateCallToActionShortLinks = async (preEntries) => {
+  const preMap = preEntries.reduce((acc, preEntry) => {
+    const { utm, callToActions } = preEntry;
+    for (const callToAction of callToActions) {
+      const key = getUtmAndCallToActionKey({ utm, callToAction});
+      acc.set(key, { utm, callToAction });
+      // console.error(callToAction);
+    };
     return acc;
   }, new Map());
-  // console.error(Array.from(preMap.keys()), preMap.size);
   const shortLinkMap = new Map();
   for (const [key, value] of preMap.entries()) {
-    const response = await createshortLink(value);
-    // console.log('shortLink:', response?.data);
-    shortLinkMap.set(key, response?.data?.shortLink);
+    // const response = await createShortLink(value);
+    // // console.log('shortLink:', response?.data);
+    // shortLinkMap.set(key, response?.data?.shortLink);
+    // const integration = new LbApiOperacionesIntegration(16);
+    // await integration.createOneShortLink(value);
+    // shortLinkMap.set(key, `path/${key}`);
   }
   // console.error({ shortLinkMap });
-  return entries.map(entry => ({
-    ...entry,
-    _c2a: {
-      ...entry._c2a,
-      shortLink: shortLinkMap.get(getUtmAndCallToActionKey(entry._c2a)),
-    }
-  }));
+  const shortLinksMap = await xxxx(preMap);
+
+  for (const [key, value] of shortLinksMap.entries()) {
+    shortLinkMap.set(key, value);
+  }
+  // console.error({ shortLinksMap });
+  return preEntries.map(preEntry => {
+      const { utm, callToAction, callToActions } = preEntry; 
+      return {
+        ...preEntry,
+        shortLink: shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction })),
+        shortLinks: callToActions.map(callToAction => 
+          shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction }))
+        ),
+      }
+    });
+}
+
+const xxxx = async (preMap) => {
+  const integration = new LbApiOperacionesIntegration();
+  const responses = await integration.createAllShortLink(
+    Array.from(
+      preMap.entries()
+    ).map(([key, value]) => ({ 
+      key, 
+      value
+    }))
+  );
+  return responses.reduce((acc, obj) => {
+    const { key, response } = obj;
+    acc.set(key, response?.data?.shortLink || '');
+    return acc;
+  }, new Map());
 }
 
 const reportEntries = (entries) => {
@@ -368,7 +190,8 @@ const generatePreEntries = (storesMap) => {
     const { store, campaign, skus, utm } = data;
 
     const { variables, storeReferenceIds } = generateVariablesAndStoreReferenceIds(
-      campaign.variables, { store, skus }, utm
+      campaign.variables,
+      { store, skus },
     ) || {};
 
     if (!variables) continue;
@@ -380,43 +203,77 @@ const generatePreEntries = (storesMap) => {
       continue;
     }
 
-    const callToAction = generateCallToAction(storeReferenceIds);
+    const callToActions = generateCallToActionPaths(
+      [/* "path_1" */, "path_1", "path_2"],
+      storeReferenceIds,
+    );
 
-    entries.push({
+    if (!callToActions) continue;
+
+    // console.log(callToActions)
+
+    const callToAction = generateCallToAction(storeReferenceIds);
+    const connectlyEntry = {
       client: `+${store.phone}`,
       campaignName: campaign.name.replace(/_/g,' ').toLowerCase(),
       variables,
-      _c2a: { utm, callToAction },
-    });
+    }
+
+    entries.push({ connectlyEntry, utm, callToAction, callToActions });
   }
+  console.error('Entries:', entries.length);
   return entries;
 }
 
-const removeExtraSpaces = (str) => str.replace(/\s+/g, ' ').trim();
+const generateCallToActionPaths = (paths, storeReferenceIds) => {
+  const pathObj = [];
+  for (const path of paths.filter((e) => e.startsWith('path'))) {
+    const [ , index] = path.split('_');
+    if (!path) return null;
+    if (index) {
+      if (isNaN(index)) { // path_n
+        pathObj.push({
+          actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
+          storeReferenceIds: storeReferenceIds,
+        });
+      } else {
+        pathObj.push({
+          actionTypeId: Config.lbApiOperaciones.callToAction.reference,
+          storeReferenceId: storeReferenceIds[index - 1],
+        });
+      }
+    } else {
+      pathObj.push({
+        actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
+      });
+    }
+  }
 
-const generateVariablesAndStoreReferenceIds = (variablesList, obj, utm) => {
+  return pathObj.length ? pathObj : null;
+}
+ 
+const generateVariablesAndStoreReferenceIds = (variablesList, obj) => {
   const typeMap = {
     'name': 'store',
     'sku': 'skus',
     'dsct': 'skus',
+    "img": 'skus',
     // prc: 'skus',
   }
   const subTypeMap = {
     'name': 'name',
     'sku': 'reference',
     'dsct': 'discountFormatted', 
+    "img": 'image',
   }
   const storeReferenceIds = [];
-  const variables = {
-    path: 'k2Qh'
-    // path: `pedir/seccion/descuentos?${utm}`,
-  };
+  const variables = {};
   for (const variable of variablesList) {
     const [varName, varIndex] = variable.split('_');
     const property = obj[typeMap[varName] || '_'];
 
     if (!property) {
-      variables[variable] = variable;
+      variables[variable] = `1: ${variable}`;
     } else if (varIndex) {
       const index = Number(varIndex) - 1;
       if (index >= property.length) return null;
@@ -426,7 +283,7 @@ const generateVariablesAndStoreReferenceIds = (variablesList, obj, utm) => {
         storeReferenceIds.push(property[index]?.storeReferenceId || 0);
       }
     } else {
-      const value = property[subTypeMap[varName]] || variable; 
+      const value = property[subTypeMap[varName]] || `2: ${variable}`;; 
       variables[variable] = value;
     }
     variables[variable] = removeExtraSpaces(variables[variable]);
@@ -462,7 +319,8 @@ const getStore = (row) => ({
 const getSku = (row) => ({
   storeReferenceId: row.storeReferenceId,
   reference: row.reference, 
-  discountFormatted: row.discountFormatted
+  discountFormatted: row.discountFormatted,
+  image: StoreReferenceMap.get(row.storeReferenceId)?.regular,
 });
 
 const getCamapign = (status, day, campaignsBySatatus) => {
@@ -480,45 +338,8 @@ const getCamapign = (status, day, campaignsBySatatus) => {
 
 const getUtm = (day, status, locationId, name) => {
   const asset = 'WA';
-  const payer = '3';
+  const payer = '1'; // Fix value
   const type = 'ot';
-
-  const formatMMMDD = (ddmmyy) => {
-    const mpnth = ddmmyy.slice(2, 4);
-    const day = ddmmyy.slice(0, 2);
-    const months = ['_', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${months[Number(mpnth)]}${day}`;
-  };
-  const formatDDMMYY = (date) => date.toLocaleDateString(
-    'es-US', 
-    { day: '2-digit', month: '2-digit', year: '2-digit' }
-  ).replace(/\//g, '');
-  const getCityId = (locationId) => {
-    const city = {
-      [LOCATION.BOG]: 1,
-      [LOCATION.MDE]: 7,
-      [LOCATION.CLO]: 2,
-      [LOCATION.BAQ]: 3,
-      [LOCATION.CMX]: 11,
-      [LOCATION.SCL]: 21,
-      [LOCATION.SAO]: 20,
-      [LOCATION.VLN]: 24,
-    };
-    return city[locationId] || 0;
-  };
-  const getProvider = (locationId) => {
-    const provider = {
-      [LOCATION.BOG]: 1377,
-      [LOCATION.MDE]: 1377,
-      [LOCATION.CLO]: 1377,
-      [LOCATION.BAQ]: 1377,
-      [LOCATION.CMX]: 1381,
-      [LOCATION.SCL]: 1379,
-      [LOCATION.SAO]: 1378,
-      [LOCATION.VLN]: 1380,
-    };
-    return provider[locationId] || 0;
-  }
 
   const date = new Date(BASE_DATE + (day * 24 * 60 * 60 * 1000));
   const term = formatDDMMYY(date); // DDMMYY
@@ -537,7 +358,7 @@ const getUtm = (day, status, locationId, name) => {
     }_${
       status
     }_${
-      encodeURIComponent(name.replace(/[^a-zA-Z0-9]/g, '-'))
+      name.replace(/[^a-zA-Z0-9]/g, '-')
     }`;
   const source = 'connectly-campaign';
   const content = UUID; // uuid
@@ -551,8 +372,6 @@ const getUtm = (day, status, locationId, name) => {
   };
 }
 
-const daysFromBaseDate = (date) => Math.trunc((date - BASE_DATE) / (1000 * 60 * 60 * 24));
-
 function getModulo (status, location, filter) {
   const statusFilter = filter[status] || filter._default || {};
   return statusFilter[location] || statusFilter._default;
@@ -564,7 +383,9 @@ function filterData (row, filter, day) {
   return (row.storeId % mod) === (day % mod);
 }
 
-async function createshortLink(payload) {
+// Integration Functions 
+
+async function createShortLink(payload) {
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': Config.lbApiOperaciones.apiKey
@@ -587,7 +408,32 @@ async function createshortLink(payload) {
   });
 }
 
+// Repository functions
 
+const queryStores = `
+    SELECT DISTINCT
+      country,
+      storeStatus,
+      storeId,
+      city,
+      locationId,
+      storeReferenceId,
+      name,
+      reference,
+      discountFormatted,
+      phone,
+      ranking
+    FROM \`chiperdw.dbt.BI_D-MessageGenerator\`
+    WHERE phone IS NOT NULL
+      AND ranking <= 10
+      AND (
+        (storeStatus = 'Churn' AND daysSinceLastOrderDelivered > 1000000) OR
+        (storeStatus <> 'Churn')
+      )
+      AND phone NOT LIKE '5_9613739%'
+    ORDER BY storeId, ranking
+    LIMIT 5000000
+`;
 
 async function executeQueryBigQuery(query) {
   const options = {
@@ -608,7 +454,29 @@ async function executeQueryBigQuery(query) {
   }
 }
 
+// Utility Functions
+
+const daysFromBaseDate = (date) => Math.trunc((date - BASE_DATE) / (1000 * 60 * 60 * 24));
+
+const formatMMMDD = (ddmmyy) => {
+  const mpnth = ddmmyy.slice(2, 4);
+  const day = ddmmyy.slice(0, 2);
+  const months = ['_', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  return `${months[Number(mpnth)]}${day}`;
+};
+
+const formatDDMMYY = (date) => date.toLocaleDateString(
+  'es-US', 
+  { day: '2-digit', month: '2-digit', year: '2-digit' }
+).replace(/\//g, '');
+
+const getCityId = (locationId) => CITY[locationId] || 0;
+
+const getProvider = (locationId) => PROVIDER[locationId] || 0;
+
+const removeExtraSpaces = (str) => str.replace(/\s+/g, ' ').trim();
+
 // Run Main Function
 
-main(daysFromBaseDate(today), 11000, 0);
+main(daysFromBaseDate(today), 15000, 0);
 
