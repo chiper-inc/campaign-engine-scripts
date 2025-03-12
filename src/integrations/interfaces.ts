@@ -1,3 +1,5 @@
+import { TypeConnectlyCampaignVariables } from "./types.ts";
+
 export interface IStoreReferenceData {
   referenceId: number;
   storeReferenceId: number;
@@ -25,3 +27,10 @@ export interface IShortLinkPayload {
   callToAction: ICallToAction,
   utm: IUtm,
 };
+
+export interface IConnectlyEntry {
+  client: string;
+  campaignName: string;
+  variables: TypeConnectlyCampaignVariables;
+};
+

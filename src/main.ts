@@ -9,20 +9,46 @@ import { frequencyByStatus, campaignsBySatatus } from './parameters.ts';
 import { PROVIDER, CITY } from './constants.ts';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.ts';
 import { StoreReferenceMap } from './store-reference.mock.ts';
-import { ICallToAction, IShortLinkPayload, IUtm } from './integrations/interfaces.ts';
+import { ICallToAction, IConnectlyEntry, IShortLinkPayload, IUtm } from './integrations/interfaces.ts';
 import { LOCATION, STORE_STATUS } from './enums.ts';
-import { TypeCampaignByStatus } from './types.ts';
+import {
+  TypeCampaignByStatus,
+  TypeCampaignEntry,
+  TypeCampaignStatus,
+  TypeSku,
+  TypeStore
+} from './types.ts';
+import { TypeConnectlyCampaignVariables } from './integrations/types.ts';
+import { get } from 'http';
+
+export interface IPreEntry {
+  connectlyEntry: IConnectlyEntry;
+  utm: IUtm;
+  callToAction: Partial<ICallToAction>;
+  callToActions: Partial<ICallToAction>[];
+  shortLink?: string;
+  shortLinks?: string[];
+}
+
+export interface IStoreRecomendation {
+  store: TypeStore;
+  campaign: TypeCampaignEntry;
+  skus: TypeSku[];
+  utm: IUtm;
+};
+
+
 // Process Gobal Variables
 
-const today = new Date().setHours(0, 0, 0, 0);
-const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0);
+const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
+const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0) as unknown as number;
 const UUID = uuid();
 
 const bigquery = new BigQuery();
 
 // Main Function 
 
-async function main(day: Date, limit = 100, offset = 0) {
+async function main(day: number, limit = 100, offset = 0) {
   const data = await executeQueryBigQuery(queryStores);
   const filteredData = data.filter(row => filterData(row, frequencyByStatus, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
@@ -30,7 +56,7 @@ async function main(day: Date, limit = 100, offset = 0) {
   preEntries = await generateCallToActionShortLinks(preEntries);
   preEntries = generatePathVariable(
     preEntries,
-    [/* "path_1", */ "path_1", "path_2"],
+    [/* "path_1", */ "path_1", "path_2", "path_3"],
   );
   const entries = preEntries.map(entry => entry.connectlyEntry);
   reportEntries(entries);
@@ -180,7 +206,7 @@ const reportEntries = (entries: IConnectlyEntry[]) => {
 const generateStoreMap = (
   filteredData: any[],
   campaignsBySatatus: any,
-  day: Date
+  day: number
 ) => {
   return filteredData.reduce((acc, row) => {
     const a = acc.get(row.storeId) || {
@@ -201,35 +227,15 @@ const generateStoreMap = (
   }, new Map());
 }
 
-export interface IPreEntry {
-  connectlyEntry: IConnectlyEntry;
-  utm: IUtm;
-  callToAction: Partial<ICallToAction>;
-  callToActions: Partial<ICallToAction>[];
-  shortLink?: string;
-  shortLinks?: string[];
-}
-
-export interface IConnectlyEntry {
-  client: string;
-  campaignName: string;
-  variables: TypeCampaignVariables;
-};
-
-export interface IStoreRecomendation {
-  store: TypeStore;
-  campaign: TypeCampaignEntry;
-  skus: TypeSku[];
-  utm: IUtm;
-};
-
-const generatePreEntries = (storesMap: Map<number, IStoreRecomendation>): IPreEntry[] => {
+const generatePreEntries = (
+  storesMap: Map<number, IStoreRecomendation>
+): IPreEntry[] => {
   const entries = [];
   for (const data of Array.from(storesMap.values())) {
     const { store, campaign, skus, utm } = data;
 
     const { variables, storeReferenceIds }: {
-      variables: TypeCampaignVariables | undefined,
+      variables: TypeConnectlyCampaignVariables | undefined,
       storeReferenceIds: number[] | undefined,
     } = generateVariablesAndStoreReferenceIds(
       campaign.variables,
@@ -249,7 +255,7 @@ const generatePreEntries = (storesMap: Map<number, IStoreRecomendation>): IPreEn
     }
 
     const callToActions = generateCallToActionPaths(
-      ["path_1", "path_2"],
+      ["path_1", "path_2", "path_3"],
       storeReferenceIds,
     );
 
@@ -307,44 +313,96 @@ const generateCallToActionPaths = (
  
 const generateVariablesAndStoreReferenceIds = (
   variablesList: string[], 
-  obj,
-) => {
-  const typeMap = {
+  obj: {
+    store: TypeStore;
+    skus: TypeSku[];
+  },
+): {
+  variables: TypeConnectlyCampaignVariables;
+  storeReferenceIds: number[];
+} | null => {
+  const typeMap: { [k: string]: string } = {
     'name': 'store',
     'sku': 'skus',
     'dsct': 'skus',
     "img": 'skus',
     // prc: 'skus',
   }
-  const subTypeMap = {
+  const subTypeMap: { [k: string]: string } = {
     'name': 'name',
     'sku': 'reference',
     'dsct': 'discountFormatted', 
     "img": 'image',
   }
   const storeReferenceIds = [];
-  const variables = {};
+  let variables: TypeConnectlyCampaignVariables = {};
   for (const variable of variablesList) {
     const [varName, varIndex] = variable.split('_');
-    const property = obj[typeMap[varName] || '_'];
+    const property = 
+      (obj as { [k: string]: TypeStore | TypeSku[] })[typeMap[varName]];
 
     if (!property) {
-      variables[variable] = `${variable}`;
+      variables = { ...variables, [variable]: `Variable[${variable}]` };
     } else if (varIndex) {
-      const index = Number(varIndex) - 1;
-      if (index >= property.length) return null;
+      const resp = getVariableFromSku(
+        variable,
+        property as TypeSku[], 
+        Number(varIndex) - 1,
+        subTypeMap[varName], 
+      ); 
 
-      variables[variable] = property[index]?.[subTypeMap[varName]] || variable;
+      if (!resp) return null;
+
+      variables = { ...variables, ...resp.variable };
       if (varName.startsWith('sku')) {
-        storeReferenceIds.push(property[index]?.storeReferenceId || 0);
+        storeReferenceIds.push(resp.storeReferenceId ?? 0);
       }
     } else {
-      const value = property[subTypeMap[varName]] || `${variable}`;; 
-      variables[variable] = value;
+      const resp = getVariableFromStore(
+        variable,
+        property as TypeStore,
+        subTypeMap[varName]
+      );
+
+      if (!resp) return null;
+
+      variables = { ...variables, ...resp };
     }
-    variables[variable] = removeExtraSpaces(variables[variable]);
   }
-  return { variables, storeReferenceIds };;
+  return { variables, storeReferenceIds };
+}
+
+const getVariableFromStore = (
+  variable: string,
+  store: TypeStore, 
+  varName: string = '_',
+): TypeConnectlyCampaignVariables => {
+  const value = (store as { [k: string]: any })[
+    varName ?? '-'
+  ] ?? `Store[${variable}]`;
+  return { 
+    [variable]: removeExtraSpaces(value),
+  }
+}
+
+const getVariableFromSku = (
+  variable: string,
+  skus: TypeSku[], 
+  index: number,
+  varName: string = '_',
+): any | null => {
+  if (isNaN(index) || index < 0) return null;
+
+  if (!Array.isArray(skus)) return null;
+  
+  if (index >= skus.length) return null;
+
+  const sku = skus[index];
+  const value = (sku as { [k: string]: any })[varName] ?? `Sku[${variable}]`;
+
+  return { variable: {
+    [variable]: removeExtraSpaces(value),
+  }, storeReferenceId: sku.storeReferenceId };
 }
 
 const generateCallToAction = 
@@ -380,37 +438,17 @@ const getSku = (row: any): TypeSku => ({
   image: StoreReferenceMap.get(row.storeReferenceId)?.regular ?? '',
 });
 
-export interface TypeStore {
-  storeId: number;
-  name: string;
-  phone: string;
-}
-
-export interface TypeSku {
-  storeReferenceId: number;
-  reference: string;
-  discountFormatted: string;
-  image: string;
-}
-
-export interface TypeCampaignEntry {
-  name: string;
-  variables: string[];
-};
-
-export interface TypeCampaignVariables {
-  [key: string]: string;
-}
-
 const getCamapign = (
   status: STORE_STATUS,
-  day: Date, 
-  campaignsBySatatus: TypeCampaignByStatus,
+  day: number, 
+  campaignsByStatus: TypeCampaignByStatus,
 ): TypeCampaignEntry | null => {
-  const campaigns = campaignsBySatatus[status];
+  const campaigns = campaignsByStatus[status] as unknown as TypeCampaignStatus;
   if (campaigns) {
-    const name = campaigns.names[(day as unknown as number) % campaigns.names.length];
-    const variables = campaigns.variables?.[name] || campaigns.variables?._default || campaignsBySatatus.variables?._default;
+    const name = campaigns.names[day % campaigns.names.length];
+    const variables = campaigns.variables?.[name] 
+      ?? campaigns.variables?._default
+      ?? campaignsByStatus[STORE_STATUS._default].variables?._default;
     return {
       name,
       variables,
@@ -420,7 +458,7 @@ const getCamapign = (
 }
 
 const getUtm = (
-  day: Date,
+  day: number,
   status: STORE_STATUS, 
   locationId: LOCATION, 
   name: string
@@ -429,7 +467,7 @@ const getUtm = (
   const payer = '1'; // Fix value
   const type = 'ot';
 
-  const date = new Date(BASE_DATE + ((day as unknown as number)* 24 * 60 * 60 * 1000));
+  const date = new Date(BASE_DATE + (day * 24 * 60 * 60 * 1000));
   const term = formatDDMMYY(date); // DDMMYY
   const campaign = `${
       getCityId(locationId)
@@ -465,10 +503,10 @@ function getModulo (status: STORE_STATUS, location: LOCATION, filter: any) {
   return statusFilter[location] || statusFilter._default;
 }
 
-function filterData (row: any, filter: any, day: Date) {
+function filterData (row: any, filter: any, day: number) {
   const mod = getModulo(row.storeStatus, row.locationId, filter);
   if (!mod) return false;
-  return (row.storeId % mod) === ((day as unknown as number) % mod);
+  return (row.storeId % mod) === (day % mod);
 }
 
 // Integration Functions 
@@ -521,6 +559,7 @@ const queryStores = `
         (storeStatus <> 'Churn')
       )
       AND phone NOT LIKE '5_9613739%'
+      AND phone NOT LILE '5_9223377%'
     ORDER BY storeId, ranking
     LIMIT 5000000
 `;
@@ -532,6 +571,7 @@ async function executeQueryBigQuery(query: string): Promise<any[]> {
   };
 
   try {
+    console.error('Big Query');
     const [job] = await bigquery.createQueryJob(options);
     console.error(`Job ${job.id} started.`);
 
@@ -570,5 +610,7 @@ const removeExtraSpaces = (str: string): string => str.replace(/\s+/g, ' ').trim
 
 // Run Main Function
 
-main(daysFromBaseDate(today), 15000, 0);
+main(daysFromBaseDate(today), 15000, 0)
+  .then()
+  .catch(console.error);
 

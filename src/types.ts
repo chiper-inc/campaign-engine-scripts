@@ -14,8 +14,23 @@ export type TypeCampaignStatus = {
 };
 
 export type TypeCampaignByStatus = {
-  [key in STORE_STATUS]: TypeCampaignStatus | {
-    [key: string]: string[];
-  };
+  [key in STORE_STATUS]: TypeCampaignStatus;
 };
 
+export type TypeStore = {
+  storeId: number;
+  name: string;
+  phone: string;
+}
+
+export type TypeSku = {
+  storeReferenceId: number;
+  reference: string;
+  discountFormatted: string;
+  image: string;
+}
+
+export type TypeCampaignEntry = {
+  name: string;
+  variables: string[];
+};

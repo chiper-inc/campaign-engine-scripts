@@ -112,4 +112,4 @@ const script = async (filename: string): Promise<void> => {
   await scriptForBatches(data);
 }
 
-script('../tmp/empty.json').then().catch(console.error);
+script('../tmp/data.2025-03-12.json').then().catch(console.error);
