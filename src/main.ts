@@ -19,7 +19,8 @@ import {
   TypeStore
 } from './types.ts';
 import { TypeConnectlyCampaignVariables } from './integrations/types.ts';
-import { get } from 'http';
+import { BigQueryRepository } from './repositories/big-query.ts';
+import { IStoreSuggestion } from './repositories/interfaces.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry;
@@ -37,7 +38,6 @@ export interface IStoreRecomendation {
   utm: IUtm;
 };
 
-
 // Process Gobal Variables
 
 const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
@@ -49,7 +49,7 @@ const bigquery = new BigQuery();
 // Main Function 
 
 async function main(day: number, limit = 100, offset = 0) {
-  const data = await executeQueryBigQuery(queryStores);
+  const data = await executeQueryBigQuery();
   const filteredData = data.filter(row => filterData(row, frequencyByStatus, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
   let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
@@ -143,22 +143,12 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
     return acc;
   }, new Map());
   const shortLinkMap = new Map();
-  // for (const [key, value] of preMap.entries()) {
-    // const response = await createShortLink(value);
-    // // console.log('shortLink:', response?.data);
-    // shortLinkMap.set(key, response?.data?.shortLink);
-    // const integration = new LbApiOperacionesIntegration(16);
-    // await integration.createOneShortLink(value);
-    // shortLinkMap.set(key, `path/${key}`);
-  // }
-  // console.error({ shortLinkMap });
-
-  const shortLinksMap = await xxxx(preMap);
-
+  const shortLinksMap = await createShortLinks(preMap);
+  console.log({ shortLinksMap });
   for (const [key, value] of shortLinksMap.entries()) {
     shortLinkMap.set(key, value);
   }
-  // console.error({ shortLinksMap });
+  console.log({ shortLinkMap });
   return preEntries.map(preEntry => {
       const { utm, callToAction, callToActions } = preEntry; 
       return {
@@ -171,7 +161,7 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
     });
 }
 
-const xxxx = async (preMap: Map<string, IShortLinkPayload>) => {
+const createShortLinks = async (preMap: Map<string, IShortLinkPayload>) => {
   const integration = new LbApiOperacionesIntegration();
   const responses = await integration.createAllShortLink(
     Array.from(
@@ -538,50 +528,9 @@ async function createShortLink(
 
 // Repository functions
 
-const queryStores = `
-    SELECT DISTINCT
-      country,
-      storeStatus,
-      storeId,
-      city,
-      locationId,
-      storeReferenceId,
-      name,
-      reference,
-      discountFormatted,
-      phone,
-      ranking
-    FROM \`chiperdw.dbt.BI_D-MessageGenerator\`
-    WHERE phone IS NOT NULL
-      AND ranking <= 10
-      AND (
-        (storeStatus = 'Churn' AND daysSinceLastOrderDelivered > 1000000) OR
-        (storeStatus <> 'Churn')
-      )
-      AND phone NOT LIKE '5_9613739%'
-      AND phone NOT LILE '5_9223377%'
-    ORDER BY storeId, ranking
-    LIMIT 5000000
-`;
-
-async function executeQueryBigQuery(query: string): Promise<any[]> {
-  const options = {
-    query,
-    location: 'US',
-  };
-
-  try {
-    console.error('Big Query');
-    const [job] = await bigquery.createQueryJob(options);
-    console.error(`Job ${job.id} started.`);
-
-    const [rows] = await job.getQueryResults();
-    console.error(`Job ${job.id} Results: ${rows.length}`);
-    return rows;
-  } catch (error) {
-    console.error('ERROR:', error);
-    throw error;
-  }
+function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
+  const bigQueryRepository = new BigQueryRepository();
+  return bigQueryRepository.selectStoreSuggestions();
 }
 
 // Utility Functions
