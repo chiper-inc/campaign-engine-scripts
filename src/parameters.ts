@@ -1,8 +1,9 @@
-import { LOCATION } from "./constants.js";
+import { LOCATION, STORE_STATUS } from "./enums.ts";
+import { TypeCampaignByStatus, TypeFrequencyByStatus } from "./types.ts";
 
-export const frequencyByStatus = {
-  Churn: {
-    _default: 0,
+export const frequencyByStatus: TypeFrequencyByStatus = {
+  [STORE_STATUS.Churn]: {
+    [LOCATION._default]: 0,
     [LOCATION.BAQ]: 0, // 4,
     [LOCATION.BOG]: 0, // 2,
     [LOCATION.CLO]: 0, // 3,
@@ -10,8 +11,8 @@ export const frequencyByStatus = {
     [LOCATION.MDE]: 0, // 4,
     [LOCATION.VLN]: 0, // 4,
   },
-  Hibernating: {
-    _default: 0,
+  [STORE_STATUS.Hibernating]: {
+    [LOCATION._default]: 0,
     [LOCATION.BAQ]: 2,
     [LOCATION.BOG]: 2,
     [LOCATION.CLO]: 2,
@@ -19,8 +20,8 @@ export const frequencyByStatus = {
     [LOCATION.MDE]: 2,
     [LOCATION.VLN]: 2,
   },
-  Lead: {
-    _default: 0,
+  [STORE_STATUS.Lead]: {
+    [LOCATION._default]: 0,
     [LOCATION.BAQ]: 2,
     [LOCATION.BOG]: 2,
     [LOCATION.CLO]: 2,
@@ -28,8 +29,8 @@ export const frequencyByStatus = {
     [LOCATION.MDE]: 2,
     [LOCATION.VLN]: 2,
   },
-  New: {
-    _default: 0,
+  [STORE_STATUS.New]: {
+    [LOCATION._default]: 0,
     [LOCATION.BAQ]: 2,
     [LOCATION.BOG]: 2,
     [LOCATION.CLO]: 2,
@@ -37,8 +38,8 @@ export const frequencyByStatus = {
     [LOCATION.MDE]: 2,
     [LOCATION.VLN]: 2,
   },
-  Resurrected: {
-    _default: 0,
+  [STORE_STATUS.Resurrected]: {
+    [LOCATION._default]: 0,
     [LOCATION.BAQ]: 2,
     [LOCATION.BOG]: 2,
     [LOCATION.CLO]: 2,
@@ -46,8 +47,8 @@ export const frequencyByStatus = {
     [LOCATION.MDE]: 2,
     [LOCATION.VLN]: 2,
   },
-  Retained: {
-    _default: 0,
+  [STORE_STATUS.Retained]: {
+    [LOCATION._default]: 0,
     [LOCATION.BAQ]: 2,
     [LOCATION.BOG]: 2,
     [LOCATION.CLO]: 2,
@@ -55,10 +56,13 @@ export const frequencyByStatus = {
     [LOCATION.MDE]: 2,
     [LOCATION.VLN]: 2,
   },
-  _default: 2,
+  [STORE_STATUS._default]: 2,
 };
 
-const generateParams = (params, length) => 
+const generateParams = (
+  params: string[], 
+  length: number
+) => 
   Array.from({ length }, (_, i) => params.map(p => `${p}_${i + 1}`)).flat();
 
 const NAME = ["name"];
@@ -66,8 +70,8 @@ const DEFAULT = NAME.concat(generateParams(["sku", "dsct"], 2));
 const SKU_DSCT = ["sku", "dsct"];
 const SKU_DSCT_IMG = ["sku", "dsct", "img"];
 
-export const campaignsBySatatus = {
-  Churn: {
+export const campaignsBySatatus: TypeCampaignByStatus = {
+  [STORE_STATUS.Churn]: {
     names: [
       "API_Churn_1_es_v0",
       "API_Churn_2_es_v0",
@@ -88,7 +92,7 @@ export const campaignsBySatatus = {
       API_Churn_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
   },
-  Lead: {
+  [STORE_STATUS.Lead]: {
     names: [
       "API_Lead_1_es_v0",
       "API_Lead_2_es_v0",
@@ -109,7 +113,7 @@ export const campaignsBySatatus = {
       API_Lead_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
   },
-  New: {
+  [STORE_STATUS.New]: {
     names: [
       "API_New_1_es_v0",
       "API_New_2_es_v0",
@@ -130,7 +134,7 @@ export const campaignsBySatatus = {
       API_New_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     },
   },
-  Hibernating: {
+  [STORE_STATUS.Hibernating]: {
     names: [
       "API_Hibernating_1_es_v0",
       "API_Hibernating_2_es_v0",
@@ -152,7 +156,7 @@ export const campaignsBySatatus = {
     }
 
   },
-  Retained: {
+  [STORE_STATUS.Retained]: {
     names: [
       "API_Retained_1_es_v0",
       "API_Retained_2_es_v0",
@@ -174,7 +178,7 @@ export const campaignsBySatatus = {
     }
 
   },
-  Resurrected: {
+  [STORE_STATUS.Resurrected]: {
     names: [
       "API_Resurrected_1_es_v0",
       "API_Resurrected_2_es_v0",
@@ -195,7 +199,7 @@ export const campaignsBySatatus = {
       API_Resurrected_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
     }
   },
-  variables: {
+  [STORE_STATUS._default]: {
     _default: NAME,
   }
 }

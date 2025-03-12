@@ -9,11 +9,14 @@
   "name": "connectly",
   "version": "1.0.0",
   "main": "scr/main.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/main.js",
-    "send": "node src/send.js"
+    "send": "tsc && node dist/send.js"
   },
   "keywords": [],
   "author": "",

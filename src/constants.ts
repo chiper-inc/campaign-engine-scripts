@@ -3,18 +3,10 @@ export const C2A_MACRO = 4;
 export const C2A_BRAND = 2;
 export const C2A_OFFER_LIST = 17;
 
-export const LOCATION = {
-  BOG: 2,
-  MDE: 7,
-  CLO: 3,
-  BAQ: 18,
-  CMX: 11,
-  SCL: 22,
-  SAO: 21,
-  VLN: 24,
-};
+import { LOCATION } from './enums.ts';
 
-export const CITY = {
+export const CITY: { [ k in LOCATION]: number } = {
+  [LOCATION._default]: 0,
   [LOCATION.BOG]: 1,
   [LOCATION.MDE]: 7,
   [LOCATION.CLO]: 2,
@@ -25,7 +17,8 @@ export const CITY = {
   [LOCATION.VLN]: 24,
 };
 
-export const PROVIDER = {
+export const PROVIDER: { [ k in LOCATION]: number }= {
+  [LOCATION._default]: 0,
   [LOCATION.BOG]: 1377,
   [LOCATION.MDE]: 1377,
   [LOCATION.CLO]: 1377,

@@ -1,11 +1,8 @@
+import { Config } from '../config.ts';
+import { StoreReferenceMap } from '../store-reference.mock.ts';
+import { IShortLinkPayload } from './interfaces.ts';
 
-
-// import data from './empty.json' assert { type: "json" };
-// import data from '../xx.json' assert { type: "json" };
-import { Config } from '../config.js';
-import { StoreReferenceMap } from '../store-reference.mock.js';
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export class LbApiOperacionesIntegration {
   url;
@@ -29,11 +26,11 @@ export class LbApiOperacionesIntegration {
     // console.log(this);
   }
 
-  async createOneShortLink(payload) {
+  async createOneShortLink(payload: IShortLinkPayload) {
     const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
     if (payload?.callToAction?.storeReferenceId) {
       payload.callToAction.referenceId = 
-        StoreReferenceMap.get(payload.callToAction.storeReferenceId)?.referenceId;
+        StoreReferenceMap.get(payload.callToAction.storeReferenceId)?.referenceId as number;
     }
     // console.log({ headers: this.headers, payload });
     return fetch(url, {
@@ -53,7 +50,7 @@ export class LbApiOperacionesIntegration {
     })
   }
   
-  splitIntoBatches(arr, batchSize) {
+  splitIntoBatches(arr: any[], batchSize: number): any[][] {
     return arr.reduce((acc, _, i) => {
         if (i % batchSize === 0) {
           acc.push(arr.slice(i, i + batchSize));
@@ -62,9 +59,9 @@ export class LbApiOperacionesIntegration {
     }, []);
   }
 
-  async createAllShortLink(payloadsAndKeys) {
+  async createAllShortLink(payloadsAndKeys: any[]): Promise<any[]> {
     // console.log({ payloadsAndKeys });
-    let responses = [];
+    let responses: any[] = [];
     const batches = this.splitIntoBatches(
       payloadsAndKeys,
       this.BATCH_SIZE,

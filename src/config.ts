@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import * as CONST from './constants.js';
+import * as CONST from './constants.ts';
 
 dotenv.config();
 
