@@ -41,12 +41,11 @@ export class LbApiOperacionesIntegration {
       if (response.status !== 200) {
         console.error('ERROR:', response.status, ':', response.statusText);
         return null;
-        throw new Error(`Error creating shortLink: ${response.status}: ${response.statusText}`);
       }
       return response.json()
     }).catch((error) => {
       console.error('ERROR:', error);
-      throw null;
+      return null;
     })
   }
   

@@ -1,4 +1,3 @@
-import { BigQuery } from '@google-cloud/bigquery';
 import { v4 as uuid } from 'uuid';
 import parseMobile from 'libphonenumber-js/mobile'
 
@@ -43,8 +42,6 @@ export interface IStoreRecomendation {
 const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
 const BASE_DATE = new Date('2025/03/05').setHours(0, 0, 0, 0) as unknown as number;
 const UUID = uuid();
-
-const bigquery = new BigQuery();
 
 // Main Function 
 
@@ -116,7 +113,6 @@ const getPathFromPreEntry = (
   { utm, shortLink }:
   { utm: IUtm, shortLink: string }
 )=> {
-  // console.log ('************', { utm, shortLink });
   const queryParams = 
     `utm_source=${
       utm.campaignSource || ''
@@ -138,7 +134,6 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
     for (const callToAction of callToActions) {
       const key = getUtmAndCallToActionKey({ utm, callToAction});
       acc.set(key, { utm, callToAction });
-      // console.error(callToAction);
     };
     return acc;
   }, new Map());
@@ -380,7 +375,10 @@ const getVariableFromSku = (
   skus: TypeSku[], 
   index: number,
   varName: string = '_',
-): any | null => {
+): {
+  variable: { [k: string]: string}, 
+  storeReferenceId: number
+} | null => {
   if (isNaN(index) || index < 0) return null;
 
   if (!Array.isArray(skus)) return null;
@@ -415,13 +413,13 @@ const generateCallToAction =
   }
 }
 
-const getStore = (row: any): TypeStore => ({
+const getStore = (row: IStoreSuggestion): TypeStore => ({
   storeId: row.storeId, 
   name: row.name,
   phone: row.phone,
 });
 
-const getSku = (row: any): TypeSku => ({
+const getSku = (row: IStoreSuggestion): TypeSku => ({
   storeReferenceId: row.storeReferenceId,
   reference: row.reference, 
   discountFormatted: row.discountFormatted,
@@ -493,37 +491,14 @@ function getModulo (status: STORE_STATUS, location: LOCATION, filter: any) {
   return statusFilter[location] || statusFilter._default;
 }
 
-function filterData (row: any, filter: any, day: number) {
-  const mod = getModulo(row.storeStatus, row.locationId, filter);
+function filterData (row: IStoreSuggestion, filter: any, day: number) {
+  const mod = getModulo(
+    row.storeStatus as unknown as STORE_STATUS, 
+    row.locationId as unknown as LOCATION, 
+    filter
+  );
   if (!mod) return false;
   return (row.storeId % mod) === (day % mod);
-}
-
-// Integration Functions 
-
-async function createShortLink(
-  payload: { callToAction: ICallToAction, utm: IUtm }
-) {
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': Config.lbApiOperaciones.apiKey
-      ? Config.lbApiOperaciones.apiKey
-      : `Bearer ${Config.lbApiOperaciones.apiToken}`, // Replace with a real token if needed
-  };
-  const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
-  return fetch(url, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(payload)
-  }).then(response => {
-    if (response.status !== 200) {
-      throw new Error(`Error creating shortLink: ${response.status}: ${response.statusText}`);
-    }
-    return response.json()
-  }).catch((error) => {
-    console.error('ERROR:', error);
-    throw error;
-  });
 }
 
 // Repository functions
