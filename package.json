@@ -1,6 +1,9 @@
 {
   "type": "module",
   "dependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/node": "^7.26.0",
+    "@babel/preset-env": "^7.26.9",
     "@google-cloud/bigquery": "^7.9.2",
     "dotenv": "^16.4.7",
     "libphonenumber-js": "^1.12.5",
@@ -9,11 +12,24 @@
   "name": "connectly",
   "version": "1.0.0",
   "main": "scr/main.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/node": "^22.13.10",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
+  },
   "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist/*",
+    "rebuild": "npm run clean && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/main.js",
-    "send": "node src/send.js"
+    "start": "npm run build && babel-node dist/main.js",
+    "script:main": "npm run build && babel-node dist/main.js",
+    "script:send": "npm run build && babel-node dist/send.js",
+    "lint": "eslint ./src --ext .ts"
   },
   "keywords": [],
   "author": "",
