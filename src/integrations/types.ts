@@ -1,4 +1,4 @@
 
 export type TypeConnectlyCampaignVariables = {
-  [key: string]: string;
+  [key: string]: string | number;
 }

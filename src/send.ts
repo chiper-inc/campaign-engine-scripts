@@ -4,13 +4,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { IConnectlyEntry } from './integrations/interfaces.ts';
 
 // Define __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 
-const readFileToJson = (filePath: string): Promise<any> => {
+const readFileToJson = (filePath: string): Promise<IConnectlyEntry[]> => {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, 'utf8', (err, data) => {
       if (err) {
@@ -40,29 +41,29 @@ const headers = {
 
 let accepted = 0;
 let rejected = 0;
-const rejections: any[] = [];
+const rejections: object[] = [];
 
 function splitIntoBatches(
-  arr: any[], 
+  arr: IConnectlyEntry[], 
   batchSize: number
-): any[][] {
+): IConnectlyEntry[][] {
     return arr.reduce((acc, _, i) => {
         if (i % batchSize === 0) {
           acc.push(arr.slice(i, i + batchSize));
         }
         return acc;
-    }, []);
+    }, [] as IConnectlyEntry[][]);
 }
 
-const scriptForBatches = async (data: any[]) => {
+const scriptForBatches = async (data: IConnectlyEntry[]) => {
   console.log(data);
   const batches = splitIntoBatches(data, BATCH_SIZE);
 
 
   let batchIdx = 1;
-  let statuses: { [key: string]: number} = {};
+  const statuses: { [key: string]: number} = {};
   for (const batch of batches) {
-    await Promise.all(batch.map(async (entry, idx)=> {
+    await Promise.all(batch.map(async (entry)=> {
       const payload = {
         entries: [entry]
       };
@@ -108,7 +109,7 @@ const scriptForBatches = async (data: any[]) => {
 }
 
 const script = async (filename: string): Promise<void> => {
-  const data: any[] = await readFileToJson(path.join(__dirname, filename));
+  const data: IConnectlyEntry[] = await readFileToJson(path.join(__dirname, filename));
   await scriptForBatches(data);
 }
 

@@ -14,6 +14,7 @@ import {
   TypeCampaignByStatus,
   TypeCampaignEntry,
   TypeCampaignStatus,
+  TypeFrequencyByStatus,
   TypeSku,
   TypeStore
 } from './types.ts';
@@ -87,7 +88,7 @@ const generatePathVariable = (
   paths: string[]
 ) => {
   return preEntries.map(preEntry => {
-    const pathObj: { [k: string]: string } = {};
+    const pathObj: TypeConnectlyCampaignVariables = {};
     const { utm, shortLinks = [] } = preEntry;
     // console.log({ paths, shortLinks });
     paths.forEach((path, i) => {
@@ -156,7 +157,9 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
     });
 }
 
-const createShortLinks = async (preMap: Map<string, IShortLinkPayload>) => {
+const createShortLinks = async (
+  preMap: Map<string, IShortLinkPayload>
+): Promise<Map<string, string>> => {
   const integration = new LbApiOperacionesIntegration();
   const responses = await integration.createAllShortLink(
     Array.from(
@@ -167,8 +170,11 @@ const createShortLinks = async (preMap: Map<string, IShortLinkPayload>) => {
     }))
   );
   return responses.reduce((acc, obj) => {
-    const { key, response } = obj;
-    acc.set(key, response?.data?.shortLink || '');
+    const { key, response } = obj as { 
+      key: string, 
+      response: { data?: { shortLink?: string } }
+    };
+    acc.set(key, response?.data?.shortLink ?? '');
     return acc;
   }, new Map());
 }
@@ -189,8 +195,8 @@ const reportEntries = (entries: IConnectlyEntry[]) => {
 }
 
 const generateStoreMap = (
-  filteredData: any[],
-  campaignsBySatatus: any,
+  filteredData: IStoreSuggestion[],
+  campaignsBySatatus: TypeCampaignByStatus,
   day: number
 ) => {
   return filteredData.reduce((acc, row) => {
@@ -362,10 +368,10 @@ const getVariableFromStore = (
   store: TypeStore, 
   varName: string = '_',
 ): TypeConnectlyCampaignVariables => {
-  const value = (store as { [k: string]: any })[
+  const value = (store as TypeConnectlyCampaignVariables)[
     varName ?? '-'
   ] ?? `Store[${variable}]`;
-  return { 
+  return {
     [variable]: removeExtraSpaces(value),
   }
 }
@@ -376,7 +382,7 @@ const getVariableFromSku = (
   index: number,
   varName: string = '_',
 ): {
-  variable: { [k: string]: string}, 
+  variable: TypeConnectlyCampaignVariables, 
   storeReferenceId: number
 } | null => {
   if (isNaN(index) || index < 0) return null;
@@ -386,7 +392,7 @@ const getVariableFromSku = (
   if (index >= skus.length) return null;
 
   const sku = skus[index];
-  const value = (sku as { [k: string]: any })[varName] ?? `Sku[${variable}]`;
+  const value = (sku as { [k: string]: string | number })[varName] ?? `Sku[${variable}]`;
 
   return { variable: {
     [variable]: removeExtraSpaces(value),
@@ -486,15 +492,26 @@ const getUtm = (
   };
 }
 
-function getModulo (status: STORE_STATUS, location: LOCATION, filter: any) {
-  const statusFilter = filter[status] || filter._default || {};
-  return statusFilter[location] || statusFilter._default;
+function getModulo(
+  status: STORE_STATUS,
+  location: LOCATION, 
+  filter: TypeFrequencyByStatus
+): number {
+  const statusFilter = 
+    (filter[status] || filter[STORE_STATUS._default] || {}) as { 
+      [key in LOCATION]?: number
+    };
+  return statusFilter[location] ?? statusFilter[LOCATION._default] ?? 0;
 }
 
-function filterData (row: IStoreSuggestion, filter: any, day: number) {
+function filterData (
+  row: IStoreSuggestion,
+  filter: TypeFrequencyByStatus, 
+  day: number
+) {
   const mod = getModulo(
-    row.storeStatus as unknown as STORE_STATUS, 
-    row.locationId as unknown as LOCATION, 
+    row.storeStatus, 
+    row.locationId, 
     filter
   );
   if (!mod) return false;
@@ -530,7 +547,9 @@ const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
 
 const getProvider = (locationId: LOCATION) => PROVIDER[locationId] || 0;
 
-const removeExtraSpaces = (str: string): string => str.replace(/\s+/g, ' ').trim();
+const removeExtraSpaces = (val: string | number): string | number => typeof val === 'string'
+  ? val.replace(/\s+/g, ' ').trim()
+  : val;
 
 // Run Main Function
 

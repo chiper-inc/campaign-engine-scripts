@@ -1,6 +1,6 @@
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../store-reference.mock.ts';
-import { IShortLinkPayload } from './interfaces.ts';
+import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -49,27 +49,35 @@ export class LbApiOperacionesIntegration {
     })
   }
   
-  splitIntoBatches(arr: any[], batchSize: number): any[][] {
+  splitIntoBatches(
+    arr: IShortLinkPayloadAndKey[],
+    batchSize: number
+  ): IShortLinkPayloadAndKey[][] {
     return arr.reduce((acc, _, i) => {
         if (i % batchSize === 0) {
           acc.push(arr.slice(i, i + batchSize));
         }
         return acc;
-    }, []);
+    }, [] as IShortLinkPayloadAndKey[][]);
   }
 
-  async createAllShortLink(payloadsAndKeys: any[]): Promise<any[]> {
+  async createAllShortLink(
+    payloadsAndKeys: IShortLinkPayloadAndKey[]
+  ): Promise<{ key: string, response: unknown }[]> {
     // console.log({ payloadsAndKeys });
-    let responses: any[] = [];
+    let responses: { key: string, response: unknown}[] = [];
     const batches = this.splitIntoBatches(
       payloadsAndKeys,
       this.BATCH_SIZE,
-    );
+    ) as IShortLinkPayloadAndKey[][];
     const batchCount = batches.length;
     let batchIdx = 0;
     console.error(`Creating ${payloadsAndKeys.length} shortLinks in ${batchCount} batches of ${this.BATCH_SIZE}...`);
     for (const batch of batches) {
-      const batchResponse = await Promise.all(batch.map(async (
+      const batchResponse: {
+        key: string,
+        response: unknown
+      } []= await Promise.all(batch.map(async (
         { key, value }
       )=> {
         return new Promise((resolve, reject) => {

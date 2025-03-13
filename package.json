@@ -1,6 +1,9 @@
 {
   "type": "module",
   "dependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/node": "^7.26.0",
+    "@babel/preset-env": "^7.26.9",
     "@google-cloud/bigquery": "^7.9.2",
     "dotenv": "^16.4.7",
     "libphonenumber-js": "^1.12.5",
@@ -10,13 +13,22 @@
   "version": "1.0.0",
   "main": "scr/main.js",
   "devDependencies": {
+    "@eslint/js": "^9.22.0",
     "@types/node": "^22.13.10",
-    "typescript": "^5.8.2"
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
   },
   "scripts": {
+    "build": "tsc",
+    "clean": "lb-clean dist",
+    "rebuild": "npm run clean && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc && node dist/main.js",
-    "send": "tsc && node dist/send.js"
+    "start": "npm run build && node dist/main.js",
+    "start:main": "npm run build && node dist/main.js",
+    "send": "npm run build && node dist/send.js",
+    "lint": "eslint ./src --ext .ts"
   },
   "keywords": [],
   "author": "",

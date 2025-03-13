@@ -3,7 +3,7 @@ import { IStoreSuggestion } from './interfaces.ts';
 
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
-  private readonly defaultOptions: any;
+  private readonly defaultOptions: object;
 
   constructor() {
     this.bigquery = new BigQuery();
@@ -37,10 +37,10 @@ export class BigQueryRepository {
         AND phone NOT LIKE '5_9223377%'
       ORDER BY storeId, ranking
       LIMIT 1000`;
-    return this.executeQueryBigQuery(query);
+    return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 
-  private async executeQueryBigQuery(query: string): Promise<any[]> {
+  private async executeQueryBigQuery(query: string): Promise<unknown[]> {
     const options = {
       ...this.defaultOptions,
       query,

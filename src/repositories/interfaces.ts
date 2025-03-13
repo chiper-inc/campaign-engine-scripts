@@ -1,10 +1,11 @@
+import { LOCATION, STORE_STATUS } from '../enums.ts';
 
 export interface IStoreSuggestion {
   country: string;
-  storeStatus: string;
+  storeStatus: STORE_STATUS;
   storeId: number;
   city: string;
-  locationId: number;
+  locationId: LOCATION;
   storeReferenceId: number;
   name: string;
   reference: string;

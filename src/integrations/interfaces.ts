@@ -28,6 +28,10 @@ export interface IShortLinkPayload {
   utm: IUtm,
 };
 
+export interface IShortLinkPayloadAndKey {
+  key: string; 
+  value: IShortLinkPayload;
+};
 export interface IConnectlyEntry {
   client: string;
   campaignName: string;
