@@ -1,18 +1,15 @@
+import { Config } from '../config.ts';
+import { StoreReferenceMap } from '../store-reference.mock.ts';
+import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
 
-
-// import data from './empty.json' assert { type: "json" };
-// import data from '../xx.json' assert { type: "json" };
-import { Config } from '../config.js';
-import { StoreReferenceMap } from '../store-reference.mock.js';
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export class LbApiOperacionesIntegration {
   url;
   apiKey;  // Replace with a real token if needed
   BATCH_SIZE;
   headers;
-  watingTime = 1000;
+  WAITING_TIME = 750;
   
   constructor(batchSize = 10) {
     this.BATCH_SIZE = batchSize;
@@ -29,11 +26,11 @@ export class LbApiOperacionesIntegration {
     // console.log(this);
   }
 
-  async createOneShortLink(payload) {
+  async createOneShortLink(payload: IShortLinkPayload) {
     const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
     if (payload?.callToAction?.storeReferenceId) {
       payload.callToAction.referenceId = 
-        StoreReferenceMap.get(payload.callToAction.storeReferenceId)?.referenceId;
+        StoreReferenceMap.get(payload.callToAction.storeReferenceId)?.referenceId as number;
     }
     // console.log({ headers: this.headers, payload });
     return fetch(url, {
@@ -44,27 +41,31 @@ export class LbApiOperacionesIntegration {
       if (response.status !== 200) {
         console.error('ERROR:', response.status, ':', response.statusText);
         return null;
-        throw new Error(`Error creating shortLink: ${response.status}: ${response.statusText}`);
       }
       return response.json()
     }).catch((error) => {
       console.error('ERROR:', error);
-      throw null;
+      return null;
     })
   }
   
-  splitIntoBatches(arr, batchSize) {
+  splitIntoBatches(
+    arr: IShortLinkPayloadAndKey[],
+    batchSize: number
+  ): IShortLinkPayloadAndKey[][] {
     return arr.reduce((acc, _, i) => {
         if (i % batchSize === 0) {
           acc.push(arr.slice(i, i + batchSize));
         }
         return acc;
-    }, []);
+    }, [] as IShortLinkPayloadAndKey[][]);
   }
 
-  async createAllShortLink(payloadsAndKeys) {
+  async createAllShortLink(
+    payloadsAndKeys: IShortLinkPayloadAndKey[]
+  ): Promise<{ key: string, response: unknown }[]> {
     // console.log({ payloadsAndKeys });
-    let responses = [];
+    let responses: { key: string, response: unknown}[] = [];
     const batches = this.splitIntoBatches(
       payloadsAndKeys,
       this.BATCH_SIZE,
@@ -73,7 +74,10 @@ export class LbApiOperacionesIntegration {
     let batchIdx = 0;
     console.error(`Creating ${payloadsAndKeys.length} shortLinks in ${batchCount} batches of ${this.BATCH_SIZE}...`);
     for (const batch of batches) {
-      const batchResponse = await Promise.all(batch.map(async (
+      const batchResponse: {
+        key: string,
+        response: unknown
+      } []= await Promise.all(batch.map(async (
         { key, value }
       )=> {
         return new Promise((resolve, reject) => {
@@ -90,7 +94,7 @@ export class LbApiOperacionesIntegration {
       // console.log(JSON.stringify(batchResponse, null, 2));
       responses = responses.concat(batchResponse);
       console.error(`batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`);
-      await sleep(this.watingTime + Math.floor(Math.random() * this.watingTime / 2));
+      await sleep(this.WAITING_TIME + Math.floor(Math.random() * this.WAITING_TIME / 2));
     }
     // console.log('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;
