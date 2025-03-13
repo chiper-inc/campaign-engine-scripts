@@ -54,7 +54,7 @@ async function main(day: number, limit = 100, offset = 0) {
   preEntries = await generateCallToActionShortLinks(preEntries);
   preEntries = generatePathVariable(
     preEntries,
-    [/* "path_1", */ "path_1", "path_2", "path_3"],
+    [/* "path_1", */ "path_1", "path_2", "path_3", "path_4"],
   );
   const entries = preEntries.map(entry => entry.connectlyEntry);
   reportEntries(entries);
@@ -139,12 +139,9 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
     return acc;
   }, new Map());
   const shortLinkMap = new Map();
-  const shortLinksMap = await createShortLinks(preMap);
-  console.log({ shortLinksMap });
-  for (const [key, value] of shortLinksMap.entries()) {
+  for (const [key, value] of (await createShortLinks(preMap)).entries()) {
     shortLinkMap.set(key, value);
   }
-  console.log({ shortLinkMap });
   return preEntries.map(preEntry => {
       const { utm, callToAction, callToActions } = preEntry; 
       return {
@@ -246,7 +243,7 @@ const generatePreEntries = (
     }
 
     const callToActions = generateCallToActionPaths(
-      ["path_1", "path_2", "path_3"],
+      ["path_1", "path_2", "path_3", "path_4"],
       storeReferenceIds,
     );
 
@@ -268,7 +265,7 @@ const generatePreEntries = (
       callToActions,
      });
   }
-  console.error('Entries:', entries.length);
+  // console.error('Entries:', entries.length);
   return entries;
 }
 

@@ -9,7 +9,7 @@ export class LbApiOperacionesIntegration {
   apiKey;  // Replace with a real token if needed
   BATCH_SIZE;
   headers;
-  watingTime = 1000;
+  WAITING_TIME = 750;
   
   constructor(batchSize = 10) {
     this.BATCH_SIZE = batchSize;
@@ -69,7 +69,7 @@ export class LbApiOperacionesIntegration {
     const batches = this.splitIntoBatches(
       payloadsAndKeys,
       this.BATCH_SIZE,
-    ) as IShortLinkPayloadAndKey[][];
+    );
     const batchCount = batches.length;
     let batchIdx = 0;
     console.error(`Creating ${payloadsAndKeys.length} shortLinks in ${batchCount} batches of ${this.BATCH_SIZE}...`);
@@ -94,7 +94,7 @@ export class LbApiOperacionesIntegration {
       // console.log(JSON.stringify(batchResponse, null, 2));
       responses = responses.concat(batchResponse);
       console.error(`batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`);
-      await sleep(this.watingTime + Math.floor(Math.random() * this.watingTime / 2));
+      await sleep(this.WAITING_TIME + Math.floor(Math.random() * this.WAITING_TIME / 2));
     }
     // console.log('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;

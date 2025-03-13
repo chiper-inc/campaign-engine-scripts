@@ -56,9 +56,7 @@ function splitIntoBatches(
 }
 
 const scriptForBatches = async (data: IConnectlyEntry[]) => {
-  console.log(data);
   const batches = splitIntoBatches(data, BATCH_SIZE);
-
 
   let batchIdx = 1;
   const statuses: { [key: string]: number} = {};
@@ -88,7 +86,7 @@ const scriptForBatches = async (data: IConnectlyEntry[]) => {
           rejected += response.data[0].rejectedCount;
           if (response.data[0].error) {
             rejections.push({ request: payload, response: response.data });
-            rejected += 1;
+            // console.error(response.data);
           }
         })
         .catch((error) => {
@@ -113,4 +111,4 @@ const script = async (filename: string): Promise<void> => {
   await scriptForBatches(data);
 }
 
-script('../tmp/data.2025-03-12.json').then().catch(console.error);
+script('../tmp/data.2025-03-13.json').then().catch(console.error);

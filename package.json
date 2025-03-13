@@ -17,17 +17,18 @@
     "@types/node": "^22.13.10",
     "eslint": "^9.22.0",
     "globals": "^16.0.0",
+    "rimraf": "^6.0.1",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1"
   },
   "scripts": {
     "build": "tsc",
-    "clean": "lb-clean dist",
+    "clean": "rimraf dist/*",
     "rebuild": "npm run clean && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm run build && node dist/main.js",
-    "start:main": "npm run build && node dist/main.js",
-    "send": "npm run build && node dist/send.js",
+    "start": "npm run build && babel-node dist/main.js",
+    "script:main": "npm run build && babel-node dist/main.js",
+    "script:send": "npm run build && babel-node dist/send.js",
     "lint": "eslint ./src --ext .ts"
   },
   "keywords": [],

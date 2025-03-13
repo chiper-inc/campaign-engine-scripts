@@ -34,9 +34,9 @@ export class BigQueryRepository {
           (storeStatus <> 'Churn')
         )
         AND phone NOT LIKE '5_9613739%'
-        AND phone NOT LIKE '5_9223377%'
+        AND phone NOT LIKE '5_9223372%'
       ORDER BY storeId, ranking
-      LIMIT 1000`;
+      LIMIT 5000000`;
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 
@@ -53,7 +53,6 @@ export class BigQueryRepository {
 
       const [rows] = await job.getQueryResults();
       console.error(`Job ${job.id} Results: ${rows.length}`);
-      console.log({ rows });
       return rows;
     } catch (error) {
       console.error('ERROR:', error);

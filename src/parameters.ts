@@ -81,6 +81,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       "API_Churn_6_es_v0",
       "API_Churn_7_es_v0",
       "API_Churn_8_es_v0",
+      "API_Churn_9_es_v0",
     ],
     variables: {
       _default: DEFAULT,
@@ -92,6 +93,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Churn_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Churn_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Churn_8_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
+      API_Churn_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
     }
   },
   [STORE_STATUS.Lead]: {
@@ -104,6 +106,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       "API_Lead_6_es_v0",
       "API_Lead_7_es_v1",
       "API_Lead_8_es_v0",
+      "API_Lead_9_es_v0",
     ],
     variables: {
       _default: DEFAULT,
@@ -115,6 +118,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Lead_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Lead_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Lead_8_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
+      API_Lead_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
     }
   },
   [STORE_STATUS.New]: {
@@ -127,6 +131,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       "API_New_6_es_v0",
       "API_New_7_es_v0",
       "API_New_8_es_v1",
+      "API_New_9_es_v0",
     ],
     variables: {
       _default: DEFAULT,
@@ -138,6 +143,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_New_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_New_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_New_8_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
+      API_New_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
     },
   },
   [STORE_STATUS.Hibernating]: {
@@ -150,6 +156,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       "API_Hibernating_6_es_v0",
       "API_Hibernating_7_es_v1",
       "API_Hibernating_8_es_v2",
+      "API_Hibernating_9_es_v0",
     ],
     variables: {
       _default: DEFAULT,
@@ -161,6 +168,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Hibernating_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Hibernating_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Hibernating_8_es_v2: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
+      API_Hibernating_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
     }
 
   },
@@ -174,6 +182,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       "API_Retained_6_es_v0",
       "API_Retained_7_es_v0",
       "API_Retained_8_es_v1",
+      "API_Retained_9_es_v1",
     ],
     variables: {
       _default: DEFAULT,
@@ -185,6 +194,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Retained_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Retained_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Retained_8_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
+      API_Retained_9_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
     }
 
   },
@@ -198,6 +208,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       "API_Resurrected_6_es_v0",
       "API_Resurrected_7_es_v1",
       "API_Resurrected_8_es_v1",
+      "API_Resurrected_9_es_v0",
     ],
     variables: {
       _default: DEFAULT,
@@ -209,6 +220,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Resurrected_6_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Resurrected_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Resurrected_8_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
+      API_Resurrected_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
     }
   },
   [STORE_STATUS._default]: {
