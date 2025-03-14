@@ -1,63 +1,77 @@
 import { LOCATION, STORE_STATUS } from './enums.ts';
-import { TypeCampaignByStatus, TypeFrequencyByStatus } from './types.ts';
+import { TypeCampaignByStatus } from './types.ts';
 
-export const frequencyByStatus: TypeFrequencyByStatus = {
-  [STORE_STATUS.Churn]: {
-    [LOCATION._default]: 0,
-    [LOCATION.BAQ]: 0, // 4,
-    [LOCATION.BOG]: 0, // 2,
-    [LOCATION.CLO]: 0, // 3,
-    [LOCATION.CMX]: 0, // 4,
-    [LOCATION.MDE]: 0, // 4,
-    [LOCATION.VLN]: 0, // 4,
-  },
-  [STORE_STATUS.Hibernating]: {
-    [LOCATION._default]: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  [STORE_STATUS.Lead]: {
-    [LOCATION._default]: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 8,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  [STORE_STATUS.New]: {
-    [LOCATION._default]: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 8,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  [STORE_STATUS.Resurrected]: {
-    [LOCATION._default]: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  [STORE_STATUS.Retained]: {
-    [LOCATION._default]: 0,
-    [LOCATION.BAQ]: 2,
-    [LOCATION.BOG]: 2,
-    [LOCATION.CLO]: 2,
-    [LOCATION.CMX]: 4,
-    [LOCATION.MDE]: 2,
-    [LOCATION.VLN]: 2,
-  },
-  [STORE_STATUS._default]: 2,
+export interface IFrequencyParameter {
+  locationId: LOCATION;
+  storeStatus: STORE_STATUS;
+  frequency: number;
+  from?: number;
+  to?: number;
 };
+
+export const frequencyByLocationAndStatusAndRange: IFrequencyParameter[] = [
+  { locationId: LOCATION.BAQ, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 3},
+  { locationId: LOCATION.BAQ, storeStatus: STORE_STATUS.Hibernating, frequency: 3},
+  { locationId: LOCATION.BAQ, storeStatus: STORE_STATUS.Lead, frequency: 7},
+  { locationId: LOCATION.BAQ, storeStatus: STORE_STATUS.New, frequency: 3},
+  { locationId: LOCATION.BAQ, storeStatus: STORE_STATUS.Resurrected, frequency: 3},
+  { locationId: LOCATION.BAQ, storeStatus: STORE_STATUS.Retained, frequency: 3},
+
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 2},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Churn, from: 120, to: 149, frequency: 2},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Churn, from: 150, to: 179, frequency: 2},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Churn, from: 180, to: 209, frequency: 2},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Hibernating, frequency: 2},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Lead, frequency: 3},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.New, frequency: 2},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Resurrected, frequency: 2},
+  { locationId: LOCATION.BOG, storeStatus: STORE_STATUS.Retained, frequency: 2},
+
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Churn, from: 120, to: 149, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Churn, from: 150, to: 179, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Churn, from: 180, to: 209, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Hibernating, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Lead, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.New, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Resurrected, frequency: 2},
+  { locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Retained, frequency: 2},
+
+  { locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Hibernating, frequency: 3},
+  { locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Lead, frequency: 0},
+  { locationId: LOCATION.CMX, storeStatus: STORE_STATUS.New, frequency: 7},
+  { locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Resurrected, frequency: 7},
+  { locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Retained, frequency: 7},
+
+  { locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 3 },
+  { locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Hibernating, frequency: 3 },
+  { locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Lead, frequency: 7 },
+  { locationId: LOCATION.MDE, storeStatus: STORE_STATUS.New, frequency: 3 },
+  { locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Resurrected, frequency: 3 },
+  { locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Retained, frequency: 3 },
+
+  { locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 2 },
+  { locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Churn, from: 120, to: 149, frequency: 2 },
+  { locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Retained, frequency: 2 },
+  { locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Resurrected, frequency: 2 },
+  { locationId: LOCATION.VLN, storeStatus: STORE_STATUS.New, frequency: 2 },
+  { locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Lead, frequency: 2 },
+  { locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Hibernating, frequency: 2 },
+]
+
+export const getLocationStatusRangeKey = (frequencyParameter: Partial<IFrequencyParameter>) => {
+  const { locationId, storeStatus, from, to } = frequencyParameter;
+  const timeRange = from || to
+    ? `${from ?? 'Any'}-${to ?? 'Any'}`
+    : null;
+  return `${locationId}|${storeStatus}|${timeRange ?? ''}`;
+}
+
+export const frequencyMap = frequencyByLocationAndStatusAndRange
+  .reduce((acc, parameter) => {
+    acc.set(getLocationStatusRangeKey(parameter), parameter.frequency);
+    return acc;
+  }, new Map<string, number>());
 
 const generateParams = (
   params: string[], 
@@ -86,6 +100,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Churn_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Churn_8_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
       API_Churn_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
+      API_Churn_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
     }
   },
   [STORE_STATUS.Lead]: {
@@ -101,6 +116,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Lead_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Lead_8_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
       API_Lead_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
+      API_Lead_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
     }
   },
   [STORE_STATUS.New]: {
@@ -116,6 +132,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_New_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_New_8_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
       API_New_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
+      API_New_10_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
     },
   },
   [STORE_STATUS.Hibernating]: {
@@ -131,6 +148,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Hibernating_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Hibernating_8_es_v2: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
       API_Hibernating_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
+      API_Hibernating_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
     }
 
   },
@@ -147,6 +165,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Retained_7_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Retained_8_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
       API_Retained_9_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
+      API_Retained_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
     }
 
   },
@@ -163,6 +182,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Resurrected_7_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
       API_Resurrected_8_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
       API_Resurrected_9_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 4)),
+      API_Resurrected_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
     }
   },
   [STORE_STATUS._default]: {

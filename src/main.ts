@@ -4,7 +4,12 @@ import parseMobile from 'libphonenumber-js/mobile'
 // Constants 
 
 import { Config } from './config.ts';
-import { frequencyByStatus, campaignsBySatatus } from './parameters.ts';
+import {
+  campaignsBySatatus,
+  getLocationStatusRangeKey,
+  frequencyMap, 
+  frequencyByLocationAndStatusAndRange
+} from './parameters.ts';
 import { PROVIDER, CITY } from './constants.ts';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.ts';
 import { StoreReferenceMap } from './store-reference.mock.ts';
@@ -14,7 +19,6 @@ import {
   TypeCampaignByStatus,
   TypeCampaignEntry,
   TypeCampaignStatus,
-  TypeFrequencyByStatus,
   TypeSku,
   TypeStore
 } from './types.ts';
@@ -48,13 +52,13 @@ const UUID = uuid();
 
 async function main(day: number, limit = 100, offset = 0) {
   const data = await executeQueryBigQuery();
-  const filteredData = data.filter(row => filterData(row, frequencyByStatus, day));
+  const filteredData = data.filter(row => filterData(row, frequencyMap, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
   let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
   preEntries = await generateCallToActionShortLinks(preEntries);
   preEntries = generatePathVariable(
     preEntries,
-    [/* "path_1", */ "path_1", "path_2", "path_3", "path_4"],
+    [/* "path_1", */ "path_1", "path_2", "path_3", "path_4", "path_5"],
   );
   const entries = preEntries.map(entry => entry.connectlyEntry);
   reportEntries(entries);
@@ -243,7 +247,7 @@ const generatePreEntries = (
     }
 
     const callToActions = generateCallToActionPaths(
-      ["path_1", "path_2", "path_3", "path_4"],
+      ["path_1", "path_2", "path_3", "path_4", "path_5"],
       storeReferenceIds,
     );
 
@@ -489,28 +493,25 @@ const getUtm = (
   };
 }
 
-function getModulo(
-  status: STORE_STATUS,
-  location: LOCATION, 
-  filter: TypeFrequencyByStatus
+function getFrequency(
+  row: IStoreSuggestion,
+  frequencyMap: Map<string, number>
 ): number {
-  const statusFilter = 
-    (filter[status] || filter[STORE_STATUS._default] || {}) as { 
-      [key in LOCATION]?: number
-    };
-  return statusFilter[location] ?? statusFilter[LOCATION._default] ?? 0;
+  const key = getLocationStatusRangeKey({ 
+    storeStatus: row.storeStatus, 
+    locationId: row.locationId,
+    from: row.from,
+    to: row.to,
+  });
+  return frequencyMap.get(key) ?? 0;
 }
 
 function filterData (
   row: IStoreSuggestion,
-  filter: TypeFrequencyByStatus, 
+  frequencyMap: Map<string, number>, 
   day: number
 ) {
-  const mod = getModulo(
-    row.storeStatus, 
-    row.locationId, 
-    filter
-  );
+  const mod = getFrequency(row, frequencyMap);
   if (!mod) return false;
   return (row.storeId % mod) === (day % mod);
 }
@@ -519,7 +520,10 @@ function filterData (
 
 function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
   const bigQueryRepository = new BigQueryRepository();
-  return bigQueryRepository.selectStoreSuggestions();
+  return bigQueryRepository.selectStoreSuggestions(
+    frequencyByLocationAndStatusAndRange.filter(
+    ({ storeStatus }) => storeStatus === STORE_STATUS.Churn
+  ));
 }
 
 // Utility Functions
