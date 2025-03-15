@@ -10,7 +10,7 @@ import {
   frequencyMap, 
   frequencyByLocationAndStatusAndRange
 } from './parameters.ts';
-import { PROVIDER, CITY } from './constants.ts';
+import { PROVIDER, CITY, CITY_NAME } from './constants.ts';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.ts';
 import { StoreReferenceMap } from './store-reference.mock.ts';
 import { ICallToAction, IConnectlyEntry, IShortLinkPayload, IUtm } from './integrations/interfaces.ts';
@@ -55,13 +55,12 @@ async function main(day: number, limit = 100, offset = 0) {
   const filteredData = data.filter(row => filterData(row, frequencyMap, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
   let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
-  preEntries = await generateCallToActionShortLinks(preEntries);
-  preEntries = generatePathVariable(
-    preEntries,
-    [/* "path_1", */ "path_1", "path_2", "path_3", "path_4", "path_5"],
-  );
-  const entries = preEntries.map(entry => entry.connectlyEntry);
-  reportEntries(entries);
+  // preEntries = await generateCallToActionShortLinks(preEntries);
+  // preEntries = generatePathVariable(
+  //   preEntries,
+  //   [/* "path_1", */ "path_1", /* "path_2", "path_3", "path_4", "path_5" */],
+  // );
+  const entries = reportEntries(preEntries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(`Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`);
 }
@@ -180,19 +179,45 @@ const createShortLinks = async (
   }, new Map());
 }
 
-const reportEntries = (entries: IConnectlyEntry[]) => {
-  console.log('===================');
-  console.log(JSON.stringify(entries, null, 2));
-  console.log('===================');
-  const summary = entries.reduce((acc, entry) => {
-    const value = acc.get(entry.campaignName) || 0;
-    acc.set(entry.campaignName, value + 1);
-    return acc;
-  }, new Map());
+const reportEntries = (preEntries: IPreEntry[]): IConnectlyEntry[] => {
+  const summaryMap = preEntries
+    .map(preEntry => preEntry.utm.campaignName)
+    .reduce((acc, name) => {
+      const [ cityId, , , , , , status, campaingName ] = name.split('_');
+      const [ , , message] = campaingName.split('-');
+
+      let key = `${CITY_NAME[cityId]}|${status}|${message}`;
+      let value = acc.locationSegmentMessageMap.get(key) || 0;
+      acc.locationSegmentMessageMap.set(key, value + 1);
+
+      key = campaingName.replace(/[^a-zA-Z0-9]/g, '_');
+      value = acc.messageMap.get(key) || 0;
+      acc.messageMap.set(key, value + 1);
+      return acc;
+    }, { 
+      locationSegmentMessageMap: new Map(),
+      messageMap: new Map(),
+    });
+  console.log(summaryMap);
+  const summaryMessage = Array
+    .from(summaryMap.messageMap.entries())
+    .map(([key, value]) => ({ key, value }))
+    .sort((a, b) => a.key === b.key ? 0 : (a.key > b.key ? 1 : -1));
+  const summaryLocationSegmentMessage = Array
+    .from(summaryMap.locationSegmentMessageMap.entries())
+    .map(([key, value]) => ({ key, value }))
+    .sort((a, b) => a.key === b.key ? 0 : (a.key > b.key ? 1 : -1));
   console.error('Summary Per Campaign');
-  for (const [key, value] of summary.entries()) {
+  for (const { key, value } of summaryLocationSegmentMessage) {
     console.error(`- ${key}: ${value}`);
   }
+  console.log('===================');
+  for (const { key, value } of summaryMessage) {
+    console.error(`- ${key}: ${value}`);
+  }
+  // console.log(JSON.stringify(entries, null, 2));
+  console.log('===================');
+  return preEntries.map(preEntry => preEntry.connectlyEntry);
 }
 
 const generateStoreMap = (
@@ -247,7 +272,7 @@ const generatePreEntries = (
     }
 
     const callToActions = generateCallToActionPaths(
-      ["path_1", "path_2", "path_3", "path_4", "path_5"],
+      ["path_1", /* "path_2", "path_3", "path_4", "path_5" */],
       storeReferenceIds,
     );
 
