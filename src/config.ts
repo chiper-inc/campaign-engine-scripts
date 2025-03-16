@@ -20,5 +20,8 @@ export const Config = {
     apiUrl: process.env.LB_API_OPERACIONES_URL || '',
     apiKey: process.env.LB_API_OPERACIONES_KEY || null,
     apiToken: process.env.LB_API_OPERACIONES_TOKEN || '',
+  },
+  slack: {
+    url: process.env.SLACK_URL || '',
   }
 }

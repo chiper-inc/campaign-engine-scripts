@@ -25,6 +25,7 @@ import {
 import { TypeConnectlyCampaignVariables } from './integrations/types.ts';
 import { BigQueryRepository } from './repositories/big-query.ts';
 import { IStoreSuggestion } from './repositories/interfaces.ts';
+import { SlackIntegration } from './integrations/slack.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry;
@@ -58,9 +59,9 @@ async function main(day: number, limit = 100, offset = 0) {
   // preEntries = await generateCallToActionShortLinks(preEntries);
   // preEntries = generatePathVariable(
   //   preEntries,
-  //   [/* "path_1", */ "path_1", /* "path_2", "path_3", "path_4", "path_5" */],
+  //   [ "path_1", "path_2", /* "path_3", "path_4", "path_5" */],
   // );
-  const entries = reportEntries(preEntries);
+  const entries = await reportEntries(preEntries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(`Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`);
 }
@@ -179,7 +180,7 @@ const createShortLinks = async (
   }, new Map());
 }
 
-const reportEntries = (preEntries: IPreEntry[]): IConnectlyEntry[] => {
+const reportEntries = async (preEntries: IPreEntry[]): Promise<IConnectlyEntry[]> => {
   const summaryMap = preEntries
     .map(preEntry => preEntry.utm.campaignName)
     .reduce((acc, name) => {
@@ -198,26 +199,37 @@ const reportEntries = (preEntries: IPreEntry[]): IConnectlyEntry[] => {
       locationSegmentMessageMap: new Map(),
       messageMap: new Map(),
     });
-  console.log(summaryMap);
+  
   const summaryMessage = Array
     .from(summaryMap.messageMap.entries())
-    .map(([key, value]) => ({ key, value }))
-    .sort((a, b) => a.key === b.key ? 0 : (a.key > b.key ? 1 : -1));
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([messageName, qty]) => {
+      return { messageName, qty };
+    });
+
   const summaryLocationSegmentMessage = Array
     .from(summaryMap.locationSegmentMessageMap.entries())
-    .map(([key, value]) => ({ key, value }))
-    .sort((a, b) => a.key === b.key ? 0 : (a.key > b.key ? 1 : -1));
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, qty]) => {
+      const [ city, status, message ] = key.split('|');
+      return { city, status, message, qty };
+    });
+
+  await new SlackIntegration().generateSendoutReports(summaryLocationSegmentMessage);
+
   console.error('Summary Per Campaign');
-  for (const { key, value } of summaryLocationSegmentMessage) {
-    console.error(`- ${key}: ${value}`);
-  }
+
+  // for (const { key, value } of summaryLocationSegmentMessage) {
+  //   console.error(`- ${key}: ${value}`);
+  // }
+  // console.log('===================');
+  // for (const { key, value } of summaryMessage) {
+  //   console.error(`- ${key}: ${value}`);
+  // }
+  const entries = preEntries.map(preEntry => preEntry.connectlyEntry);
+  console.log(JSON.stringify(entries, null, 2));
   console.log('===================');
-  for (const { key, value } of summaryMessage) {
-    console.error(`- ${key}: ${value}`);
-  }
-  // console.log(JSON.stringify(entries, null, 2));
-  console.log('===================');
-  return preEntries.map(preEntry => preEntry.connectlyEntry);
+  return entries;
 }
 
 const generateStoreMap = (
@@ -272,7 +284,7 @@ const generatePreEntries = (
     }
 
     const callToActions = generateCallToActionPaths(
-      ["path_1", /* "path_2", "path_3", "path_4", "path_5" */],
+      ["path_1", "path_2", /* "path_3", "path_4", "path_5" */],
       storeReferenceIds,
     );
 
