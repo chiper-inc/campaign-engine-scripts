@@ -8,7 +8,7 @@ export class SlackIntegration {
     this.reportUrl = Config.slack.reportUrl;
   }
 
-  public async generateSendoutReports(
+  public async generateSendoutLocationSegmentReports(
     list: {
       city: string;
       status: STORE_STATUS;
@@ -64,6 +64,52 @@ export class SlackIntegration {
     if (fields.length) {
       await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
     }
+  }
+
+  public async generateSendoutMessageReports(
+    list: {
+      messageName: string;
+      qty: number;
+    }[],
+  ): Promise<void> {
+    if (list.length === 0) return;
+
+    const blockHeader = (qty: number): unknown => ({
+      type: 'section',
+      text: this.slackTextMarkdown(
+        `📣 Campaign Engine Sendout Report Summary\n\n*🧾 Total Number of Messages*: ${qty} 📈\n\nDetails per Campaign Mesagge:`,
+      ),
+    });
+
+    const blockMessageField = (
+      message: string,
+      qty: number,
+    ): unknown =>
+      this.slackTextMarkdown(`*${message}*: ${qty}`);
+
+    const composeMessage = (
+      fields: unknown[],
+      qtyMessage: number,
+    ): unknown => {
+      return {
+        blocks: [
+          this.slackDivider(),
+          blockHeader(qtyMessage),
+          ...fields.length
+            ? [this.slackBlockSection(fields)]
+            : [],
+          this.slackDivider(),
+        ],
+      };
+    };
+
+    let qtyMessage = 0;
+    const fields: unknown[] = [];
+    for (const item of list) {
+      fields.push(blockMessageField(item.messageName, item.qty));
+      qtyMessage += item.qty;
+    }
+    await this.publishMessage(composeMessage(fields, qtyMessage));
   }
 
   private async publishMessage(message: unknown): Promise<void> {
