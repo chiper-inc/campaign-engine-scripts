@@ -2,75 +2,73 @@ import { Config } from '../config.ts';
 import { STORE_STATUS } from '../enums.ts';
 
 export class SlackIntegration {
-  private readonly url;
+  private readonly reportUrl;
 
   constructor() {
-    this.url = Config.slack.url;
+    this.reportUrl = Config.slack.reportUrl;
   }
 
   public async generateSendoutReports(list: {
     city: string;
     status: STORE_STATUS;
     message: string;
-    qty: string;
+    qty: number;
   }[]): Promise<void> {
     if (list.length === 0) return;
 
-    let prevCity = list[0].city;
-    let fields: unknown[] = [];
-    const promises: Promise<void>[] = [];
   
-    const blockHeader = (city: string) => ({ 
+    const blockHeader = (city: string, qty: number): unknown => ({ 
       type: 'section',
-      text: this.slackTextMarkdown(`📣 Campaign Engine Sendout Report for *${city}*`),
+      text: this.slackTextMarkdown(`📣 Campaign Engine Sendout Report for *${
+        city
+      }* ℹ️\n\n*📊 Number of Messages*: ${
+        qty
+      }\n\nDetails per segment:`),
     });
 
-    const blockField = (status: STORE_STATUS, message: string, qty: string) => (
+    const blockMessageField = (status: STORE_STATUS, message: string, qty: number): unknown => (
       this.slackTextMarkdown(`*${status}*\nMessage \`${message}\`: ${qty}`)
     )
 
-    const blockSection = (fields: unknown[]) => ({
-      type: 'section',
-      fields,
-    });
-
+    const composeMessage = (city: string, fields: unknown[], qtyCity: number): unknown => {
+      return {
+        blocks: [
+          this.slackDivider(),
+          blockHeader(city, qtyCity),
+          this.slackBlockSection(fields),
+        ]
+      }
+    }
+    
+    let prevCity = list[0].city;
+    let qtyCity = 0;
+    let fields: unknown[] = [];
     for (const item of list) {
       if (item.city !== prevCity) {
-        promises.push(
-          this.publishMessage({ 
-            blocks: [
-              this.slackDivider(),
-              blockHeader(prevCity),
-              blockSection(fields)
-            ],
-          }),
-        );
+        await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
         fields = [];
         prevCity = item.city;
+        qtyCity = 0;
       }
-      fields.push(blockField(item.status, item.message, item.qty));
+      fields.push(blockMessageField(item.status, item.message, item.qty));
+      qtyCity += item.qty;
     }
     if (fields.length) {
-      promises.push(
-        this.publishMessage({ 
-          blocks: [
-            this.slackDivider(),
-            blockHeader(prevCity),
-            blockSection(fields) 
-          ],
-        }),
-      );
+      await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
     }
-    await Promise.all(promises);
   }
+
   private async publishMessage(message: unknown): Promise<void> {
-    console.error('Sending message to Slack:\n', JSON.stringify(message, null, 2));
-    await fetch('https://hooks.slack.com/services/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', {
+    await fetch(this.reportUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(message),
+    }).then(response => {
+      console.error('Slack Response:', response.status, response.statusText);
+    }).catch((error) => {
+      console.error('ERROR:', error);
     });
   }
 
@@ -79,6 +77,13 @@ export class SlackIntegration {
       type: 'mrkdwn',
       text: message,
     };
+  };
+
+  private slackBlockSection (fields: unknown[]) {
+    return {
+      type: 'section',
+      fields,
+    }
   };
 
   private slackDivider(): unknown {

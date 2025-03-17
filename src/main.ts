@@ -56,11 +56,11 @@ async function main(day: number, limit = 100, offset = 0) {
   const filteredData = data.filter(row => filterData(row, frequencyMap, day));
   const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
   let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
-  // preEntries = await generateCallToActionShortLinks(preEntries);
-  // preEntries = generatePathVariable(
-  //   preEntries,
-  //   [ "path_1", "path_2", /* "path_3", "path_4", "path_5" */],
-  // );
+  preEntries = await generateCallToActionShortLinks(preEntries);
+  preEntries = generatePathVariable(
+    preEntries,
+    [ "path_1", "path_2", "path_3", /* "path_4", "path_5" */],
+  );
   const entries = await reportEntries(preEntries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(`Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`);
@@ -215,7 +215,8 @@ const reportEntries = async (preEntries: IPreEntry[]): Promise<IConnectlyEntry[]
       return { city, status, message, qty };
     });
 
-  await new SlackIntegration().generateSendoutReports(summaryLocationSegmentMessage);
+  const slackIntegration = new SlackIntegration();
+  await slackIntegration.generateSendoutReports(summaryLocationSegmentMessage);
 
   console.error('Summary Per Campaign');
 
@@ -284,7 +285,7 @@ const generatePreEntries = (
     }
 
     const callToActions = generateCallToActionPaths(
-      ["path_1", "path_2", /* "path_3", "path_4", "path_5" */],
+      ["path_1", "path_2", "path_3", /* "path_4", "path_5" */],
       storeReferenceIds,
     );
 
@@ -591,7 +592,7 @@ const removeExtraSpaces = (val: string | number): string | number => typeof val 
 
 // Run Main Function
 
-main(daysFromBaseDate(today), 15000, 0)
-  .then()
-  .catch(console.error);
+Promise.resolve(main(daysFromBaseDate(today), 15000, 0)
+  .then(console.error)
+  .catch(console.error));
 

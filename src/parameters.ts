@@ -103,6 +103,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Churn_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
       API_Churn_11_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Churn_12_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
+      API_Churn_13_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
     }
   },
   [STORE_STATUS.Lead]: {
@@ -121,6 +122,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Lead_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
       API_Lead_11_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Lead_12_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
+      API_Lead_13_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
     }
   },
   [STORE_STATUS.New]: {
@@ -139,6 +141,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_New_10_es_v1: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
       API_New_11_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_New_12_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
+      API_New_13_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
     },
   },
   [STORE_STATUS.Hibernating]: {
@@ -157,6 +160,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Hibernating_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
       API_Hibernating_11_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Hibernating_12_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
+      API_Hibernating_13_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
     }
 
   },
@@ -176,6 +180,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Retained_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
       API_Retained_11_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Retained_12_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
+      API_Retained_13_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
     }
 
   },
@@ -195,6 +200,7 @@ export const campaignsBySatatus: TypeCampaignByStatus = {
       API_Resurrected_10_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 5)),
       API_Resurrected_11_es_v0: NAME.concat(generateParams(SKU_DSCT, 1)),
       API_Resurrected_12_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 2)),
+      API_Resurrected_13_es_v0: NAME.concat(generateParams(SKU_DSCT_IMG, 3)),
     }
   },
   [STORE_STATUS._default]: {
@@ -212,6 +218,9 @@ for (const campaignStatus in campaignsBySatatus) {
     if (campaign === '_default') {
       continue;
     }
-    campaignsBySatatus[status].names.push(campaign);
+    campaignsBySatatus[status].names
+      .push(campaign);
+    campaignsBySatatus[status].variables[campaign]
+      .sort((a, b) => a.localeCompare(b));
   }
 }
