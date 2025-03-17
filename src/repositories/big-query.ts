@@ -7,7 +7,7 @@ export interface ILocationRange {
   locationId: number;
   from?: number;
   to?: number;
-};
+}
 
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
@@ -17,10 +17,12 @@ export class BigQueryRepository {
     this.bigquery = new BigQuery();
     this.defaultOptions = {
       location: 'US',
-    }
+    };
   }
-  
-  public selectStoreSuggestions(churnRanges: IFrequencyParameter[]): Promise<IStoreSuggestion[]> {
+
+  public selectStoreSuggestions(
+    churnRanges: IFrequencyParameter[],
+  ): Promise<IStoreSuggestion[]> {
     const query = `
       WITH LSR AS (
         ${this.queryLocationStatusRange(churnRanges)}
@@ -77,31 +79,31 @@ export class BigQueryRepository {
     }
   }
 
-  private queryLocationStatusRange(locationRanges: IFrequencyParameter[]): string {
-    const select = ({ from, to,locationId }: Partial<IFrequencyParameter>): string => {
+  private queryLocationStatusRange(
+    locationRanges: IFrequencyParameter[],
+  ): string {
+    const select = ({
+      from,
+      to,
+      locationId,
+    }: Partial<IFrequencyParameter>): string => {
       const storeStatus = "'Churn'";
-      const name = from || to
-        ? `'${from ?? 'Any'}-${to ?? 'Any'}'`
-        : 'NULL';
-      return `SELECT ${
-        locationId
-      } AS locationId, ${
+      const name = from || to ? `'${from ?? 'Any'}-${to ?? 'Any'}'` : 'NULL';
+      return `SELECT ${locationId} AS locationId, ${
         storeStatus
-      } as storeStatus, ${
-        from ?? 0
-      } AS fromDays, ${
-        to ?? 10000
-      } AS toDays,${
+      } as storeStatus, ${from ?? 0} AS fromDays, ${to ?? 10000} AS toDays,${
         name
       } AS rangeName`;
     };
 
-    if (!locationRanges.length) return select({ 
-      locationId: LOCATION._default,
-      storeStatus: STORE_STATUS._default,
-    });
+    if (!locationRanges.length)
+      return select({
+        locationId: LOCATION._default,
+        storeStatus: STORE_STATUS._default,
+      });
 
-    return locationRanges.map((locationRange) => select(locationRange)).join('\nUNION DISTINCT\n');
+    return locationRanges
+      .map((locationRange) => select(locationRange))
+      .join('\nUNION DISTINCT\n');
   }
-
 }

@@ -8,38 +8,46 @@ export class SlackIntegration {
     this.reportUrl = Config.slack.reportUrl;
   }
 
-  public async generateSendoutReports(list: {
-    city: string;
-    status: STORE_STATUS;
-    message: string;
-    qty: number;
-  }[]): Promise<void> {
+  public async generateSendoutReports(
+    list: {
+      city: string;
+      status: STORE_STATUS;
+      message: string;
+      qty: number;
+    }[],
+  ): Promise<void> {
     if (list.length === 0) return;
 
-  
-    const blockHeader = (city: string, qty: number): unknown => ({ 
+    const blockHeader = (city: string, qty: number): unknown => ({
       type: 'section',
-      text: this.slackTextMarkdown(`📣 Campaign Engine Sendout Report for *${
-        city
-      }* ℹ️\n\n*📊 Number of Messages*: ${
-        qty
-      }\n\nDetails per segment:`),
+      text: this.slackTextMarkdown(
+        `📣 Campaign Engine Sendout Report for *${
+          city
+        }* ℹ️\n\n*📊 Number of Messages*: ${qty}\n\nDetails per segment:`,
+      ),
     });
 
-    const blockMessageField = (status: STORE_STATUS, message: string, qty: number): unknown => (
-      this.slackTextMarkdown(`*${status}*\nMessage \`${message}\`: ${qty}`)
-    )
+    const blockMessageField = (
+      status: STORE_STATUS,
+      message: string,
+      qty: number,
+    ): unknown =>
+      this.slackTextMarkdown(`*${status}*\nMessage \`${message}\`: ${qty}`);
 
-    const composeMessage = (city: string, fields: unknown[], qtyCity: number): unknown => {
+    const composeMessage = (
+      city: string,
+      fields: unknown[],
+      qtyCity: number,
+    ): unknown => {
       return {
         blocks: [
           this.slackDivider(),
           blockHeader(city, qtyCity),
           this.slackBlockSection(fields),
-        ]
-      }
-    }
-    
+        ],
+      };
+    };
+
     let prevCity = list[0].city;
     let qtyCity = 0;
     let fields: unknown[] = [];
@@ -65,11 +73,13 @@ export class SlackIntegration {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(message),
-    }).then(response => {
-      console.error('Slack Response:', response.status, response.statusText);
-    }).catch((error) => {
-      console.error('ERROR:', error);
-    });
+    })
+      .then((response) => {
+        console.error('Slack Response:', response.status, response.statusText);
+      })
+      .catch((error) => {
+        console.error('ERROR:', error);
+      });
   }
 
   private slackTextMarkdown(message: string): unknown {
@@ -77,14 +87,14 @@ export class SlackIntegration {
       type: 'mrkdwn',
       text: message,
     };
-  };
+  }
 
-  private slackBlockSection (fields: unknown[]) {
+  private slackBlockSection(fields: unknown[]) {
     return {
       type: 'section',
       fields,
-    }
-  };
+    };
+  }
 
   private slackDivider(): unknown {
     return {
