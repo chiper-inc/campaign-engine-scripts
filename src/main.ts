@@ -699,6 +699,4 @@ const removeExtraSpaces = (val: string | number): string | number =>
 
 // Run Main Function
 
-main(daysFromBaseDate(today), 15000, 0)
-  .then()
-  .catch(console.error);
+main(daysFromBaseDate(today), 15000, 0).then().catch(console.error);
