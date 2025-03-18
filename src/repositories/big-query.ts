@@ -55,7 +55,6 @@ export class BigQueryRepository {
       ORDER BY MG.storeId, MG.ranking
       LIMIT 500`;
 
-    console.error('Query:', query);
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 
