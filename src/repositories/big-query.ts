@@ -1,6 +1,6 @@
 import { BigQuery } from '@google-cloud/bigquery';
 import { IStoreSuggestion } from './interfaces.ts';
-import { IFrequencyParameter } from '../parameters.ts';
+import { IFrequencyParameter } from '../mocks/interfaces.ts';
 import { LOCATION, STORE_STATUS } from '../enums.ts';
 
 export interface ILocationRange {

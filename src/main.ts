@@ -14,7 +14,7 @@ import {
 } from './parameters.ts';
 import { PROVIDER, CITY, CITY_NAME } from './constants.ts';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.ts';
-import { StoreReferenceMap } from './store-reference.mock.ts';
+import { StoreReferenceMap } from './mocks/store-reference.mock.ts';
 import {
   ICallToAction,
   IConnectlyEntry,
@@ -70,8 +70,8 @@ async function main(day: number, limit = 100, offset = 0) {
   // console.error(storeMap.size);
   const otherMap = generateOtherMap(filteredData, day);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
-  // preEntries = await generateCallToActionShortLinks(preEntries);
-  // preEntries = generatePathVariable(preEntries);
+  preEntries = await generateCallToActionShortLinks(preEntries);
+  preEntries = generatePathVariable(preEntries);
   const entries = await reportEntries(preEntries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(
