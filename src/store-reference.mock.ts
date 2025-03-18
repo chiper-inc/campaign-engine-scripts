@@ -1,8 +1,7 @@
-
 import { IStoreReferenceData } from './integrations/interfaces.ts';
 
-const queryImageParams= 'w=800&h=400&fit=fill&bg=white';
-const storeRerenceArray: ([number, [number, string]])[] = [
+const queryImageParams = 'w=800&h=400&fit=fill&bg=white';
+const storeRerenceArray: [number, [number, string]][] = [
   [88859,[542,'https://chiper-old-imgs.imgix.net/app/al-fnsse-nat-con-musli-vaso-170g-rymiixbRM-R.jpg']],
   [88853,[535,'https://chiper-old-imgs.imgix.net/app/yox-fre-bot-100g-B1mv6eZ0z-R.jpg']],
   [88869,[574,'https://chiper-old-imgs.imgix.net/app/yogo-baby-manzana-x-113-gr-merkeyacom-Hy9FbeGCM-R.jpg']],
@@ -36083,17 +36082,16 @@ const storeRerenceArray: ([number, [number, string]])[] = [
   [450909,[39410,'https://chiper-old-imgs.imgix.net/app/20240213305566921-photoroom-H1SkLTTs1l-R.png']],
   [450910,[39411,'https://chiper-old-imgs.imgix.net/app/202410151144507443-photoroom-SyhLI6asye-R.png']],
   [450911,[39412,'https://chiper-old-imgs.imgix.net/app/20240911858132944-photoroom-ryuRU6Tiye-R.png']],
-  [450912,[39413,'https://chiper-old-imgs.imgix.net/app/20240911859012945-photoroom-HkK_PpToJx-R.png']],
+  [450912,[39413,'https://chiper-old-imgs.imgix.net/app/20240911859012945-photoroom-HkK_PpToJx-R.png']]
 ];
 
-export const StoreReferenceMap: Map<number, IStoreReferenceData> = 
-  new Map(storeRerenceArray.map(
-    ([storeReferenceId, [ referenceId, regular ]]) => 
-      [ 
-        storeReferenceId, { 
-          referenceId, 
-          storeReferenceId,
-          regular: `${regular}?${queryImageParams}`,
-        }
-      ]
-    ));
+export const StoreReferenceMap: Map<number, IStoreReferenceData> = new Map(
+  storeRerenceArray.map(([storeReferenceId, [referenceId, regular]]) => [
+    storeReferenceId,
+    {
+      referenceId,
+      storeReferenceId,
+      regular: `${regular}?${queryImageParams}`,
+    },
+  ]),
+);

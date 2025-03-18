@@ -1,10 +1,10 @@
-import { TypeConnectlyCampaignVariables } from "./types.ts";
+import { TypeConnectlyCampaignVariables } from './types.ts';
 
 export interface IStoreReferenceData {
   referenceId: number;
   storeReferenceId: number;
   regular: string;
-};
+}
 
 export interface ICallToAction {
   actionTypeId: number;
@@ -24,17 +24,16 @@ export interface IUtm {
 }
 
 export interface IShortLinkPayload {
-  callToAction: ICallToAction,
-  utm: IUtm,
-};
+  callToAction: ICallToAction;
+  utm: IUtm;
+}
 
 export interface IShortLinkPayloadAndKey {
-  key: string; 
+  key: string;
   value: IShortLinkPayload;
-};
+}
 export interface IConnectlyEntry {
   client: string;
   campaignName: string;
   variables: TypeConnectlyCampaignVariables;
-};
-
+}

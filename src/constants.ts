@@ -5,7 +5,7 @@ export const C2A_OFFER_LIST = 17;
 
 import { LOCATION } from './enums.ts';
 
-export const CITY: { [ k in LOCATION]: number } = {
+export const CITY: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
   [LOCATION.BOG]: 1,
   [LOCATION.MDE]: 7,
@@ -17,7 +17,7 @@ export const CITY: { [ k in LOCATION]: number } = {
   [LOCATION.VLN]: 24,
 };
 
-export const PROVIDER: { [ k in LOCATION]: number }= {
+export const PROVIDER: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
   [LOCATION.BOG]: 1377,
   [LOCATION.MDE]: 1377,
@@ -27,4 +27,15 @@ export const PROVIDER: { [ k in LOCATION]: number }= {
   [LOCATION.SCL]: 1379,
   [LOCATION.SAO]: 1378,
   [LOCATION.VLN]: 1380,
-}
+};
+
+export const CITY_NAME: { [k: number | string]: string } = {
+  [CITY[LOCATION.BOG]]: 'Bogotá',
+  [CITY[LOCATION.MDE]]: 'Medellín',
+  [CITY[LOCATION.CLO]]: 'Cali',
+  [CITY[LOCATION.BAQ]]: 'Barranquilla',
+  [CITY[LOCATION.CMX]]: 'Ciudad de México',
+  [CITY[LOCATION.SCL]]: 'Santiago de Chile',
+  [CITY[LOCATION.SAO]]: 'Sao Paulo',
+  [CITY[LOCATION.VLN]]: 'Valencia',
+};

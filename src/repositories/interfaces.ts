@@ -13,6 +13,6 @@ export interface IStoreSuggestion {
   phone: string;
   ranking: number;
   from?: number;
-  to?: number
+  to?: number;
+  rangeName: string;
 }
-
