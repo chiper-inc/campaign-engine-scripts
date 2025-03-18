@@ -23,5 +23,5 @@ export const Config = {
   },
   slack: {
     reportUrl: process.env.SLACK_API_REPORT_URL ?? '',
-  }
-}
+  },
+};

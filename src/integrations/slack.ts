@@ -81,23 +81,15 @@ export class SlackIntegration {
       ),
     });
 
-    const blockMessageField = (
-      message: string,
-      qty: number,
-    ): unknown =>
+    const blockMessageField = (message: string, qty: number): unknown =>
       this.slackTextMarkdown(`*${message}*: ${qty}`);
 
-    const composeMessage = (
-      fields: unknown[],
-      qtyMessage: number,
-    ): unknown => {
+    const composeMessage = (fields: unknown[], qtyMessage: number): unknown => {
       return {
         blocks: [
           this.slackDivider(),
           blockHeader(qtyMessage),
-          ...fields.length
-            ? [this.slackBlockSection(fields)]
-            : [],
+          ...(fields.length ? [this.slackBlockSection(fields)] : []),
           this.slackDivider(),
         ],
       };

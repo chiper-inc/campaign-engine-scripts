@@ -14,4 +14,5 @@ export interface IStoreSuggestion {
   ranking: number;
   from?: number;
   to?: number;
+  rangeName: string;
 }

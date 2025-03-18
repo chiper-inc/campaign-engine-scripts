@@ -40,22 +40,22 @@ export class BigQueryRepository {
         MG.ranking,
         LSR.fromDays AS \`from\`,
         LSR.toDays AS \`to\`,
+        LSR.rangeName
       FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
-      LEFT JOIN LSR
-         ON daysSinceLastOrderDelivered BETWEEN LSR.fromDays AND LSR.toDays
+      INNER JOIN LSR
+         ON IFNULL(MG.daysSinceLastOrderDelivered, 0)
+            BETWEEN IFNULL(LSR.fromDays, IFNULL(MG.daysSinceLastOrderDelivered, 0))
+                AND IFNULL(LSR.toDays, IFNULL(MG.daysSinceLastOrderDelivered, 0))
         AND MG.locationId = LSR.locationId
         AND MG.storeStatus = LSR.storeStatus
       WHERE MG.phone IS NOT NULL
-        AND MG.ranking <= 10
-        AND (
-          (MG.storeStatus = 'Churn' AND LSR.rangeName IS NOT NULL) OR
-          (MG.storeStatus <> 'Churn')
-        )
+        AND MG.ranking <= 7
         AND MG.phone NOT LIKE '5_9613739%'
         AND MG.phone NOT LIKE '5_9223372%'
       ORDER BY MG.storeId, MG.ranking
-      LIMIT 5000000`;
+      LIMIT 500`;
 
+    console.error('Query:', query);
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 
@@ -86,12 +86,12 @@ export class BigQueryRepository {
       from,
       to,
       locationId,
+      storeStatus,
     }: Partial<IFrequencyParameter>): string => {
-      const storeStatus = "'Churn'";
       const name = from || to ? `'${from ?? 'Any'}-${to ?? 'Any'}'` : 'NULL';
-      return `SELECT ${locationId} AS locationId, ${
+      return `SELECT ${locationId} AS locationId, '${
         storeStatus
-      } as storeStatus, ${from ?? 0} AS fromDays, ${to ?? 10000} AS toDays,${
+      }' as storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${
         name
       } AS rangeName`;
     };
