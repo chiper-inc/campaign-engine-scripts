@@ -7,7 +7,7 @@ export enum LOCATION {
   CMX = '11',
   SCL = '22',
   SAO = '21',
-  VLN = '24',
+  VLN = '26',
 }
 
 export enum STORE_VALUE {

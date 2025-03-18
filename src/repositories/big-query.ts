@@ -53,7 +53,7 @@ export class BigQueryRepository {
         AND MG.phone NOT LIKE '5_9613739%'
         AND MG.phone NOT LIKE '5_9223372%'
       ORDER BY MG.storeId, MG.ranking
-      LIMIT 500`;
+      LIMIT 5000000`;
 
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
@@ -87,7 +87,7 @@ export class BigQueryRepository {
       locationId,
       storeStatus,
     }: Partial<IFrequencyParameter>): string => {
-      const name = from || to ? `'${from ?? 'Any'}-${to ?? 'Any'}'` : 'NULL';
+      const name = from || to ? `'${from ?? 'Any'}to${to ?? 'Any'}'` : 'NULL';
       return `SELECT ${locationId} AS locationId, '${
         storeStatus
       }' as storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${

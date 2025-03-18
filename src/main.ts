@@ -70,8 +70,8 @@ async function main(day: number, limit = 100, offset = 0) {
   // console.error(storeMap.size);
   const otherMap = generateOtherMap(filteredData, day);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
-  preEntries = await generateCallToActionShortLinks(preEntries);
-  preEntries = generatePathVariable(preEntries);
+  // preEntries = await generateCallToActionShortLinks(preEntries);
+  // preEntries = generatePathVariable(preEntries);
   const entries = await reportEntries(preEntries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(
@@ -699,8 +699,6 @@ const removeExtraSpaces = (val: string | number): string | number =>
 
 // Run Main Function
 
-Promise.resolve(
-  main(daysFromBaseDate(today), 15000, 0)
-    .then(console.error)
-    .catch(console.error),
-);
+main(daysFromBaseDate(today), 15000, 0)
+  .then()
+  .catch(console.error);

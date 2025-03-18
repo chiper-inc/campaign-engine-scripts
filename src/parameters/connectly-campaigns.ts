@@ -23,6 +23,10 @@ const connectlyConnectlyCampaigns = [
   { name: 'API_Churn_11_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Churn_12_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { name: 'API_Churn_13_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Churn.90to119_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Churn.120to149_14_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Churn.150to179_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Churn.180to209_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
 
   { name: 'API_Lead_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Lead_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
@@ -37,6 +41,7 @@ const connectlyConnectlyCampaigns = [
   { name: 'API_Lead_11_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Lead_12_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { name: 'API_Lead_13_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Lead_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
 
   { name: 'API_New_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_New_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
@@ -51,6 +56,7 @@ const connectlyConnectlyCampaigns = [
   { name: 'API_New_11_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_New_12_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { name: 'API_New_13_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_New_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
 
   { name: 'API_Hibernating_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Hibernating_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
@@ -65,6 +71,7 @@ const connectlyConnectlyCampaigns = [
   { name: 'API_Hibernating_11_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Hibernating_12_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { name: 'API_Hibernating_13_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Hibernating_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
 
   { name: 'API_Retained_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Retained_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
@@ -79,11 +86,27 @@ const connectlyConnectlyCampaigns = [
   { name: 'API_Retained_11_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Retained_12_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { name: 'API_Retained_13_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Retained_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
 
-  { name: 'API_Churn.90-119_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
-  { name: 'API_Churn.120-149_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
-  { name: 'API_Churn.150-179_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
-  { name: 'API_Churn.180-209_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
+  { name: 'API_Resurrected_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { name: 'API_Resurrected_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Resurrected_3_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Resurrected_4_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: generateParams(PATH, 4) },
+  { name: 'API_Resurrected_5_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: generateParams(PATH, 4) },
+  { name: 'API_Resurrected_6_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { name: 'API_Resurrected_7_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Resurrected_8_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Resurrected_9_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
+  { name: 'API_Resurrected_10_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 5)), paths: generateParams(PATH, 5) },
+  { name: 'API_Resurrected_11_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { name: 'API_Resurrected_12_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Resurrected_13_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { name: 'API_Resurrected_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
+
+  // { name: 'API_Churn.90-119_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
+  // { name: 'API_Churn.120-149_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
+  // { name: 'API_Churn.150-179_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
+  // { name: 'API_Churn.180-209_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
 ];
 
 const getSubSegment = (
@@ -95,11 +118,11 @@ const getSubSegment = (
 } => {
   if (!subsegment) return {};
 
-  if (subsegment.indexOf('-') === -1) {
+  if (subsegment.indexOf('to') === -1) {
     return { storeValue: subsegment as STORE_VALUE };
   }
 
-  const [from, to] = subsegment.split('-');
+  const [from, to] = subsegment.split('to');
   return {
     from: isNaN(Number(from)) ? null : Number(from),
     to: isNaN(Number(to)) ? null : Number(to),
