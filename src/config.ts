@@ -24,4 +24,9 @@ export const Config = {
   slack: {
     reportUrl: process.env.SLACK_API_REPORT_URL ?? '',
   },
+  catalogue: {
+    apiUrl: process.env.CATALOGUE_API_URL ?? '',
+    oldImageUrl: process.env.CATALOGUE_OLD_IMAGE_URL ?? '',
+    newImageUrl: process.env.CATALOGUE_NEW_IMAGE_URL ?? '',
+  },
 };

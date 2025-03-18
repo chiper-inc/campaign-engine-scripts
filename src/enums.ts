@@ -4,6 +4,7 @@ export enum LOCATION {
   MDE = '7',
   CLO = '3',
   BAQ = '18',
+  BGA = '5',
   CMX = '11',
   SCL = '22',
   SAO = '21',

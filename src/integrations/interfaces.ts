@@ -37,3 +37,23 @@ export interface IConnectlyEntry {
   campaignName: string;
   variables: TypeConnectlyCampaignVariables;
 }
+export interface ICatalogueReference {
+  id: number;
+  sku: string;
+  name: string;
+  description: string;
+  display: string;
+  stockout: number;
+  regularTotal: string;
+  discount?: number;
+  discountedTotal?: string;
+  discountedMaximumQuantity?: number;
+  packaging: string;
+  brandName: string;
+  brandId: number;
+  categoryId: number;
+  macroId: number;
+  url: string;
+  source: string;
+  showAs: string;
+}
