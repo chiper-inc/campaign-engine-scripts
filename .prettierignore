@@ -1,2 +1,3 @@
 src/parameters/connectly-campaigns.ts
 src/parameters/connectly-frequency.ts
+src/store-reference.mock.ts
