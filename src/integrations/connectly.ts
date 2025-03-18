@@ -1,10 +1,6 @@
-
-
-
 import { Config } from '../config.ts';
 
 import { IConnectlyEntry } from './interfaces.ts';
-
 
 export class ConnectlyIntegration {
   private readonly url: string;
@@ -12,18 +8,17 @@ export class ConnectlyIntegration {
   private readonly batchSize: number;
   private readonly headers: { [key: string]: string };
 
-  constructor(
-  ) {
+  constructor() {
     this.url = `${Config.connectly.apiUrl}/${Config.connectly.businessId}/send/campaigns`;
     this.apiKey = Config.connectly.apiKey; // Replace with a real token if needed
     this.batchSize = Config.connectly.batchSize;
     this.headers = {
-      'Content-Type': 'application/json', 
+      'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
     };
   }
 
-  public async sendOneEntries (entry: IConnectlyEntry): Promise<{ 
+  public async sendOneEntries(entry: IConnectlyEntry): Promise<{
     status: number;
     statusText: string;
     data?: unknown[];
@@ -35,23 +30,20 @@ export class ConnectlyIntegration {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(payload),
-    })
-      .then(async (response) => {
-        return {
-          status: response.status,
-          statusText: response.statusText,
-          ...(
-            response.status !== 200 
-              ? {}
-              : { data: (await response.json()).data as unknown as unknown[] }
-          )
-        }
-      })
+    }).then(async (response) => {
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        ...(response.status !== 200
+          ? {}
+          : { data: (await response.json()).data as unknown as unknown[] }),
+      };
+    });
   }
 
-  public async sendAllEntries (data: IConnectlyEntry[]) {
+  public async sendAllEntries(data: IConnectlyEntry[]) {
     const batches = this.splitIntoBatches(data, this.batchSize);
-  
+
     let accepted = 0;
     let rejected = 0;
     const rejections: object[] = [];
@@ -74,8 +66,11 @@ export class ConnectlyIntegration {
                 return;
               }
               // console.log('Rejection Response:', response.data);
-              const data = response.data as unknown as
-                { acceptedCount: number, rejectedCount: number, error: string | null } [];
+              const data = response.data as unknown as {
+                acceptedCount: number;
+                rejectedCount: number;
+                error: string | null;
+              }[];
               accepted += data[0].acceptedCount;
               rejected += data[0].rejectedCount;
               if (data[0].error) {
@@ -97,11 +92,11 @@ export class ConnectlyIntegration {
       });
       batchIdx += 1;
     }
-  
+
     rejections.forEach((r, idx) => {
       console.log(`Rejection ${idx}: ${JSON.stringify(r)}`);
     });
-  };
+  }
 
   private splitIntoBatches(
     arr: IConnectlyEntry[],
