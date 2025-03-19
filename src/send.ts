@@ -33,4 +33,4 @@ const script = async (filename: string): Promise<void> => {
   await connectlyIntegration.sendAllEntries(data);
 };
 
-script('../tmp/data.tmp.json').then().catch(console.error);
+script('../tmp/data.2025-03-19.json').then().catch(console.error);

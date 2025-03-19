@@ -21,7 +21,7 @@ import {
   IShortLinkPayload,
   IUtm,
 } from './integrations/interfaces.ts';
-import { LOCATION, STORE_STATUS } from './enums.ts';
+import { CHANNEL, LOCATION, STORE_STATUS } from './enums.ts';
 import {
   TypeCampaignByStatus,
   TypeCampaignEntry,
@@ -651,7 +651,7 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
   const bigQueryRepository = new BigQueryRepository();
   return bigQueryRepository.selectStoreSuggestions(
     frequencyByLocationAndStatusAndRange,
-    //  .filter(({ storeStatus }) => storeStatus === STORE_STATUS.Churn)
+    [CHANNEL.WhatsApp],
   );
 }
 

@@ -26,3 +26,8 @@ export enum STORE_STATUS {
   Resurrected = 'Resurrected',
   Retained = 'Retained',
 }
+
+export enum CHANNEL {
+  WhatsApp = 'Whatsapp',
+  PushNotification = 'Push Notification',
+}
