@@ -79,8 +79,8 @@ async function main(day: number, limit = 100, offset = 0) {
   const otherMap = generateOtherMap(filteredData, day);
   // console.error(otherMap);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
- preEntries = await generateCallToActionShortLinks(preEntries);
- preEntries = generatePathVariable(preEntries);
+  preEntries = await generateCallToActionShortLinks(preEntries);
+  preEntries = generatePathVariable(preEntries);
   const [connectlyEntries, clevertapEntries] = await Promise.all([
     reportConnectlyEntries(preEntries),
     reportClevertapEntries(preEntries),
