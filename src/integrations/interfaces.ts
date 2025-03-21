@@ -1,4 +1,4 @@
-import { TypeConnectlyCampaignVariables } from './types.ts';
+import { TypeCampaignVariables } from '../types.ts';
 
 export interface IStoreReferenceData {
   referenceId: number;
@@ -35,7 +35,12 @@ export interface IShortLinkPayloadAndKey {
 export interface IConnectlyEntry {
   client: string;
   campaignName: string;
-  variables: TypeConnectlyCampaignVariables;
+  variables: TypeCampaignVariables;
+}
+export interface IClevertapEntry {
+  identity: number;
+  campaignId: string;
+  variables: TypeCampaignVariables;
 }
 export interface ICatalogueReference {
   id: number;
@@ -56,4 +61,12 @@ export interface ICatalogueReference {
   url: string;
   source: string;
   showAs: string;
+}
+
+export interface IClevertapCampaign {
+  campaignId: string;
+  storeIds: number[];
+  variables: { [key: string]: string | number };
+  inSeconds?: number;
+  timeoutSeconds?: number;
 }

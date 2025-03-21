@@ -3,7 +3,7 @@ export const C2A_MACRO = 4;
 export const C2A_BRAND = 2;
 export const C2A_OFFER_LIST = 17;
 
-import { LOCATION } from './enums.ts';
+import { CHANNEL, LOCATION, PROVIDER } from './enums.ts';
 
 export const CITY: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
@@ -18,7 +18,7 @@ export const CITY: { [k in LOCATION]: number } = {
   [LOCATION.VLN]: 24,
 };
 
-export const PROVIDER: { [k in LOCATION]: number } = {
+export const CPG: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
   [LOCATION.BOG]: 1377,
   [LOCATION.MDE]: 1377,
@@ -88,4 +88,14 @@ export const MONEY_FORMATTER = {
   [LOCATION.SCL]: moneyFormatter.CL,
   [LOCATION.SAO]: moneyFormatter.BR,
   [LOCATION.VLN]: moneyFormatter.VE,
+};
+
+export const PROVIDER_CHANNEL: { [k in PROVIDER]: CHANNEL } = {
+  [PROVIDER.Connectly]: CHANNEL.WhatsApp,
+  [PROVIDER.Clevertap]: CHANNEL.PushNotification,
+};
+
+export const CHANNEL_PROVIDER: { [k in CHANNEL]: PROVIDER } = {
+  [CHANNEL.WhatsApp]: PROVIDER.Connectly,
+  [CHANNEL.PushNotification]: PROVIDER.Clevertap,
 };

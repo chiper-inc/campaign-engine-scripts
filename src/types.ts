@@ -39,5 +39,5 @@ export type TypeCampaignEntry = {
 };
 
 export type TypeCampaignVariables = {
-  [key: string]: string[];
+  [key: string]: string | number;
 };

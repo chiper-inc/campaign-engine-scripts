@@ -1,9 +1,11 @@
 import dotenv from 'dotenv';
 import * as CONST from './constants.ts';
+import { env } from 'process';
 
 dotenv.config();
 
 export const Config = {
+  environment: env.ENVIRONMENT ?? 'development',
   connectly: {
     apiKey: process.env.CONNECTLY_API_KEY ?? '',
     apiUrl: process.env.CONNECTLY_API_URL ?? '',
@@ -28,5 +30,16 @@ export const Config = {
     apiUrl: process.env.CATALOGUE_API_URL ?? '',
     oldImageUrl: process.env.CATALOGUE_OLD_IMAGE_URL ?? '',
     newImageUrl: process.env.CATALOGUE_NEW_IMAGE_URL ?? '',
+  },
+  google: {
+    project: process.env.GOOGLE_PROJECT ?? '',
+    location: process.env.GOOGLE_LOCATION ?? '',
+    cloudTask: {
+      queue: process.env.GOOGLE_CLOUD_TASK_QUEUE ?? '',
+    },
+  },
+  clevertap: {
+    accountId: process.env.CLEVERTAP_API_ACCOUNT_ID ?? '',
+    passcode: process.env.CLEVERTAP_API_PASSCODE ?? '',
   },
 };

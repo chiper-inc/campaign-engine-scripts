@@ -26,7 +26,7 @@ export class BigQueryRepository {
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
-      MG.lastValueSegmentation,
+      MG.lastValueSegmentation as storeValue,
       MG.communicationChannel,
       IFNULL(MG.daysSinceLastOrderDelivered, 0) as daysSinceLastOrderDelivered,
       MG.warehouseId
@@ -46,7 +46,7 @@ export class BigQueryRepository {
 
   public selectStoreSuggestions(
     churnRanges: IFrequencyParameter[],
-    channels = [CHANNEL.WhatsApp],
+    channels = [/* CHANNEL.WhatsApp, */ CHANNEL.PushNotification],
     storeStatus = [
       STORE_STATUS.Hibernating,
       STORE_STATUS.Resurrected,
@@ -76,7 +76,9 @@ export class BigQueryRepository {
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 500000`;
+      LIMIT 500
+      OFFSET 1000
+    `;
 
     // console.error('<Query>', query, '</Query>');
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
