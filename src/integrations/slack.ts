@@ -43,7 +43,7 @@ export class SlackIntegration {
         blocks: [
           this.slackDivider(),
           blockHeader(city, qtyCity),
-          this.slackBlockSection(fields),
+          ...this.slackBlockSection(fields),
         ],
       };
     };
@@ -89,7 +89,7 @@ export class SlackIntegration {
         blocks: [
           this.slackDivider(),
           blockHeader(qtyMessage),
-          ...(fields.length ? [this.slackBlockSection(fields)] : []),
+          ...this.slackBlockSection(fields),
           this.slackDivider(),
         ],
       };
@@ -127,11 +127,15 @@ export class SlackIntegration {
     };
   }
 
-  private slackBlockSection(fields: unknown[]) {
-    return {
-      type: 'section',
-      fields,
-    };
+  private slackBlockSection(fields: unknown[]): unknown[] {
+    const sections = [];
+    for (let i = 0; i < fields.length; i += 10) {
+      sections.push({
+        type: 'section',
+        fields: fields.slice(i, i + 10),
+      });
+    }
+    return sections;
   }
 
   private slackDivider(): unknown {

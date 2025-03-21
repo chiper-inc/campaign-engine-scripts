@@ -58,7 +58,7 @@ export class BigQueryRepository {
       SELECT DISTINCT
         QRY.*,
         IF(QRY.storeStatus IN ('${storeStatus.join("','")}')
-          , QRY.lastValueSegmentation
+          , REPLACE(QRY.lastValueSegmentation, '-', '')
           , NULL
         ) as storeValue,
         LSR.fromDays as \`from\`,
@@ -74,7 +74,7 @@ export class BigQueryRepository {
       ORDER BY QRY.storeId, QRY.ranking
       LIMIT 500000`;
 
-    console.error('<Query>', query, '</Query>');
+    // console.error('<Query>', query, '</Query>');
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 

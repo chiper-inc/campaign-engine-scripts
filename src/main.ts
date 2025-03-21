@@ -269,6 +269,7 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
           row.locationId,
           a.campaign.name,
           row.rangeName,
+          row.storeValue,
         );
       }
       a.skus.push(getSku(row));
@@ -294,7 +295,7 @@ export const generateStoreMap = (
     };
     if (a.campaign) {
       if (!a.skus.length) {
-        a.utm = getUtm(day, row.storeStatus, row.locationId, a.campaign.name);
+        a.utm = getUtm(day, row.storeStatus, row.locationId, a.campaign.name, row.storeStatus);
       }
       a.skus.push(getSku(row));
       acc.set(row.storeId, a);

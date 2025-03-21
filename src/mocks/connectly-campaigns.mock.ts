@@ -58,6 +58,11 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { name: 'API_Lead_16_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Lead_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
 
+  { name: 'API_Lead.High_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Lead.Low_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Lead.MidLow_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Lead.MidHigh_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+
   { name: 'API_New_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_New_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
   { name: 'API_New_3_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
@@ -92,7 +97,13 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { name: 'API_Hibernating_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
   { name: 'API_Hibernating_15_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 5)), paths: generateParams(PATH, 5) },
   { name: 'API_Hibernating_16_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
-  { name: 'API_Hibernating_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+//  { name: 'API_Hibernating_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+
+  { name: 'API_Hibernating.High_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Hibernating.Low_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Hibernating.MidLow_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Hibernating.MidHigh_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+
 
   { name: 'API_Retained_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Retained_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
@@ -110,7 +121,12 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { name: 'API_Retained_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
   { name: 'API_Retained_15_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 5)), paths: generateParams(PATH, 5) },
   { name: 'API_Retained_16_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
-  { name: 'API_Retained_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+//  { name: 'API_Retained_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+
+  { name: 'API_Retained.High_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Retained.Low_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Retained.MidLow_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Retained.MidHigh_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
 
   { name: 'API_Resurrected_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { name: 'API_Resurrected_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
@@ -128,5 +144,11 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { name: 'API_Resurrected_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
   { name: 'API_Resurrected_15_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 5)), paths: generateParams(PATH, 5) },
   { name: 'API_Resurrected_16_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
-  { name: 'API_Resurrected_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+//  { name: 'API_Resurrected_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+
+  { name: 'API_Resurrected.High_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Resurrected.Low_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Resurrected.MidLow_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+  { name: 'API_Resurrected.MidHigh_17_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+
 ];
