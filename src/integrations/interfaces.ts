@@ -24,7 +24,7 @@ export interface IUtm {
 }
 
 export interface IShortLinkPayload {
-  callToAction: ICallToAction;
+  callToAction: Partial<ICallToAction>;
   utm: IUtm;
 }
 

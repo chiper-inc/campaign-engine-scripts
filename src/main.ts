@@ -34,17 +34,23 @@ import { TypeCampaignVariables } from './types.ts';
 import { BigQueryRepository } from './repositories/big-query.ts';
 import { IStoreSuggestion } from './repositories/interfaces.ts';
 import { SlackIntegration } from './integrations/slack.ts';
+import { CampaignFactory } from './services/campaign.factory.ts';
+import { CampaignService } from './services/campaign.service.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
   clevertapEntry: IClevertapEntry | undefined;
   utm: IUtm;
-  callToAction: Partial<ICallToAction>;
-  callToActions: Partial<ICallToAction>[];
+  utmCallToAction: IUtmCallToAction;
+  utmCallToActions: IUtmCallToAction[];
   shortLink?: ICallToActionLink;
   shortLinks?: ICallToActionLink[];
 }
 
+export interface IUtmCallToAction {
+  callToAction: Partial<ICallToAction>;
+  campaignService: CampaignService;
+}
 export interface ICallToActionLink {
   fullUrl: string;
   shortenUrl: string;
@@ -99,13 +105,13 @@ async function main(day: number, limit = 100, offset = 0) {
 // Helper Functions
 
 const getUtmAndCallToActionKey = ({
-  utm,
+  campaignService,
   callToAction,
 }: {
-  utm: IUtm;
+  campaignService: CampaignService;
   callToAction: Partial<ICallToAction>;
 }): string =>
-  `${utm.campaignName}|${callToAction.actionTypeId ?? ''}|${
+  `${campaignService.utm.campaignName}|${callToAction.actionTypeId ?? ''}|${
     callToAction.storeReferenceId ?? ''
   }|${(callToAction.storeReferenceIds || []).sort((a, b) => a - b).join(',')}|${
     callToAction.macroId ?? ''
@@ -223,40 +229,45 @@ const getConnectlyPathFromPreEntry = ({
 };
 
 const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
-  const preMap = preEntries.reduce((acc, preEntry) => {
-    const { utm, callToActions } = preEntry;
-    for (const callToAction of callToActions) {
-      const key = getUtmAndCallToActionKey({ utm, callToAction });
-      acc.set(key, { utm, callToAction });
+  const preMap: Map<string, IUtmCallToAction> = preEntries.reduce((acc, preEntry) => {
+    const { utm, utmCallToActions } = preEntry;
+    for (const utmCallToAction of utmCallToActions) {
+      const key = getUtmAndCallToActionKey(utmCallToAction);
+      acc.set(key, utmCallToAction);
     }
     return acc;
   }, new Map());
+
+  console.error(preMap);
   const shortLinkMap = new Map();
   for (const [key, value] of (await createShortLinks(preMap)).entries()) {
     shortLinkMap.set(key, value);
   }
   return preEntries.map((preEntry) => {
-    const { utm, callToAction, callToActions } = preEntry;
+    const { utm, utmCallToAction, utmCallToActions } = preEntry;
     return {
       ...preEntry,
       shortLink: shortLinkMap.get(
-        getUtmAndCallToActionKey({ utm, callToAction }),
+        getUtmAndCallToActionKey(utmCallToAction),
       ),
-      shortLinks: callToActions.map((callToAction) =>
-        shortLinkMap.get(getUtmAndCallToActionKey({ utm, callToAction })),
+      shortLinks: utmCallToActions.map((utmCallToAction) =>
+        shortLinkMap.get(getUtmAndCallToActionKey(utmCallToAction)),
       ),
     };
   });
 };
 
 const createShortLinks = async (
-  preMap: Map<string, IShortLinkPayload>,
+  preMap: Map<string, IUtmCallToAction>,
 ): Promise<Map<string, ICallToActionLink>> => {
   const integration = new LbApiOperacionesIntegration();
   const responses = await integration.createAllShortLink(
     Array.from(preMap.entries()).map(([key, value]) => ({
       key,
-      value,
+      value: {
+        utm: value.campaignService.utm,
+        callToAction: value.callToAction,
+      },
     })),
   );
   return responses.reduce((acc, obj) => {
@@ -389,31 +400,6 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
   }, new Map());
 };
 
-// export const generateStoreMap = (
-//   filteredData: IStoreSuggestion[],
-//   campaignsBySatatus: TypeCampaignByStatus,
-//   day: number,
-// ) => {
-//   return filteredData.reduce((acc, row) => {
-//     const a = acc.get(row.storeId) || {
-//       storeStatus: row.storeStatus,
-//       city: row.city,
-//       utm: undefined,
-//       campaign: getCamapign(row.storeStatus, day, campaignsBySatatus),
-//       store: getStore(row),
-//       skus: [],
-//     };
-//     if (a.campaign) {
-//       if (!a.skus.length) {
-//         a.utm = getUtm(day, row.storeStatus, row.locationId, a.campaign.name, row.communicationChannel);
-//       }
-//       a.skus.push(getSku(row));
-//       acc.set(row.storeId, a);
-//     }
-//     return acc;
-//   }, new Map());
-// };
-
 const generatePreEntries = (
   storesMap: Map<number, IStoreRecomendation>,
 ): IPreEntry[] => {
@@ -447,7 +433,7 @@ const generatePreEntries = (
 
   const entries: IPreEntry[] = [];
   for (const data of Array.from(storesMap.values())) {
-    const { store, campaign, skus, utm, communicationChannel: channel } = data;
+    const { store, campaign, skus, utm: coreUtm, communicationChannel: channel } = data;
 
     const {
       variables,
@@ -474,12 +460,14 @@ const generatePreEntries = (
       continue;
     }
 
-    const callToActions = generateCallToActionPaths(
+    const utmCallToActions = generateCallToActionPaths(
+      coreUtm,
+      channel, 
       campaign.paths,
       storeReferenceIds,
     );
 
-    if (!callToActions) continue;
+    if (!utmCallToActions) continue;
 
     // console.error(callToActions)
 
@@ -487,7 +475,7 @@ const generatePreEntries = (
       variables[path] = path;
     });
 
-    const callToAction = generateCallToAction(storeReferenceIds);
+    const utmCallToAction = generateCallToAction(coreUtm, channel, storeReferenceIds);
 
     entries.push({
       connectlyEntry: generateConnectlyEntry(
@@ -502,9 +490,9 @@ const generatePreEntries = (
         campaign.name,
         variables,
       ),
-      utm,
-      callToAction,
-      callToActions,
+      utm: coreUtm,
+      utmCallToAction,
+      utmCallToActions,
     });
   }
   // console.error('Entries:', entries.length);
@@ -512,31 +500,38 @@ const generatePreEntries = (
 };
 
 const generateCallToActionPaths = (
+  utm: IUtm,
+  channel: CHANNEL,
   paths: string[],
   storeReferenceIds: number[],
-): Partial<ICallToAction>[] | null => {
+): IUtmCallToAction[] | null => {
   const pathObj = [];
   for (const path of paths.filter((e) => e.startsWith('path'))) {
     const [, index]: string[] = path.split('_');
     if (!path) return null;
+    let callToAction: Partial<ICallToAction> = {};
     if (index) {
       if (isNaN(Number(index))) {
         // path_n
-        pathObj.push({
+        callToAction = {
           actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
           storeReferenceIds: storeReferenceIds,
-        });
+        };
       } else {
-        pathObj.push({
+        callToAction = {
           actionTypeId: Config.lbApiOperaciones.callToAction.reference,
           storeReferenceId: storeReferenceIds[Number(index) - 1],
-        });
+        };
       }
     } else {
-      pathObj.push({
+      callToAction ={
         actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-      });
+      };
     }
+    pathObj.push({
+      campaignService: CampaignFactory.createCampaignService(channel, 'es', utm),
+      callToAction,
+    })
   }
 
   return pathObj.length ? pathObj : null;
@@ -644,26 +639,33 @@ const getVariableFromSku = (
 };
 
 const generateCallToAction = (
+  utm: IUtm,
+  channel: CHANNEL,
   storeReferenceIds: number[],
-): Partial<ICallToAction> => {
+): IUtmCallToAction => {
+  let callToAction: Partial<ICallToAction> = {};
   if (storeReferenceIds.length === 1) {
-    return {
+    callToAction = {
       actionTypeId: Config.lbApiOperaciones.callToAction.reference,
       storeReferenceId: storeReferenceIds[0],
     };
   } else if (storeReferenceIds.length > 1) {
     // 2 or more skus then C2A_OFFER_LIST
-    return {
+    callToAction = {
       actionTypeId: Config.lbApiOperaciones.callToAction.offerList, // TO DO: When new section is created
       storeReferenceIds: undefined,
       // storeReferenceIds: storeReferenceIds,
     };
   } else {
     // NO Sku included
-    return {
+    callToAction = {
       actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
     };
   }
+  return { 
+    callToAction, 
+    campaignService: CampaignFactory.createCampaignService(channel, 'es', utm),
+  };
 };
 
 const getStore = (row: IStoreSuggestion): TypeStore => ({
@@ -804,7 +806,7 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
   const bigQueryRepository = new BigQueryRepository();
   return bigQueryRepository.selectStoreSuggestions(
     frequencyByLocationAndStatusAndRange,
-    [CHANNEL.WhatsApp /*, CHANNEL.PushNotification */],
+    [ /* CHANNEL.WhatsApp, */ CHANNEL.PushNotification ],
   );
 }
 

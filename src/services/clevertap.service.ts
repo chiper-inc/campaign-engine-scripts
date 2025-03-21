@@ -1,7 +1,26 @@
 import { TypeCampaignVariables } from '../types.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
-export class ClevertapService {
-  constructor() {}
+import { IUtm } from '../integrations/interfaces.ts';
+import { CampaignService } from './campaign.service.ts';
+export class ClevertapService extends CampaignService {
+  private readonly titleTemplate: string;
+  private readonly offerTemplate: string;
+  private readonly utmValue: IUtm;
+  constructor(lng: string, utm: IUtm) {
+    super(lng);
+    const iTitle = this.getRandomNumber(MOCKS.titles.length);
+    const iOffer = this.getRandomNumber(MOCKS.offers.length);
+    this.titleTemplate = MOCKS.titles[iTitle];
+    this.offerTemplate = MOCKS.offers[iOffer];
+    this.utmValue = { ...utm };
+    this.utm.campaignName = `${utm.campaignName}-${
+      (iTitle + 1) * 100 + iOffer + 1
+    }-${this.lng}-${MOCKS.version}`;
+  }
+
+  public get utm(): IUtm {
+    return this.utmValue;
+  };
 
   public xxx(variables: TypeCampaignVariables): TypeCampaignVariables[] {
     const map = new Map<number, TypeCampaignVariables>();
@@ -49,6 +68,10 @@ export class ClevertapService {
   private getRandomValue<T>(array: T[]): T {
     const randomIndex = Math.floor(Math.random() * array.length);
     return array[randomIndex];
+  }
+
+  private getRandomNumber(n: number): number {
+    return Math.floor(Math.random() * n);
   }
 }
 

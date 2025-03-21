@@ -37,3 +37,5 @@ export const offers = [
   '{{0}} 🔥, la clave para más clientes. Abastece tu negocio hoy.📦',
   'Suma {{0}} 🏅 a tu negocio. Más ventas, más ganancias.💲'
 ];
+
+export const version = 'v1';
