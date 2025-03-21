@@ -1,6 +1,7 @@
 import { STORE_STATUS, STORE_VALUE } from '../enums.ts';
 import { connectlyConnectlyCampaigns } from '../mocks/connectly-campaigns.mock.ts';
 import { IConnectlyDetailCampaignParameter } from './interfaces.ts';
+import { PROVIDER_CHANNEL } from '../constants.ts';
 
 const getSubSegment = (
   subsegment: string,
@@ -28,6 +29,7 @@ const connectlyCampaignList: IConnectlyDetailCampaignParameter[] =
     const [segment, subsegment] = fullSegment.split('.');
     return {
       name: campaign.name,
+      communicationChannel: PROVIDER_CHANNEL[campaign.provider],
       storeStatus: segment as STORE_STATUS,
       variables: campaign.variables.sort((a, b) => a.localeCompare(b)),
       paths: campaign.paths.sort((a, b) => a.localeCompare(b)),
@@ -38,7 +40,7 @@ const connectlyCampaignList: IConnectlyDetailCampaignParameter[] =
 export const getConnectlyCampaignKey = (
   campaign: Partial<IConnectlyDetailCampaignParameter>,
 ): string =>
-  `${campaign.storeStatus}|${campaign.storeValue ?? ''}|${campaign.from ?? ''}|${campaign.to ?? ''}`;
+  `${campaign.communicationChannel}|${campaign.storeStatus}|${campaign.storeValue ?? ''}|${campaign.from ?? ''}|${campaign.to ?? ''}`;
 
 export const connectlyCampaignMap = connectlyCampaignList.reduce(
   (acc, campaign) => {

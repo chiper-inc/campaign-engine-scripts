@@ -31,3 +31,8 @@ export enum CHANNEL {
   WhatsApp = 'Whatsapp',
   PushNotification = 'Push Notification',
 }
+
+export enum PROVIDER {
+  Connectly = 'Connectly',
+  Clevertap = 'Clevertap',
+}
