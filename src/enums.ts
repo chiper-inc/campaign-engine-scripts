@@ -4,16 +4,18 @@ export enum LOCATION {
   MDE = '7',
   CLO = '3',
   BAQ = '18',
+  BGA = '5',
   CMX = '11',
   SCL = '22',
   SAO = '21',
-  VLN = '24',
+  VLN = '26',
 }
 
 export enum STORE_VALUE {
   High = 'High',
   Low = 'Low',
-  Medium = 'Medium',
+  MidLow = 'Mid-Low',
+  MidHigh = 'Mid-High',
 }
 
 export enum STORE_STATUS {
@@ -24,4 +26,14 @@ export enum STORE_STATUS {
   New = 'New',
   Resurrected = 'Resurrected',
   Retained = 'Retained',
+}
+
+export enum CHANNEL {
+  WhatsApp = 'Whatsapp',
+  PushNotification = 'Push Notification',
+}
+
+export enum PROVIDER {
+  Connectly = 'Connectly',
+  Clevertap = 'Clevertap',
 }

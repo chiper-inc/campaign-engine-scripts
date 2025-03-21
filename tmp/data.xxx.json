@@ -1,0 +1,376 @@
+
+> connectly@1.0.0 script:main
+> npm run build && node dist/main.js
+
+
+> connectly@1.0.0 build
+> tsc
+
+Map(42) {
+  '18|Churn|90-119' => 3,
+  '18|Hibernating|' => 3,
+  '18|Lead|' => 7,
+  '18|New|' => 3,
+  '18|Resurrected|' => 3,
+  '18|Retained|' => 3,
+  '2|Churn|90-119' => 2,
+  '2|Churn|120-149' => 2,
+  '2|Churn|150-179' => 2,
+  '2|Churn|180-209' => 2,
+  '2|Hibernating|' => 2,
+  '2|Lead|' => 3,
+  '2|New|' => 2,
+  '2|Resurrected|' => 2,
+  '2|Retained|' => 2,
+  '3|Churn|90-119' => 2,
+  '3|Churn|120-149' => 2,
+  '3|Churn|150-179' => 2,
+  '3|Churn|180-209' => 2,
+  '3|Hibernating|' => 2,
+  '3|Lead|' => 2,
+  '3|New|' => 2,
+  '3|Resurrected|' => 2,
+  '3|Retained|' => 2,
+  '11|Hibernating|' => 3,
+  '11|Lead|' => 0,
+  '11|New|' => 7,
+  '11|Resurrected|' => 7,
+  '11|Retained|' => 7,
+  '7|Churn|90-119' => 3,
+  '7|Hibernating|' => 3,
+  '7|Lead|' => 7,
+  '7|New|' => 3,
+  '7|Resurrected|' => 3,
+  '7|Retained|' => 3,
+  '26|Churn|90-119' => 2,
+  '26|Churn|120-149' => 2,
+  '26|Retained|' => 2,
+  '26|Resurrected|' => 2,
+  '26|New|' => 2,
+  '26|Lead|' => 2,
+  '26|Hibernating|' => 2
+}
+[
+  {
+    "identity": 5329,
+    "campaignId": "API_Hibernating",
+    "variables": {
+      "dsct_1": "3%",
+      "dsct_2": "6%",
+      "dsct_3": "3%",
+      "img_1": "https://chiper-old-imgs.imgix.net/app/7702521656812-s1dhjp7j2-m-ByNWJ0HgA-R.png?w=800&h=400&fit=fill&bg=white",
+      "img_2": "https://chiper-old-imgs.imgix.net/app/7702404005034-HkP4mupji-R.png?w=800&h=400&fit=fill&bg=white",
+      "img_3": "https://chiper-old-imgs.imgix.net/app/520202432433pm_12595067_-_cat_chow_adultos_carne_15kg_pr_15-12_co-photoroom-Sy9bbfDLA-R.png?w=800&h=400&fit=fill&bg=white",
+      "name": "Danilo",
+      "sku_1": "Alimento Para Perros Adultos Minis Y Pequeños Dog Chow X 22.7Kg - Dog Chow - Bulto 22 kg",
+      "sku_2": "Aguardiente Nectar Verde - Nectar Club - Botella 375 ml",
+      "sku_3": "Alimento Para Gato Adulto Sabor A Carne - Cat Chow - Pague 12 kg lleve 15 kg - Cat Chow - Bulto 15 kg",
+      "path_1": "https://tienda.chiper.co/detalle-producto/442286?utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_term=200325&utm_source=clevertap-campaign&utm_medium=164&utm_campaign=1_1377_PN_1_Mar20_ot_Hibernating.Mid-High_API-Hibernating",
+      "path_2": "https://tienda.chiper.co/detalle-producto/24241?utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_term=200325&utm_source=clevertap-campaign&utm_medium=164&utm_campaign=1_1377_PN_1_Mar20_ot_Hibernating.Mid-High_API-Hibernating",
+      "path_3": "https://tienda.chiper.co/detalle-producto/447253?utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_term=200325&utm_source=clevertap-campaign&utm_medium=164&utm_campaign=1_1377_PN_1_Mar20_ot_Hibernating.Mid-High_API-Hibernating"
+    }
+  },
+  {
+    "identity": 6282,
+    "campaignId": "API_Lead",
+    "variables": {
+      "dsct_1": "20%",
+      "dsct_2": "1%",
+      "dsct_3": "6%",
+      "img_1": "https://chiper-old-imgs.imgix.net/app/7701018007212-photoroom-rJ-7G6LbC-R.png?w=800&h=400&fit=fill&bg=white",
+      "img_2": "https://chiper-old-imgs.imgix.net/app/arroz-blanco-arroz-buengrano-454-gr-3487480_a-h16qwxlpt-m1-SJXzl2PV0-R.png?w=800&h=400&fit=fill&bg=white",
+      "img_3": "https://chiper-old-imgs.imgix.net/app/7500435124683-bkmzpflpo-m-SyiUAUZsh-R.png?w=800&h=400&fit=fill&bg=white",
+      "name": "Julian",
+      "sku_1": "Aceite de Girasol - Premier - Botella 500 ml",
+      "sku_2": "Arroz Blanco - Buen Grano - Bolsa 454 g",
+      "sku_3": "Detergente en polvo regular - Ariel - Bolsa 450 g",
+      "path_1": "https://tienda.chiper.co/detalle-producto/423628?utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_term=200325&utm_source=clevertap-campaign&utm_medium=164&utm_campaign=1_1377_PN_1_Mar20_ot_Lead.Low_API-Lead",
+      "path_2": "https://tienda.chiper.co/detalle-producto/446668?utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_term=200325&utm_source=clevertap-campaign&utm_medium=164&utm_campaign=1_1377_PN_1_Mar20_ot_Lead.Low_API-Lead",
+      "path_3": "https://tienda.chiper.co/detalle-producto/80545?utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_term=200325&utm_source=clevertap-campaign&utm_medium=164&utm_campaign=1_1377_PN_1_Mar20_ot_Lead.Low_API-Lead"
+    }
+  }
+]
+===================
+[
+  {
+    "client": "+573195393332",
+    "campaignName": "api hibernating 16 es v0",
+    "variables": {
+      "dsct_1": "4%",
+      "name": "Claudia",
+      "sku_1": "Alimento Para Gato Adulto Sabor A Carne - Cat Chow - Pague 12 kg lleve 15 kg - Cat Chow - Bulto 15 kg",
+      "path_1": "drQ9?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=7_1377_WA_1_Mar20_ot_Hibernating.Mid-High_API-Hibernating-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573133005548",
+    "campaignName": "api retained 16 es v0",
+    "variables": {
+      "dsct_1": "1%",
+      "name": "Rocio",
+      "sku_1": "Aguardiente Sin Azúcar 24° - Blanco Del Valle Fiesta - Botella 750 ml",
+      "path_1": "bmYg?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Retained.Mid-High_API-Retained-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573022155301",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "21%",
+      "name": "Aurelio",
+      "sku_1": "Shampoo original - Johnsons Baby - Display x12 Sachets 25 ml",
+      "path_1": "vXnz?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=3_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+525613490883",
+    "campaignName": "api hibernating 16 es v0",
+    "variables": {
+      "dsct_1": "3%",
+      "name": "Raúl",
+      "sku_1": "Cerveza Modelo Especial - Modelo Especial - Lata 473 ml",
+      "path_1": "V2GJ?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=11_1381_WA_1_Mar20_ot_Hibernating.High_API-Hibernating-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573053468187",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "5%",
+      "name": "Daniela",
+      "sku_1": "Jugo De Pera Nectar - Pulp - Botella PET 400 ml",
+      "path_1": "pSK4?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573108855026",
+    "campaignName": "api hibernating 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Miriam",
+      "sku_1": "Aguardiente Nectar Verde - Nectar Club - Botella 375 ml",
+      "path_1": "PCZs?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Hibernating.Mid-High_API-Hibernating-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573234944157",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "4%",
+      "name": "Ingrid",
+      "sku_1": "Harina Para Hornear - Haz De Oros - Bolsa 500 g",
+      "path_1": "PH4G?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573145610909",
+    "campaignName": "api churn.90to119 16 es v0",
+    "variables": {
+      "dsct_1": "1%",
+      "name": "Diego",
+      "sku_1": "Aguardiente Sin Azúcar 24° - Blanco Del Valle Fiesta - Botella 750 ml",
+      "path_1": "v8ao?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Churn.90to119.Mid-High_API-Churn.90to119-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573234929305",
+    "campaignName": "api churn.180to209 16 es v0",
+    "variables": {
+      "dsct_1": "1%",
+      "name": "Andres",
+      "sku_1": "Aguardiente Sin Azúcar 24° - Blanco Del Valle Fiesta - Botella 750 ml",
+      "path_1": "ytuE?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Churn.180to209.Mid-Low_API-Churn.180to209-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573148922521",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "12%",
+      "name": "Diller",
+      "sku_1": "Desodorante Practicrema - Lady Speed Stick - Tarro 30 g",
+      "path_1": "juw8?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573213446134",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Guilermo",
+      "sku_1": "Refresco De Mora - Cifrut - Botella PET 1700 ml",
+      "path_1": "GcrD?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573197942956",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "5%",
+      "name": "María",
+      "sku_1": "Jugo De Pera Nectar - Pulp - Botella PET 400 ml",
+      "path_1": "pSK4?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573118372044",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "30%",
+      "name": "Elkin",
+      "sku_1": "Bebida De Té Sabor a Sandía - Ekii - Botella 400 ml",
+      "path_1": "r87L?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573168245096",
+    "campaignName": "api churn.150to179 16 es v0",
+    "variables": {
+      "dsct_1": "1%",
+      "name": "Alix",
+      "sku_1": "Aguardiente Sin Azúcar 24° - Blanco Del Valle Fiesta - Botella 750 ml",
+      "path_1": "Qymo?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Churn.150to179.Mid-High_API-Churn.150to179-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573218034008",
+    "campaignName": "api lead 16 es v0",
+    "variables": {
+      "dsct_1": "14%",
+      "name": "Luz",
+      "sku_1": "Jabón Sandia y Lychee - Palmolive - Barra 110 g",
+      "path_1": "pxmZ?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Lead.Low_API-Lead-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573133461794",
+    "campaignName": "api churn.150to179 16 es v0",
+    "variables": {
+      "dsct_1": "1%",
+      "name": "Jessica",
+      "sku_1": "Aguardiente Sin Azúcar 24° - Blanco Del Valle Fiesta - Botella 750 ml",
+      "path_1": "Qymo?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Churn.150to179.Mid-High_API-Churn.150to179-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573102617814",
+    "campaignName": "api churn.180to209 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Santiago",
+      "sku_1": "Aguardiente Nectar Verde - Nectar Club - Botella 375 ml",
+      "path_1": "Bmx2?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Churn.180to209.Mid-High_API-Churn.180to209-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573183513635",
+    "campaignName": "api churn.150to179 16 es v0",
+    "variables": {
+      "dsct_1": "3%",
+      "name": "Omar",
+      "sku_1": "Alimento Para Perros Adultos Minis Y Pequeños Dog Chow X 22.7Kg - Dog Chow - Bulto 22 kg",
+      "path_1": "hrDW?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Churn.150to179.Mid-High_API-Churn.150to179-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573118241458",
+    "campaignName": "api retained 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Nelson",
+      "sku_1": "Coca Cola Original - Coca Cola - Botella PET 1500 ml",
+      "path_1": "dukS?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Retained.Mid-High_API-Retained-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+525582485471",
+    "campaignName": "api retained 16 es v0",
+    "variables": {
+      "dsct_1": "3%",
+      "name": "Jocabed",
+      "sku_1": "Detergente En Polvo Poder Y Cuidado - Ariel - Bolsa 850 g",
+      "path_1": "ezC9?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=11_1381_WA_1_Mar20_ot_Retained.Mid-Low_API-Retained-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573134283146",
+    "campaignName": "api hibernating 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Gloria",
+      "sku_1": "Coca Cola Original - Coca Cola - Botella PET 1500 ml",
+      "path_1": "6kei?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Hibernating.Mid-High_API-Hibernating-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573008946430",
+    "campaignName": "api resurrected 16 es v0",
+    "variables": {
+      "dsct_1": "8%",
+      "name": "Héctor",
+      "sku_1": "Lavaloza disco de repuesto limón - Axion - Disco 130 g",
+      "path_1": "9W4g?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Resurrected.Mid-High_API-Resurrected-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573168528405",
+    "campaignName": "api retained 16 es v0",
+    "variables": {
+      "dsct_1": "8%",
+      "name": "María",
+      "sku_1": "Lavaloza disco de repuesto limón - Axion - Disco 130 g",
+      "path_1": "dCPE?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=2_1377_WA_1_Mar20_ot_Retained.Mid-High_API-Retained-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573103323201",
+    "campaignName": "api churn.90to119 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Milena",
+      "sku_1": "Aguardiente Nectar Verde - Nectar Club - Botella 375 ml",
+      "path_1": "6gCJ?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Churn.90to119.Mid-Low_API-Churn.90to119-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573005280880",
+    "campaignName": "api retained 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Fredy",
+      "sku_1": "Coca Cola Original - Coca Cola - Botella PET 1500 ml",
+      "path_1": "dukS?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Retained.Mid-High_API-Retained-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573193430391",
+    "campaignName": "api retained 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Jessika",
+      "sku_1": "Aguardiente Nectar Verde - Nectar Club - Botella 375 ml",
+      "path_1": "6bdy?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Retained.Mid-Low_API-Retained-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+525550366761",
+    "campaignName": "api hibernating 16 es v0",
+    "variables": {
+      "dsct_1": "3%",
+      "name": "Ana",
+      "sku_1": "Cerveza Modelo Especial - Modelo Especial - Lata 473 ml",
+      "path_1": "ndQe?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=11_1381_WA_1_Mar20_ot_Hibernating.Mid-Low_API-Hibernating-16-es-v0&utm_term=200325"
+    }
+  },
+  {
+    "client": "+573127944834",
+    "campaignName": "api churn.180to209 16 es v0",
+    "variables": {
+      "dsct_1": "6%",
+      "name": "Oscar",
+      "sku_1": "Coca Cola Original - Coca Cola - Botella PET 1500 ml",
+      "path_1": "oGcC?utm_source=connectly-campaign&utm_medium=164&utm_content=b36899da-4a7a-4dd1-85a5-b91adee19eba&utm_campaign=1_1377_WA_1_Mar20_ot_Churn.180to209.Mid-High_API-Churn.180to209-16-es-v0&utm_term=200325"
+    }
+  }
+]
+===================
