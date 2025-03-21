@@ -1,8 +1,0 @@
-
-> connectly@1.0.0 script:main
-> npm run build && node dist/main.js
-
-
-> connectly@1.0.0 build
-> tsc
-

@@ -1,8 +1,0 @@
-
-> connectly@1.0.0 script:send
-> npm run build && babel-node dist/send.js
-
-
-> connectly@1.0.0 build
-> tsc
-
