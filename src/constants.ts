@@ -90,7 +90,7 @@ export const MONEY_FORMATTER = {
   [LOCATION.VLN]: moneyFormatter.VE,
 };
 
-export const PROVIDER_CHANNEL: { [k in PROVIDER]: CHANNEL } ={
+export const PROVIDER_CHANNEL: { [k in PROVIDER]: CHANNEL } = {
   [PROVIDER.Connectly]: CHANNEL.WhatsApp,
   [PROVIDER.Clevertap]: CHANNEL.PushNotification,
 };

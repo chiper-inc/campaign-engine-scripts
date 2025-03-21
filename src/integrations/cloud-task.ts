@@ -11,25 +11,25 @@ export class CloudTask {
     this.client = new v2.CloudTasksClient();
     this.parent = this.client.queuePath(
       Config.google.project,
-      Config.google.location, 
+      Config.google.location,
       queue ?? Config.google.cloudTask.queue,
     );
   }
 
-  async createOneTask({ 
+  async createOneTask({
     request,
     name,
     inSeconds,
   }: {
     name?: string;
     request: {
-      url: string,
-      method: ('POST' | 'GET' | 'PUT' | 'DELETE'),
-      body: unknown,
-      headers?: { [key: string]: string },
-    },
-    inSeconds?: number,
-    timeoutSeconds?: number,
+      url: string;
+      method: 'POST' | 'GET' | 'PUT' | 'DELETE';
+      body: unknown;
+      headers?: { [key: string]: string };
+    };
+    inSeconds?: number;
+    timeoutSeconds?: number;
   }) {
     const task: google.cloud.tasks.v2.ITask = {
       httpRequest: {
@@ -47,7 +47,10 @@ export class CloudTask {
     }
 
     console.log('Creating task:', task.httpRequest, request.body);
-    const [response] = await this.client.createTask({ parent: this.parent, task });
+    const [response] = await this.client.createTask({
+      parent: this.parent,
+      task,
+    });
     console.log(`Created task ${response.name}`);
     return response;
   }

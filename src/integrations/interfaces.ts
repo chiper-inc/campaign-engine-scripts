@@ -69,4 +69,4 @@ export interface IClevertapCampaign {
   variables: { [key: string]: string | number };
   inSeconds?: number;
   timeoutSeconds?: number;
-};
+}

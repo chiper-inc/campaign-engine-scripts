@@ -36,10 +36,10 @@ export const Config = {
     location: process.env.GOOGLE_LOCATION ?? '',
     cloudTask: {
       queue: process.env.GOOGLE_CLOUD_TASK_QUEUE ?? '',
-    }
+    },
   },
   clevertap: {
     accountId: process.env.CLEVERTAP_API_ACCOUNT_ID ?? '',
     passcode: process.env.CLEVERTAP_API_PASSCODE ?? '',
-  }
+  },
 };

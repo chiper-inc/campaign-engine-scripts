@@ -82,12 +82,16 @@ async function main(day: number, limit = 100, offset = 0) {
   preEntries = await generateCallToActionShortLinks(preEntries);
   console.error(JSON.stringify(preEntries, null, 2));
   preEntries = generatePathVariable(preEntries);
-  const [ connectlyEntries, clevertapEntries ] = await Promise.all([
+  const [connectlyEntries, clevertapEntries] = await Promise.all([
     reportConnectlyEntries(preEntries),
     reportClevertapEntries(preEntries),
   ]);
-  console.error(`Campaing ${UUID} generated for ${connectlyEntries.length} stores`);
-  console.error(`Campaing ${UUID} generated for ${clevertapEntries.length} stores`);
+  console.error(
+    `Campaing ${UUID} generated for ${connectlyEntries.length} stores`,
+  );
+  console.error(
+    `Campaing ${UUID} generated for ${clevertapEntries.length} stores`,
+  );
   console.error(
     `Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`,
   );
@@ -114,8 +118,16 @@ const generatePathVariable = (preEntries: IPreEntry[]) => {
 
     return {
       ...preEntry,
-      connectlyEntry: generateConnectlyPathVariables(connectlyEntry, utm, shortLinks),
-      clevertapEntry: geeneratClevertapPathVariables(clevertapEntry, utm, shortLinks),
+      connectlyEntry: generateConnectlyPathVariables(
+        connectlyEntry,
+        utm,
+        shortLinks,
+      ),
+      clevertapEntry: geeneratClevertapPathVariables(
+        clevertapEntry,
+        utm,
+        shortLinks,
+      ),
     };
   });
 };
@@ -123,7 +135,7 @@ const generatePathVariable = (preEntries: IPreEntry[]) => {
 const generateConnectlyPathVariables = (
   connectlyEntry: IConnectlyEntry | undefined,
   utm: IUtm,
-  shortLinks: ICallToActionLink[]
+  shortLinks: ICallToActionLink[],
 ): IConnectlyEntry | undefined => {
   if (!connectlyEntry) return undefined;
 
@@ -138,21 +150,22 @@ const generateConnectlyPathVariables = (
 
   paths.forEach((path, i) => {
     const shortLink = getConnectlyPathFromPreEntry({
-      url: shortLinks[i].shortenUrl ?? `https://sl.chiper.co/shortlink_${i + 1}`,
+      url:
+        shortLinks[i].shortenUrl ?? `https://sl.chiper.co/shortlink_${i + 1}`,
       utm,
     });
     pathObj[path] = shortLink;
   });
-  return { 
-    ...connectlyEntry, 
-    variables: { ...connectlyEntry.variables, ...pathObj }
+  return {
+    ...connectlyEntry,
+    variables: { ...connectlyEntry.variables, ...pathObj },
   };
 };
 
 const geeneratClevertapPathVariables = (
   connectlyEntry: IClevertapEntry | undefined,
   utm: IUtm,
-  shortLinks: ICallToActionLink[]
+  shortLinks: ICallToActionLink[],
 ): IClevertapEntry | undefined => {
   if (!connectlyEntry) return undefined;
 
@@ -167,20 +180,21 @@ const geeneratClevertapPathVariables = (
 
   paths.forEach((path, i) => {
     const shortLink = getClevertapPathFromPreEntry({
-      url: shortLinks[i].fullUrl ?? `https://tienda.chiper.co/shortlink_${i + 1}`,
+      url:
+        shortLinks[i].fullUrl ?? `https://tienda.chiper.co/shortlink_${i + 1}`,
       utm,
     });
     pathObj[path] = shortLink;
   });
 
-  return { 
-    ...connectlyEntry, 
-    variables: { ...connectlyEntry.variables, ...pathObj }
+  return {
+    ...connectlyEntry,
+    variables: { ...connectlyEntry.variables, ...pathObj },
   };
-}
+};
 
 const getClevertapPathFromPreEntry = ({
-//  utm,
+  //  utm,
   url,
 }: {
   utm: IUtm;
@@ -251,8 +265,10 @@ const createShortLinks = async (
       key: string;
       response: { data?: { shortLink?: string } };
     };
-    const data = (response?.data ?? { utm: {} }) as { utm: {websiteURL?: string, shortenURL?: string }};
-    acc.set(key, { 
+    const data = (response?.data ?? { utm: {} }) as {
+      utm: { websiteURL?: string; shortenURL?: string };
+    }; // TO include the interface for LB-API response
+    acc.set(key, {
       fullUrl: data?.utm?.websiteURL ?? '',
       shortenUrl: data.utm.shortenURL ?? '',
     });
@@ -269,7 +285,7 @@ const reportClevertapEntries = async (
   console.log(JSON.stringify(entries, null, 2));
   console.log('===================');
   return entries;
-}
+};
 
 const reportConnectlyEntries = async (
   preEntries: IPreEntry[],
@@ -345,7 +361,11 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
       utm: undefined,
       communicationChannel: row.communicationChannel,
       campaign: getCamapignRange(
-        row.communicationChannel, row.storeStatus, day, row.from, row.to
+        row.communicationChannel,
+        row.storeStatus,
+        day,
+        row.from,
+        row.to,
       ),
       store: getStore(row),
       skus: [],
@@ -359,7 +379,7 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
           a.campaign.name,
           row.communicationChannel,
           row.rangeName,
-          row.storeValue
+          row.storeValue,
         );
       }
       a.skus.push(getSku(row));
@@ -401,32 +421,29 @@ const generatePreEntries = (
     channel: CHANNEL,
     store: TypeStore,
     campaign: string,
-    variables: TypeCampaignVariables
-  ): IConnectlyEntry | undefined => (channel === CHANNEL.WhatsApp
-    ? 
-      {
-        client: `+${store.phone}`,
-        campaignName: campaign.replace(/_/g, ' ').toLowerCase(),
-        variables,
-      }
-    : undefined
-  );
+    variables: TypeCampaignVariables,
+  ): IConnectlyEntry | undefined =>
+    channel === CHANNEL.WhatsApp
+      ? {
+          client: `+${store.phone}`,
+          campaignName: campaign.replace(/_/g, ' ').toLowerCase(),
+          variables,
+        }
+      : undefined;
 
   const generateClevertapEntry = (
     channel: CHANNEL,
     store: TypeStore,
     campaign: string,
-    variables: TypeCampaignVariables
-  ): IClevertapEntry | undefined => (channel === CHANNEL.PushNotification
-    ? 
-      {
-        identity: store.storeId,
-        campaignId: campaign, // TODO Generate the ID for Clevertap
-        variables,
-      }
-    : undefined
-  );
-
+    variables: TypeCampaignVariables,
+  ): IClevertapEntry | undefined =>
+    channel === CHANNEL.PushNotification
+      ? {
+          identity: store.storeId,
+          campaignId: campaign, // TODO Generate the ID for Clevertap
+          variables,
+        }
+      : undefined;
 
   const entries: IPreEntry[] = [];
   for (const data of Array.from(storesMap.values())) {
@@ -473,8 +490,18 @@ const generatePreEntries = (
     const callToAction = generateCallToAction(storeReferenceIds);
 
     entries.push({
-      connectlyEntry: generateConnectlyEntry(channel, store, campaign.name, variables),
-      clevertapEntry: generateClevertapEntry(channel, store, campaign.name, variables),
+      connectlyEntry: generateConnectlyEntry(
+        channel,
+        store,
+        campaign.name,
+        variables,
+      ),
+      clevertapEntry: generateClevertapEntry(
+        channel,
+        store,
+        campaign.name,
+        variables,
+      ),
       utm,
       callToAction,
       callToActions,
@@ -583,8 +610,7 @@ const getVariableFromStore = (
   varName: string = '_',
 ): TypeCampaignVariables => {
   const value =
-    (store as TypeCampaignVariables)[varName ?? '-'] ??
-    `Store[${variable}]`;
+    (store as TypeCampaignVariables)[varName ?? '-'] ?? `Store[${variable}]`;
   return {
     [variable]: removeExtraSpaces(value),
   };
@@ -710,9 +736,9 @@ const getUtm = (
   rangeName: string | null,
   storeValue: string | null,
 ) => {
-  const channelMap: { [k in CHANNEL]: string }= {
-    [CHANNEL.WhatsApp]: 'WA', 
-    [CHANNEL.PushNotification]: 'PN'
+  const channelMap: { [k in CHANNEL]: string } = {
+    [CHANNEL.WhatsApp]: 'WA',
+    [CHANNEL.PushNotification]: 'PN',
   };
   const asset = channelMap[communicationChannel] ?? 'XX';
   const payer = '1'; // Fix value
@@ -735,7 +761,8 @@ const getUtm = (
     /[^a-zA-Z0-9.]/g,
     '-',
   )}`;
-  const source = `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
+  const source =
+    `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
   const content = UUID; // uuid
   const medium = '164';
   return {
@@ -776,7 +803,7 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
   const bigQueryRepository = new BigQueryRepository();
   return bigQueryRepository.selectStoreSuggestions(
     frequencyByLocationAndStatusAndRange,
-    [ CHANNEL.WhatsApp, CHANNEL.PushNotification],
+    [CHANNEL.WhatsApp, CHANNEL.PushNotification],
   );
 }
 
