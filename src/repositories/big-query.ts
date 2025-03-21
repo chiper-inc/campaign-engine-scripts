@@ -26,7 +26,7 @@ export class BigQueryRepository {
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
-      MG.lastValueSegmentation as storeValue,
+      MG.lastValueSegmentation,
       MG.communicationChannel,
       IFNULL(MG.daysSinceLastOrderDelivered, 0) as daysSinceLastOrderDelivered,
       MG.warehouseId
@@ -47,6 +47,11 @@ export class BigQueryRepository {
   public selectStoreSuggestions(
     churnRanges: IFrequencyParameter[],
     channels = [/* CHANNEL.WhatsApp, */ CHANNEL.PushNotification],
+    storeStatus = [
+      STORE_STATUS.Hibernating,
+      STORE_STATUS.Resurrected,
+      STORE_STATUS.Retained,
+    ],
   ): Promise<IStoreSuggestion[]> {
     const query = `
       WITH LSR AS (
@@ -56,6 +61,10 @@ export class BigQueryRepository {
       )
       SELECT DISTINCT
         QRY.*,
+        IF(QRY.storeStatus IN ('${storeStatus.join("','")}')
+          , REPLACE(QRY.lastValueSegmentation, '-', '')
+          , NULL
+        ) as storeValue,
         LSR.fromDays as \`from\`,
         LSR.toDays as \`to\`,
         LSR.rangeName
@@ -67,8 +76,8 @@ export class BigQueryRepository {
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 500
-      OFFSET 1000
+      -- LIMIT 500
+      -- OFFSET 1000
     `;
 
     // console.error('<Query>', query, '</Query>');

@@ -1,9 +1,9 @@
-import { CHANNEL, LOCATION, STORE_STATUS } from '../enums.ts';
+import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from '../enums.ts';
 
 export interface IStoreSuggestion {
   country: string;
   storeStatus: STORE_STATUS;
-  storeValue: string | null;
+  storeValue: STORE_VALUE | null;
   storeId: number;
   city: string;
   locationId: LOCATION;

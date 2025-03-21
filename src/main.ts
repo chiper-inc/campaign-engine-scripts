@@ -22,7 +22,7 @@ import {
   IShortLinkPayload,
   IUtm,
 } from './integrations/interfaces.ts';
-import { CHANNEL, LOCATION, STORE_STATUS } from './enums.ts';
+import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
 import {
   TypeCampaignByStatus,
   TypeCampaignEntry,
@@ -80,7 +80,6 @@ async function main(day: number, limit = 100, offset = 0) {
   // console.error(otherMap);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
   preEntries = await generateCallToActionShortLinks(preEntries);
-  console.error(JSON.stringify(preEntries, null, 2));
   preEntries = generatePathVariable(preEntries);
   const [connectlyEntries, clevertapEntries] = await Promise.all([
     reportConnectlyEntries(preEntries),
@@ -364,6 +363,7 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
         row.communicationChannel,
         row.storeStatus,
         day,
+        row.storeValue,
         row.from,
         row.to,
       ),
@@ -704,6 +704,7 @@ const getCamapignRange = (
   communicationChannel: CHANNEL,
   storeStatus: STORE_STATUS,
   day: number,
+  storeValue: STORE_VALUE | null,
   from?: number | null,
   to?: number | null,
 ): TypeCampaignEntry | null => {
@@ -713,7 +714,7 @@ const getCamapignRange = (
       storeStatus,
       from,
       to,
-      storeValue: undefined,
+      storeValue: storeValue ?? undefined,
     }),
   );
   if (campaigns) {
@@ -803,7 +804,7 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
   const bigQueryRepository = new BigQueryRepository();
   return bigQueryRepository.selectStoreSuggestions(
     frequencyByLocationAndStatusAndRange,
-    [CHANNEL.WhatsApp, CHANNEL.PushNotification],
+    [CHANNEL.WhatsApp /*, CHANNEL.PushNotification */],
   );
 }
 

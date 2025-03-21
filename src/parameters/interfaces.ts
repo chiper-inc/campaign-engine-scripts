@@ -3,7 +3,7 @@ export interface IConnectlyDetailCampaignParameter {
   name: string;
   variables: string[];
   paths: string[];
-  storeStatus: STORE_STATUS;
+  storeStatus: STORE_STATUS | null;
   communicationChannel: CHANNEL;
   from?: number | null;
   to?: number | null;

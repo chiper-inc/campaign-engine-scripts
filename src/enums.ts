@@ -14,7 +14,8 @@ export enum LOCATION {
 export enum STORE_VALUE {
   High = 'High',
   Low = 'Low',
-  Medium = 'Medium',
+  MidLow = 'Mid-Low',
+  MidHigh = 'Mid-High',
 }
 
 export enum STORE_STATUS {
