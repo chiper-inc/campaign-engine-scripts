@@ -37,3 +37,7 @@ export type TypeCampaignEntry = {
   variables: string[];
   paths: string[];
 };
+
+export type TypeCampaignVariables = { 
+  [key: string]: string[];
+}
