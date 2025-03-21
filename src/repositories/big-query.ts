@@ -47,6 +47,7 @@ export class BigQueryRepository {
   public selectStoreSuggestions(
     churnRanges: IFrequencyParameter[],
     channels = [CHANNEL.WhatsApp],
+    storeStatus = [STORE_STATUS.Hibernating, STORE_STATUS.Resurrected, STORE_STATUS.Retained],
   ): Promise<IStoreSuggestion[]> {
     const query = `
       WITH LSR AS (
@@ -56,6 +57,10 @@ export class BigQueryRepository {
       )
       SELECT DISTINCT
         QRY.*,
+        IF(QRY.storeStatus IN ('${storeStatus.join("','")}')
+          , QRY.lastValueSegmentation
+          , NULL
+        ) as storeValue,
         LSR.fromDays as \`from\`,
         LSR.toDays as \`to\`,
         LSR.rangeName
@@ -67,9 +72,9 @@ export class BigQueryRepository {
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 5000000`;
+      LIMIT 500000`;
 
-    // console.error('<Query>', query, '</Query>');
+    console.error('<Query>', query, '</Query>');
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 

@@ -21,7 +21,7 @@ import {
   IShortLinkPayload,
   IUtm,
 } from './integrations/interfaces.ts';
-import { CHANNEL, LOCATION, STORE_STATUS } from './enums.ts';
+import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
 import {
   TypeCampaignByStatus,
   TypeCampaignEntry,
@@ -70,8 +70,8 @@ async function main(day: number, limit = 100, offset = 0) {
   // console.error(storeMap.size);
   const otherMap = generateOtherMap(filteredData, day);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
-  preEntries = await generateCallToActionShortLinks(preEntries);
-  preEntries = generatePathVariable(preEntries);
+  // preEntries = await generateCallToActionShortLinks(preEntries);
+  // preEntries = generatePathVariable(preEntries);
   const entries = await reportEntries(preEntries);
   console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
   console.error(
@@ -257,7 +257,7 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
       storeStatus: row.storeStatus,
       city: row.city,
       utm: undefined,
-      campaign: getCamapignRange(row.storeStatus, day, row.from, row.to),
+      campaign: getCamapignRange(row.storeStatus, day, row.storeValue, row.from, row.to),
       store: getStore(row),
       skus: [],
     };
@@ -559,6 +559,7 @@ const getCamapign = (
 const getCamapignRange = (
   storeStatus: STORE_STATUS,
   day: number,
+  storeValue?: STORE_VALUE,
   from?: number,
   to?: number,
 ): TypeCampaignEntry | null => {
@@ -567,7 +568,7 @@ const getCamapignRange = (
       storeStatus,
       from,
       to,
-      storeValue: undefined,
+      storeValue,
     }),
   );
   if (campaigns) {
