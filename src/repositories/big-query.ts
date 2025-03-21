@@ -1,7 +1,7 @@
 import { BigQuery } from '@google-cloud/bigquery';
 import { IStoreSuggestion } from './interfaces.ts';
-import { IFrequencyParameter } from '../parameters.ts';
-import { LOCATION, STORE_STATUS } from '../enums.ts';
+import { IFrequencyParameter } from '../mocks/interfaces.ts';
+import { CHANNEL, LOCATION, STORE_STATUS } from '../enums.ts';
 
 export interface ILocationRange {
   locationId: number;
@@ -12,6 +12,30 @@ export interface ILocationRange {
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
   private readonly defaultOptions: object;
+  private readonly masterQuery = `
+    SELECT DISTINCT
+      MG.country,
+      MG.storeStatus,
+      MG.storeId,
+      MG.city,
+      MG.cityId,
+      MG.locationId,
+      MG.storeReferenceId,
+      MG.name,
+      MG.reference,
+      MG.discountFormatted,
+      MG.phone,
+      MG.ranking,
+      MG.lastValueSegmentation,
+      MG.communicationChannel,
+      IFNULL(MG.daysSinceLastOrderDelivered, 0) as daysSinceLastOrderDelivered,
+      MG.warehouseId
+    FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
+    WHERE MG.phone IS NOT NULL
+      -- AND MG.ranking <= 10
+      AND MG.phone NOT LIKE '5_9613739%'
+      AND MG.phone NOT LIKE '5_9223372%'
+`;
 
   constructor() {
     this.bigquery = new BigQuery();
@@ -22,39 +46,41 @@ export class BigQueryRepository {
 
   public selectStoreSuggestions(
     churnRanges: IFrequencyParameter[],
+    channels = [/* CHANNEL.WhatsApp, */ CHANNEL.PushNotification],
+    storeStatus = [
+      STORE_STATUS.Hibernating,
+      STORE_STATUS.Resurrected,
+      STORE_STATUS.Retained,
+    ],
   ): Promise<IStoreSuggestion[]> {
     const query = `
       WITH LSR AS (
-        ${this.queryLocationStatusRange(churnRanges)}
-      ) SELECT DISTINCT
-        MG.country,
-        MG.storeStatus,
-        MG.storeId,
-        MG.city,
-        MG.locationId,
-        MG.storeReferenceId,
-        MG.name,
-        MG.reference,
-        MG.discountFormatted,
-        MG.phone,
-        MG.ranking,
-        LSR.fromDays AS \`from\`,
-        LSR.toDays AS \`to\`,
+        ${this.queryLocationStatusRange(churnRanges)}),
+      QRY AS (
+        ${this.masterQuery} AND MG.communicationChannel in ('${channels.join("','")}')
+      )
+      SELECT DISTINCT
+        QRY.*,
+        IF(QRY.storeStatus IN ('${storeStatus.join("','")}')
+          , REPLACE(QRY.lastValueSegmentation, '-', '')
+          , NULL
+        ) as storeValue,
+        LSR.fromDays as \`from\`,
+        LSR.toDays as \`to\`,
         LSR.rangeName
-      FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
+      FROM QRY
       INNER JOIN LSR
-         ON IFNULL(MG.daysSinceLastOrderDelivered, 0)
-            BETWEEN IFNULL(LSR.fromDays, IFNULL(MG.daysSinceLastOrderDelivered, 0))
-                AND IFNULL(LSR.toDays, IFNULL(MG.daysSinceLastOrderDelivered, 0))
-        AND MG.locationId = LSR.locationId
-        AND MG.storeStatus = LSR.storeStatus
-      WHERE MG.phone IS NOT NULL
-        AND MG.ranking <= 7
-        AND MG.phone NOT LIKE '5_9613739%'
-        AND MG.phone NOT LIKE '5_9223372%'
-      ORDER BY MG.storeId, MG.ranking
-      LIMIT 500`;
+         ON QRY.daysSinceLastOrderDelivered
+            BETWEEN IFNULL(LSR.fromDays, QRY.daysSinceLastOrderDelivered)
+                AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
+        AND QRY.locationId = LSR.locationId
+        AND QRY.storeStatus = LSR.storeStatus
+      ORDER BY QRY.storeId, QRY.ranking
+      -- LIMIT 500
+      -- OFFSET 1000
+    `;
 
+    // console.error('<Query>', query, '</Query>');
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 
@@ -87,7 +113,7 @@ export class BigQueryRepository {
       locationId,
       storeStatus,
     }: Partial<IFrequencyParameter>): string => {
-      const name = from || to ? `'${from ?? 'Any'}-${to ?? 'Any'}'` : 'NULL';
+      const name = from || to ? `'${from ?? 'Any'}to${to ?? 'Any'}'` : 'NULL';
       return `SELECT ${locationId} AS locationId, '${
         storeStatus
       }' as storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${
@@ -103,6 +129,6 @@ export class BigQueryRepository {
 
     return locationRanges
       .map((locationRange) => select(locationRange))
-      .join('\nUNION DISTINCT\n');
+      .join(' UNION DISTINCT ');
   }
 }

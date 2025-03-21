@@ -1,4 +1,4 @@
-import { IStoreReferenceData } from './integrations/interfaces.ts';
+import { IStoreReferenceData } from '../integrations/interfaces.ts';
 
 const queryImageParams = 'w=800&h=400&fit=fill&bg=white';
 const storeRerenceArray: [number, [number, string]][] = [

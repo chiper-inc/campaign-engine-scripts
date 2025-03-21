@@ -12,16 +12,17 @@ import {
   connectlyCampaignMap,
   getConnectlyCampaignKey,
 } from './parameters.ts';
-import { PROVIDER, CITY, CITY_NAME } from './constants.ts';
+import { CHANNEL_PROVIDER, CITY, CITY_NAME, CPG } from './constants.ts';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.ts';
-import { StoreReferenceMap } from './store-reference.mock.ts';
+import { StoreReferenceMap } from './mocks/store-reference.mock.ts';
 import {
   ICallToAction,
   IConnectlyEntry,
+  IClevertapEntry,
   IShortLinkPayload,
   IUtm,
 } from './integrations/interfaces.ts';
-import { LOCATION, STORE_STATUS } from './enums.ts';
+import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
 import {
   TypeCampaignByStatus,
   TypeCampaignEntry,
@@ -29,22 +30,29 @@ import {
   TypeSku,
   TypeStore,
 } from './types.ts';
-import { TypeConnectlyCampaignVariables } from './integrations/types.ts';
+import { TypeCampaignVariables } from './types.ts';
 import { BigQueryRepository } from './repositories/big-query.ts';
 import { IStoreSuggestion } from './repositories/interfaces.ts';
 import { SlackIntegration } from './integrations/slack.ts';
 
 export interface IPreEntry {
-  connectlyEntry: IConnectlyEntry;
+  connectlyEntry: IConnectlyEntry | undefined;
+  clevertapEntry: IClevertapEntry | undefined;
   utm: IUtm;
   callToAction: Partial<ICallToAction>;
   callToActions: Partial<ICallToAction>[];
-  shortLink?: string;
-  shortLinks?: string[];
+  shortLink?: ICallToActionLink;
+  shortLinks?: ICallToActionLink[];
+}
+
+export interface ICallToActionLink {
+  fullUrl: string;
+  shortenUrl: string;
 }
 
 export interface IStoreRecomendation {
   store: TypeStore;
+  communicationChannel: CHANNEL;
   campaign: TypeCampaignEntry;
   skus: TypeSku[];
   utm: IUtm;
@@ -69,11 +77,20 @@ async function main(day: number, limit = 100, offset = 0) {
   // const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
   // console.error(storeMap.size);
   const otherMap = generateOtherMap(filteredData, day);
+  // console.error(otherMap);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
   preEntries = await generateCallToActionShortLinks(preEntries);
   preEntries = generatePathVariable(preEntries);
-  const entries = await reportEntries(preEntries);
-  console.error(`Campaing ${UUID} generated for ${entries.length} stores`);
+  const [connectlyEntries, clevertapEntries] = await Promise.all([
+    reportConnectlyEntries(preEntries),
+    reportClevertapEntries(preEntries),
+  ]);
+  console.error(
+    `Campaing ${UUID} generated for ${connectlyEntries.length} stores`,
+  );
+  console.error(
+    `Campaing ${UUID} generated for ${clevertapEntries.length} stores`,
+  );
   console.error(
     `Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`,
   );
@@ -96,49 +113,113 @@ const getUtmAndCallToActionKey = ({
 
 const generatePathVariable = (preEntries: IPreEntry[]) => {
   return preEntries.map((preEntry) => {
-    const pathObj: TypeConnectlyCampaignVariables = {};
-    const { utm, shortLinks = [] } = preEntry;
-    // console.log({ paths, shortLinks });
-    const { connectlyEntry } = preEntry;
+    const { utm, shortLinks = [], connectlyEntry, clevertapEntry } = preEntry;
 
-    const paths: string[] = [];
-    for (const variable in connectlyEntry.variables) {
-      if (variable.startsWith('path')) {
-        paths.push(variable);
-      }
-    }
-
-    paths.forEach((path, i) => {
-      const shortLink = getPathFromPreEntry({
-        shortLink: shortLinks[i] ?? `sl.chiper.co/shortlink_${i + 1}`,
-        utm,
-      });
-      pathObj[path] = shortLink;
-    });
-    connectlyEntry.variables = {
-      ...connectlyEntry.variables,
-      ...pathObj,
-    };
     return {
       ...preEntry,
-      connectlyEntry,
+      connectlyEntry: generateConnectlyPathVariables(
+        connectlyEntry,
+        utm,
+        shortLinks,
+      ),
+      clevertapEntry: geeneratClevertapPathVariables(
+        clevertapEntry,
+        utm,
+        shortLinks,
+      ),
     };
   });
 };
 
-const getPathFromPreEntry = ({
-  utm,
-  shortLink,
+const generateConnectlyPathVariables = (
+  connectlyEntry: IConnectlyEntry | undefined,
+  utm: IUtm,
+  shortLinks: ICallToActionLink[],
+): IConnectlyEntry | undefined => {
+  if (!connectlyEntry) return undefined;
+
+  const pathObj: TypeCampaignVariables = {};
+
+  const paths: string[] = [];
+  for (const variable in connectlyEntry.variables) {
+    if (variable.startsWith('path')) {
+      paths.push(variable);
+    }
+  }
+
+  paths.forEach((path, i) => {
+    const shortLink = getConnectlyPathFromPreEntry({
+      url:
+        shortLinks[i].shortenUrl ?? `https://sl.chiper.co/shortlink_${i + 1}`,
+      utm,
+    });
+    pathObj[path] = shortLink;
+  });
+  return {
+    ...connectlyEntry,
+    variables: { ...connectlyEntry.variables, ...pathObj },
+  };
+};
+
+const geeneratClevertapPathVariables = (
+  connectlyEntry: IClevertapEntry | undefined,
+  utm: IUtm,
+  shortLinks: ICallToActionLink[],
+): IClevertapEntry | undefined => {
+  if (!connectlyEntry) return undefined;
+
+  const pathObj: TypeCampaignVariables = {};
+
+  const paths: string[] = [];
+  for (const variable in connectlyEntry.variables) {
+    if (variable.startsWith('path')) {
+      paths.push(variable);
+    }
+  }
+
+  paths.forEach((path, i) => {
+    const shortLink = getClevertapPathFromPreEntry({
+      url:
+        shortLinks[i].fullUrl ?? `https://tienda.chiper.co/shortlink_${i + 1}`,
+      utm,
+    });
+    pathObj[path] = shortLink;
+  });
+
+  return {
+    ...connectlyEntry,
+    variables: { ...connectlyEntry.variables, ...pathObj },
+  };
+};
+
+const getClevertapPathFromPreEntry = ({
+  //  utm,
+  url,
 }: {
   utm: IUtm;
-  shortLink: string;
+  url: string;
+}) => {
+  // const queryParams = `utm_source=${utm.campaignSource || ''}&utm_medium=${
+  //   utm.campaignMedium || ''
+  // }&utm_content=${utm.campaignContent || ''}&utm_campaign=${
+  //   utm.campaignName
+  // }&utm_term=${utm.campaignTerm || ''}`;
+  return url;
+};
+
+const getConnectlyPathFromPreEntry = ({
+  utm,
+  url,
+}: {
+  utm: IUtm;
+  url: string;
 }) => {
   const queryParams = `utm_source=${utm.campaignSource || ''}&utm_medium=${
     utm.campaignMedium || ''
   }&utm_content=${utm.campaignContent || ''}&utm_campaign=${
     utm.campaignName
   }&utm_term=${utm.campaignTerm || ''}`;
-  return `${shortLink.split('/').slice(1)}?${queryParams}`;
+  return `${url.split('/').slice(3)}?${queryParams}`; // remove protocol and hostname
 };
 
 const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
@@ -170,7 +251,7 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
 
 const createShortLinks = async (
   preMap: Map<string, IShortLinkPayload>,
-): Promise<Map<string, string>> => {
+): Promise<Map<string, ICallToActionLink>> => {
   const integration = new LbApiOperacionesIntegration();
   const responses = await integration.createAllShortLink(
     Array.from(preMap.entries()).map(([key, value]) => ({
@@ -183,15 +264,33 @@ const createShortLinks = async (
       key: string;
       response: { data?: { shortLink?: string } };
     };
-    acc.set(key, response?.data?.shortLink ?? '');
+    const data = (response?.data ?? { utm: {} }) as {
+      utm: { websiteURL?: string; shortenURL?: string };
+    }; // TO include the interface for LB-API response
+    acc.set(key, {
+      fullUrl: data?.utm?.websiteURL ?? '',
+      shortenUrl: data.utm.shortenURL ?? '',
+    });
     return acc;
   }, new Map());
 };
 
-const reportEntries = async (
+const reportClevertapEntries = async (
+  preEntries: IPreEntry[],
+): Promise<IClevertapEntry[]> => {
+  const entries: IClevertapEntry[] = preEntries
+    .filter((preEntry) => preEntry.clevertapEntry)
+    .map((preEntry) => preEntry.clevertapEntry as IClevertapEntry);
+  console.log(JSON.stringify(entries, null, 2));
+  console.log('===================');
+  return entries;
+};
+
+const reportConnectlyEntries = async (
   preEntries: IPreEntry[],
 ): Promise<IConnectlyEntry[]> => {
   const summaryMap = preEntries
+    .filter((preEntry) => preEntry.connectlyEntry)
     .map((preEntry) => preEntry.utm.campaignName)
     .reduce(
       (acc, name) => {
@@ -245,7 +344,9 @@ const reportEntries = async (
   // for (const { key, value } of summaryMessage) {
   //   console.error(`- ${key}: ${value}`);
   // }
-  const entries = preEntries.map((preEntry) => preEntry.connectlyEntry);
+  const entries: IConnectlyEntry[] = preEntries
+    .filter((preEntry) => preEntry.connectlyEntry)
+    .map((preEntry) => preEntry.connectlyEntry as IConnectlyEntry);
   console.log(JSON.stringify(entries, null, 2));
   console.log('===================');
   return entries;
@@ -257,7 +358,15 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
       storeStatus: row.storeStatus,
       city: row.city,
       utm: undefined,
-      campaign: getCamapignRange(row.storeStatus, day, row.from, row.to),
+      communicationChannel: row.communicationChannel,
+      campaign: getCamapignRange(
+        row.communicationChannel,
+        row.storeStatus,
+        day,
+        row.storeValue,
+        row.from,
+        row.to,
+      ),
       store: getStore(row),
       skus: [],
     };
@@ -268,7 +377,9 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
           row.storeStatus,
           row.locationId,
           a.campaign.name,
+          row.communicationChannel,
           row.rangeName,
+          row.storeValue,
         );
       }
       a.skus.push(getSku(row));
@@ -278,43 +389,71 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
   }, new Map());
 };
 
-export const generateStoreMap = (
-  filteredData: IStoreSuggestion[],
-  campaignsBySatatus: TypeCampaignByStatus,
-  day: number,
-) => {
-  return filteredData.reduce((acc, row) => {
-    const a = acc.get(row.storeId) || {
-      storeStatus: row.storeStatus,
-      city: row.city,
-      utm: undefined,
-      campaign: getCamapign(row.storeStatus, day, campaignsBySatatus),
-      store: getStore(row),
-      skus: [],
-    };
-    if (a.campaign) {
-      if (!a.skus.length) {
-        a.utm = getUtm(day, row.storeStatus, row.locationId, a.campaign.name);
-      }
-      a.skus.push(getSku(row));
-      acc.set(row.storeId, a);
-    }
-    return acc;
-  }, new Map());
-};
+// export const generateStoreMap = (
+//   filteredData: IStoreSuggestion[],
+//   campaignsBySatatus: TypeCampaignByStatus,
+//   day: number,
+// ) => {
+//   return filteredData.reduce((acc, row) => {
+//     const a = acc.get(row.storeId) || {
+//       storeStatus: row.storeStatus,
+//       city: row.city,
+//       utm: undefined,
+//       campaign: getCamapign(row.storeStatus, day, campaignsBySatatus),
+//       store: getStore(row),
+//       skus: [],
+//     };
+//     if (a.campaign) {
+//       if (!a.skus.length) {
+//         a.utm = getUtm(day, row.storeStatus, row.locationId, a.campaign.name, row.communicationChannel);
+//       }
+//       a.skus.push(getSku(row));
+//       acc.set(row.storeId, a);
+//     }
+//     return acc;
+//   }, new Map());
+// };
 
 const generatePreEntries = (
   storesMap: Map<number, IStoreRecomendation>,
 ): IPreEntry[] => {
-  const entries = [];
+  const generateConnectlyEntry = (
+    channel: CHANNEL,
+    store: TypeStore,
+    campaign: string,
+    variables: TypeCampaignVariables,
+  ): IConnectlyEntry | undefined =>
+    channel === CHANNEL.WhatsApp
+      ? {
+          client: `+${store.phone}`,
+          campaignName: campaign.replace(/_/g, ' ').toLowerCase(),
+          variables,
+        }
+      : undefined;
+
+  const generateClevertapEntry = (
+    channel: CHANNEL,
+    store: TypeStore,
+    campaign: string,
+    variables: TypeCampaignVariables,
+  ): IClevertapEntry | undefined =>
+    channel === CHANNEL.PushNotification
+      ? {
+          identity: store.storeId,
+          campaignId: campaign, // TODO Generate the ID for Clevertap
+          variables,
+        }
+      : undefined;
+
+  const entries: IPreEntry[] = [];
   for (const data of Array.from(storesMap.values())) {
-    const { store, campaign, skus, utm } = data;
+    const { store, campaign, skus, utm, communicationChannel: channel } = data;
 
     const {
       variables,
       storeReferenceIds,
     }: {
-      variables: TypeConnectlyCampaignVariables | undefined;
+      variables: TypeCampaignVariables | undefined;
       storeReferenceIds: number[] | undefined;
     } = generateVariablesAndStoreReferenceIds(campaign.variables, {
       store,
@@ -342,21 +481,27 @@ const generatePreEntries = (
 
     if (!callToActions) continue;
 
-    // console.log(callToActions)
+    // console.error(callToActions)
 
     campaign.paths.forEach((path) => {
       variables[path] = path;
     });
 
     const callToAction = generateCallToAction(storeReferenceIds);
-    const connectlyEntry = {
-      client: `+${store.phone}`,
-      campaignName: campaign.name.replace(/_/g, ' ').toLowerCase(),
-      variables,
-    };
 
     entries.push({
-      connectlyEntry,
+      connectlyEntry: generateConnectlyEntry(
+        channel,
+        store,
+        campaign.name,
+        variables,
+      ),
+      clevertapEntry: generateClevertapEntry(
+        channel,
+        store,
+        campaign.name,
+        variables,
+      ),
       utm,
       callToAction,
       callToActions,
@@ -404,7 +549,7 @@ const generateVariablesAndStoreReferenceIds = (
     skus: TypeSku[];
   },
 ): {
-  variables: TypeConnectlyCampaignVariables;
+  variables: TypeCampaignVariables;
   storeReferenceIds: number[];
 } | null => {
   const typeMap: { [k: string]: string } = {
@@ -421,7 +566,7 @@ const generateVariablesAndStoreReferenceIds = (
     img: 'image',
   };
   const storeReferenceIds = [];
-  let variables: TypeConnectlyCampaignVariables = {};
+  let variables: TypeCampaignVariables = {};
   for (const variable of variablesList) {
     const [varName, varIndex] = variable.split('_');
     const property = (obj as { [k: string]: TypeStore | TypeSku[] })[
@@ -463,10 +608,9 @@ const getVariableFromStore = (
   variable: string,
   store: TypeStore,
   varName: string = '_',
-): TypeConnectlyCampaignVariables => {
+): TypeCampaignVariables => {
   const value =
-    (store as TypeConnectlyCampaignVariables)[varName ?? '-'] ??
-    `Store[${variable}]`;
+    (store as TypeCampaignVariables)[varName ?? '-'] ?? `Store[${variable}]`;
   return {
     [variable]: removeExtraSpaces(value),
   };
@@ -478,7 +622,7 @@ const getVariableFromSku = (
   index: number,
   varName: string = '_',
 ): {
-  variable: TypeConnectlyCampaignVariables;
+  variable: TypeCampaignVariables;
   storeReferenceId: number;
 } | null => {
   if (isNaN(index) || index < 0) return null;
@@ -557,17 +701,20 @@ const getCamapign = (
 };
 
 const getCamapignRange = (
+  communicationChannel: CHANNEL,
   storeStatus: STORE_STATUS,
   day: number,
-  from?: number,
-  to?: number,
+  storeValue: STORE_VALUE | null,
+  from?: number | null,
+  to?: number | null,
 ): TypeCampaignEntry | null => {
   const campaigns = connectlyCampaignMap.get(
     getConnectlyCampaignKey({
+      communicationChannel,
       storeStatus,
       from,
       to,
-      storeValue: undefined,
+      storeValue: storeValue ?? undefined,
     }),
   );
   if (campaigns) {
@@ -586,10 +733,15 @@ const getUtm = (
   storeStatus: STORE_STATUS,
   locationId: LOCATION,
   name: string,
-  rangeName?: string,
-  storeValue?: string,
+  communicationChannel: CHANNEL,
+  rangeName: string | null,
+  storeValue: string | null,
 ) => {
-  const asset = 'WA';
+  const channelMap: { [k in CHANNEL]: string } = {
+    [CHANNEL.WhatsApp]: 'WA',
+    [CHANNEL.PushNotification]: 'PN',
+  };
+  const asset = channelMap[communicationChannel] ?? 'XX';
   const payer = '1'; // Fix value
   const type = 'ot';
 
@@ -604,13 +756,14 @@ const getUtm = (
 
   const date = new Date(BASE_DATE + day * 24 * 60 * 60 * 1000);
   const term = formatDDMMYY(date); // DDMMYY
-  const campaign = `${getCityId(locationId)}_${getProvider(locationId)}_${
+  const campaign = `${getCityId(locationId)}_${getCPG(locationId)}_${
     asset
   }_${payer}_${formatMMMDD(term)}_${type}_${segment}_${name.replace(
     /[^a-zA-Z0-9.]/g,
     '-',
   )}`;
-  const source = 'connectly-campaign';
+  const source =
+    `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
   const content = UUID; // uuid
   const medium = '164';
   return {
@@ -651,7 +804,7 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
   const bigQueryRepository = new BigQueryRepository();
   return bigQueryRepository.selectStoreSuggestions(
     frequencyByLocationAndStatusAndRange,
-    //  .filter(({ storeStatus }) => storeStatus === STORE_STATUS.Churn)
+    [CHANNEL.WhatsApp /*, CHANNEL.PushNotification */],
   );
 }
 
@@ -692,15 +845,11 @@ const formatDDMMYY = (date: Date): string =>
 
 const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
 
-const getProvider = (locationId: LOCATION) => PROVIDER[locationId] || 0;
+const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
 
 const removeExtraSpaces = (val: string | number): string | number =>
   typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val;
 
 // Run Main Function
 
-Promise.resolve(
-  main(daysFromBaseDate(today), 15000, 0)
-    .then(console.error)
-    .catch(console.error),
-);
+main(daysFromBaseDate(today), 15000, 0).then().catch(console.error);

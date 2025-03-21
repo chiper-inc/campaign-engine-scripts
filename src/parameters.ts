@@ -1,4 +1,4 @@
-import { LOCATION, STORE_STATUS } from './enums.ts';
+import { STORE_STATUS } from './enums.ts';
 import { TypeCampaignByStatus } from './types.ts';
 import {
   frequencyMap,
@@ -17,14 +17,6 @@ export {
   connectlyCampaignMap,
   getConnectlyCampaignKey,
 };
-
-export interface IFrequencyParameter {
-  locationId: LOCATION;
-  storeStatus: STORE_STATUS;
-  frequency: number;
-  from?: number;
-  to?: number;
-}
 
 const generateParams = (params: string[], length: number) =>
   Array.from({ length }, (_, i) => params.map((p) => `${p}_${i + 1}`)).flat();
