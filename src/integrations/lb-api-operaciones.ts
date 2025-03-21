@@ -1,5 +1,5 @@
 import { Config } from '../config.ts';
-import { StoreReferenceMap } from '../store-reference.mock.ts';
+import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

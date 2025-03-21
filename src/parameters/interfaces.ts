@@ -1,11 +1,11 @@
-import { STORE_STATUS, STORE_VALUE } from '../enums.ts';
-
-export interface IConnectlyCampaignParameter {
+import { CHANNEL, STORE_STATUS, STORE_VALUE } from '../enums.ts';
+export interface IConnectlyDetailCampaignParameter {
   name: string;
-  storeStatus: STORE_STATUS;
   variables: string[];
   paths: string[];
-  storeValue?: STORE_VALUE;
+  storeStatus: STORE_STATUS | null;
+  communicationChannel: CHANNEL;
   from?: number | null;
   to?: number | null;
+  storeValue?: STORE_VALUE;
 }
