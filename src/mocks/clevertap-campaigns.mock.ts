@@ -19,7 +19,7 @@ export const titles = [
 ];
 
 export const offers = [
-  '{{0} 🔥 aumenta tus ganancias. ¡Abastece tu negocio hoy!📦',
+  '{{0}} 🔥 aumenta tus ganancias. ¡Abastece tu negocio hoy!📦',
   'Más margen con 🏪 {{0}}. ¡Haz tu pedido ya!💰',
   '{{0}} 📢 el producto que rota. Asegura tu inventario ahora.🔄',
   'Tu negocio bien surtido con 🏬 {{0}}. Compra antes de que se agote.⏳',

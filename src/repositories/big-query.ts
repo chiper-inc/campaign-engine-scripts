@@ -26,7 +26,7 @@ export class BigQueryRepository {
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
-      MG.lastValueSegmentation as storeValue,
+      MG.lastValueSegmentation,
       MG.communicationChannel,
       IFNULL(MG.daysSinceLastOrderDelivered, 0) as daysSinceLastOrderDelivered,
       MG.warehouseId
@@ -76,8 +76,8 @@ export class BigQueryRepository {
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 500
-      OFFSET 1000
+      -- LIMIT 500
+      -- OFFSET 1000
     `;
 
     // console.error('<Query>', query, '</Query>');

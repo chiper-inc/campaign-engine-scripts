@@ -33,4 +33,9 @@ const script = async (filename: string): Promise<void> => {
   await connectlyIntegration.sendAllEntries(data);
 };
 
-script('../tmp/data.2025-03-20.json').then().catch(console.error);
+const args = process.argv;
+if (args.length < 3) {
+  console.error('Please provide a filename as an argument.');
+  process.exit(1);
+}
+script(args[2]).then().catch(console.error);
