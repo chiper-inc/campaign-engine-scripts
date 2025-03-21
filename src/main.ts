@@ -705,7 +705,7 @@ const getCamapignRange = (
   communicationChannel: CHANNEL,
   storeStatus: STORE_STATUS,
   day: number,
-  storeValue?: STORE_VALUE,
+  storeValue: STORE_VALUE | null,
   from?: number | null,
   to?: number | null,
 ): TypeCampaignEntry | null => {
@@ -715,7 +715,7 @@ const getCamapignRange = (
       storeStatus,
       from,
       to,
-      storeValue,
+      storeValue: storeValue ?? undefined,
     }),
   );
   if (campaigns) {
