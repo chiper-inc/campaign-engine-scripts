@@ -47,7 +47,11 @@ export class BigQueryRepository {
   public selectStoreSuggestions(
     churnRanges: IFrequencyParameter[],
     channels = [CHANNEL.WhatsApp],
-    storeStatus = [STORE_STATUS.Hibernating, STORE_STATUS.Resurrected, STORE_STATUS.Retained],
+    storeStatus = [
+      STORE_STATUS.Hibernating,
+      STORE_STATUS.Resurrected,
+      STORE_STATUS.Retained,
+    ],
   ): Promise<IStoreSuggestion[]> {
     const query = `
       WITH LSR AS (

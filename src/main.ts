@@ -257,7 +257,13 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
       storeStatus: row.storeStatus,
       city: row.city,
       utm: undefined,
-      campaign: getCamapignRange(row.storeStatus, day, row.storeValue, row.from, row.to),
+      campaign: getCamapignRange(
+        row.storeStatus,
+        day,
+        row.storeValue,
+        row.from,
+        row.to,
+      ),
       store: getStore(row),
       skus: [],
     };
@@ -295,7 +301,13 @@ export const generateStoreMap = (
     };
     if (a.campaign) {
       if (!a.skus.length) {
-        a.utm = getUtm(day, row.storeStatus, row.locationId, a.campaign.name, row.storeStatus);
+        a.utm = getUtm(
+          day,
+          row.storeStatus,
+          row.locationId,
+          a.campaign.name,
+          row.storeStatus,
+        );
       }
       a.skus.push(getSku(row));
       acc.set(row.storeId, a);

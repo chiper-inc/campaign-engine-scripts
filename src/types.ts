@@ -38,6 +38,6 @@ export type TypeCampaignEntry = {
   paths: string[];
 };
 
-export type TypeCampaignVariables = { 
+export type TypeCampaignVariables = {
   [key: string]: string[];
-}
+};
