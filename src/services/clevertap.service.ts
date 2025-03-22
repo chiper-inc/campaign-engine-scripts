@@ -45,14 +45,13 @@ export class ClevertapService extends CampaignService {
       .map(this.generateConnectlyExternalTriger.bind(this));
   }
 
-  private generateConnectlyExternalTriger(
+  public generateConnectlyExternalTriger(
     obj: TypeCampaignVariables,
   ): TypeCampaignVariables {
-    const titleTemplate = this.getRandomValue(MOCKS.titles);
-    const offerTemplace = this.getRandomValue(MOCKS.offers);
     return {
-      title: this.replaceParams(titleTemplate, [obj.dsct ?? '']),
-      offer: this.replaceParams(offerTemplace, [obj.sku ?? '']),
+      name: obj.name,
+      title: this.replaceParams(this.titleTemplate, [obj.dsct ?? '']),
+      offer: this.replaceParams(this.offerTemplate, [obj.sku ?? '']),
       path: obj.path,
       image: obj.img,
     };

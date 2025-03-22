@@ -19,7 +19,6 @@ import {
   ICallToAction,
   IConnectlyEntry,
   IClevertapEntry,
-  IShortLinkPayload,
   IUtm,
 } from './integrations/interfaces.ts';
 import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
@@ -36,6 +35,7 @@ import { IStoreSuggestion } from './repositories/interfaces.ts';
 import { SlackIntegration } from './integrations/slack.ts';
 import { CampaignFactory } from './services/campaign.factory.ts';
 import { CampaignService } from './services/campaign.service.ts';
+import { ClevertapService } from './services/clevertap.service.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
@@ -54,6 +54,7 @@ export interface IUtmCallToAction {
 export interface ICallToActionLink {
   fullUrl: string;
   shortenUrl: string;
+  campaignService: CampaignService;
 }
 
 export interface IStoreRecomendation {
@@ -87,6 +88,7 @@ async function main(day: number, limit = 100, offset = 0) {
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
   preEntries = await generateCallToActionShortLinks(preEntries);
   preEntries = generatePathVariable(preEntries);
+  connectlyCampaignMapping(preEntries);
   const [connectlyEntries, clevertapEntries] = await Promise.all([
     reportConnectlyEntries(preEntries),
     reportClevertapEntries(preEntries),
@@ -103,6 +105,22 @@ async function main(day: number, limit = 100, offset = 0) {
 }
 
 // Helper Functions
+
+const connectlyCampaignMapping = (preEntries: IPreEntry[]) => {
+  preEntries.forEach((preEntry) => {
+    console.error('For Eacging PreEntry');
+    (preEntry.shortLinks ?? []).forEach((shortLink, i) => {
+      console.error(
+        (shortLink.campaignService as ClevertapService).generateConnectlyExternalTriger(
+          shortLink.campaignService.getVariablesForN(
+            preEntry.clevertapEntry?.variables ?? { name: 'Jhon Doe' },
+            i + 1,
+          ),
+        ),
+      );
+    });
+  });
+}
 
 const getUtmAndCallToActionKey = ({
   campaignService,
@@ -230,7 +248,7 @@ const getConnectlyPathFromPreEntry = ({
 
 const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
   const preMap: Map<string, IUtmCallToAction> = preEntries.reduce((acc, preEntry) => {
-    const { utm, utmCallToActions } = preEntry;
+    const { utmCallToActions } = preEntry;
     for (const utmCallToAction of utmCallToActions) {
       const key = getUtmAndCallToActionKey(utmCallToAction);
       acc.set(key, utmCallToAction);
@@ -238,13 +256,12 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
     return acc;
   }, new Map());
 
-  console.error(preMap);
   const shortLinkMap = new Map();
   for (const [key, value] of (await createShortLinks(preMap)).entries()) {
     shortLinkMap.set(key, value);
   }
   return preEntries.map((preEntry) => {
-    const { utm, utmCallToAction, utmCallToActions } = preEntry;
+    const { utmCallToAction, utmCallToActions } = preEntry;
     return {
       ...preEntry,
       shortLink: shortLinkMap.get(
@@ -268,19 +285,23 @@ const createShortLinks = async (
         utm: value.campaignService.utm,
         callToAction: value.callToAction,
       },
+      campaignService: value.campaignService,
     })),
   );
   return responses.reduce((acc, obj) => {
-    const { key, response } = obj as {
+    const { key, response, campaignService,
+    } = obj as {
       key: string;
       response: { data?: { shortLink?: string } };
+      campaignService: CampaignService;
     };
     const data = (response?.data ?? { utm: {} }) as {
       utm: { websiteURL?: string; shortenURL?: string };
-    }; // TO include the interface for LB-API response
+    }; // TODO include the interface for LB-API response
     acc.set(key, {
       fullUrl: data?.utm?.websiteURL ?? '',
       shortenUrl: data.utm.shortenURL ?? '',
+      campaignService,
     });
     return acc;
   }, new Map());

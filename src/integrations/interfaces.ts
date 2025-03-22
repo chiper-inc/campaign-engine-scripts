@@ -1,3 +1,4 @@
+import { CampaignService } from '../services/campaign.service.ts';
 import { TypeCampaignVariables } from '../types.ts';
 
 export interface IStoreReferenceData {
@@ -31,6 +32,7 @@ export interface IShortLinkPayload {
 export interface IShortLinkPayloadAndKey {
   key: string;
   value: IShortLinkPayload;
+  campaignService: CampaignService;
 }
 export interface IConnectlyEntry {
   client: string;
