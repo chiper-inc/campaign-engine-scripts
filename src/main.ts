@@ -78,7 +78,7 @@ const UUID = uuid();
 
 // Main Function
 
-async function main(day: number, limit = 100, offset = 0) {
+async function main(day: number, limit = 100, offset = 0, includeShortlinks = false) {
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
   // const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
@@ -86,9 +86,11 @@ async function main(day: number, limit = 100, offset = 0) {
   const otherMap = generateOtherMap(filteredData, day);
   // console.error(otherMap);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
-  preEntries = await generateCallToActionShortLinks(preEntries);
-  preEntries = generatePathVariable(preEntries);
-  connectlyCampaignMapping(preEntries);
+  if (includeShortlinks) {
+    preEntries = await generateCallToActionShortLinks(preEntries);
+    preEntries = generatePathVariable(preEntries);
+  }
+  // connectlyCampaignMapping(preEntries);
   const [connectlyEntries, clevertapEntries] = await Promise.all([
     reportConnectlyEntries(preEntries),
     reportClevertapEntries(preEntries),
@@ -108,7 +110,6 @@ async function main(day: number, limit = 100, offset = 0) {
 
 const connectlyCampaignMapping = (preEntries: IPreEntry[]) => {
   preEntries.forEach((preEntry) => {
-    console.error('For Eacging PreEntry');
     (preEntry.shortLinks ?? []).forEach((shortLink, i) => {
       console.error(
         (shortLink.campaignService as ClevertapService).generateConnectlyExternalTriger(
@@ -255,6 +256,8 @@ const generateCallToActionShortLinks = async (preEntries: IPreEntry[]) => {
     }
     return acc;
   }, new Map());
+
+  console.error('Short Links:', preMap);
 
   const shortLinkMap = new Map();
   for (const [key, value] of (await createShortLinks(preMap)).entries()) {
@@ -531,7 +534,7 @@ const generateCallToActionPaths = (
     const [, index]: string[] = path.split('_');
     if (!path) return null;
     let callToAction: Partial<ICallToAction> = {};
-    if (index) {
+    if (index && index !== 'dsct') {
       if (isNaN(Number(index))) {
         // path_n
         callToAction = {
@@ -827,7 +830,7 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
   const bigQueryRepository = new BigQueryRepository();
   return bigQueryRepository.selectStoreSuggestions(
     frequencyByLocationAndStatusAndRange,
-    [ /* CHANNEL.WhatsApp, */ CHANNEL.PushNotification ],
+    [ CHANNEL.WhatsApp /* , CHANNEL.PushNotification */],
   );
 }
 
@@ -875,4 +878,12 @@ const removeExtraSpaces = (val: string | number): string | number =>
 
 // Run Main Function
 
-main(daysFromBaseDate(today), 15000, 0).then().catch(console.error);
+const args = process.argv;
+main(
+  daysFromBaseDate(today),
+  15000, 
+  0, 
+  `${args[2]}`.toLocaleLowerCase() === 'y'
+)
+  .then()
+  .catch(console.error);
