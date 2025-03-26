@@ -39,10 +39,10 @@ export interface IConnectlyEntry {
   campaignName: string;
   variables: TypeCampaignVariables;
 }
-export interface IClevertapEntry {
-  identity: number;
-  campaignId: string;
-  variables: TypeCampaignVariables;
+export interface IClevertapMessage {
+  to: { identity: string[]; };
+  campaign_id: string;
+  ExternalTrigger: TypeCampaignVariables;
 }
 export interface ICatalogueReference {
   id: number;
@@ -66,9 +66,7 @@ export interface ICatalogueReference {
 }
 
 export interface IClevertapCampaign {
-  campaignId: string;
-  identities: string[];
-  variables: { [key: string]: string | number };
+  message: IClevertapMessage;
   inSeconds?: number;
   timeoutSeconds?: number;
 }

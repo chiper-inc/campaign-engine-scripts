@@ -40,7 +40,6 @@ export const titles: { [k: string]: string[] } = {
     '¡Solo por tiempo limitado! ⏳',
     'Este dcto es solo para ti 🔥',
     '¡Tienes este descuento solo para ti! 🎊',
-    'Empieza ahorrando 🎊',
     '¡Súmate y ahorra ya! 🏪',
     'El descuento que esperabas 🎉',
   ],
@@ -85,7 +84,6 @@ export const titles: { [k: string]: string[] } = {
     '¡Solo por tiempo limitado! ⏳',
     'Este dcto es solo para ti 🔥',
     '¡Tienes este descuento solo para ti! 🎊',
-    'Empieza ahorrando 🎊',
     '¡Súmate y ahorra ya! 🏪',
     'El descuento que esperabas 🎉',
   ],
@@ -537,10 +535,47 @@ export const offers: { [k: string]: string[] } = {
 export const version = 'v1';
 
 export const campaignIds: { [k: string]: string }= {
-  'API_Lead': '1742937199',
-  'API_New': '1742937356',
-  'API_Retained': '1742937099',
+  'API_Retained': '1742937356',
+  'API_Churn': '1742937199',
+  'API_Resurrected': '1742937099',
   'API_Hibernating': '1742937080',
-  'API_Resurrected': '1742937053',
-  'API_Churn': '1742937015',
+  'API_Lead': '1742937053',
+  'API_New': '1742937015',
+  'API_Retained.High': '1742937356',
+  'API_Retained.MidHigh': '1742937356',
+  'API_Retained.MidLow': '1742937356',
+  'API_Retained.Low': '1742937356',
+  'API_Churn.90to119': '1742937199',
+  'API_Churn.120to149': '1742937199',
+  'API_Churn.150to179': '1742937199',
+  'API_Churn.180to209': '1742937199',
+  'API_Churn.210to359': '1742937199',
+  'API_Resurrected.High': '1742937099',
+  'API_Resurrected.MidHigh': '1742937099',
+  'API_Resurrected.MidLow': '1742937099',
+  'API_Resurrected.Low': '1742937099',
+  'API_Hibernating.High': '1742937080',
+  'API_Hibernating.MidHigh': '1742937080',
+  'API_Hibernating.MidLow': '1742937080',
+  'API_Hibernating.Low': '1742937080',
 };
+
+const MAX_LENGTH = 41;
+
+for (const key in titles) {
+  const template = titles[key];
+  if (template.length > MAX_LENGTH) {
+    titles[key] = template.slice(0, MAX_LENGTH);
+  } else if (template.length < MAX_LENGTH) { 
+    throw new Error(`Title ${key} is too short`);
+  }
+}
+
+for (const key in offers) {
+  const template = offers[key];
+  if (template.length > MAX_LENGTH) {
+    offers[key] = template.slice(0, MAX_LENGTH);
+  } else if (template.length < MAX_LENGTH) { 
+    throw new Error(`Offers ${key} is too short`);
+  }
+}

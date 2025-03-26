@@ -14,16 +14,17 @@ export class ClevertapMessageService extends MessageService {
     const iTitle = getRandomNumber((MOCKS.titles[campaignName] ?? []).length);
     const iOffer = getRandomNumber((MOCKS.offers[campaignName] ?? []).length);
     const messageNumber = (iTitle + 1) * 100 + iOffer + 1;
+    
+    const [mainCampaign] = campaignName.split('.');
 
-    const campaignId = MOCKS.campaignIds[campaignName] || '';
-
+    const campaignId = MOCKS.campaignIds[mainCampaign] || mainCampaign;
     super(campaignId, messageNumber, utm);
 
     this.utm.campaignName = `${utm.campaignName}-${
       messageNumber
     }-${this.lng}-${MOCKS.version}`;
-    this.titleTemplate = MOCKS.titles[campaignName][iTitle];
-    this.offerTemplate = MOCKS.offers[campaignName][iOffer];
+    this.titleTemplate = MOCKS.titles[mainCampaign][iTitle];
+    this.offerTemplate = MOCKS.offers[mainCampaign][iOffer];
     this.identity = `uuId-${store.storeId}-uuId`;
   }
 

@@ -3,6 +3,7 @@ import parseMobile from 'libphonenumber-js/mobile';
 
 // Constants
 
+import * as UTILS from './utils/index.ts';
 import { Config } from './config.ts';
 import {
   // campaignsBySatatus,
@@ -12,24 +13,22 @@ import {
   connectlyCampaignMap,
   getConnectlyCampaignKey,
 } from './parameters.ts';
-import { CHANNEL_PROVIDER, CITY, CITY_NAME, CPG } from './constants.ts';
+import { BASE_DATE, CHANNEL_PROVIDER, CITY_NAME } from './constants.ts';
 import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.ts';
 import { StoreReferenceMap } from './mocks/store-reference.mock.ts';
 import {
   ICallToAction,
   IConnectlyEntry,
-  IClevertapEntry,
+  IClevertapMessage,
   IUtm,
 } from './integrations/interfaces.ts';
 import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
 import {
-  TypeCampaignByStatus,
   TypeCampaignEntry,
-  TypeCampaignStatus,
   TypeSku,
   TypeStore,
+  TypeCampaignVariables,
 } from './types.ts';
-import { TypeCampaignVariables } from './types.ts';
 import { BigQueryRepository } from './repositories/big-query.ts';
 import { IStoreSuggestion } from './repositories/interfaces.ts';
 import { SlackIntegration } from './integrations/slack.ts';
@@ -41,7 +40,7 @@ import { ClevertapCampaignService } from './services/clevertap.campaign.service.
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
-  clevertapEntry: IClevertapEntry | undefined;
+  clevertapEntry: IClevertapMessage | undefined;
   campaignService?: CampaignService;
   utm: IUtm;
   utmCallToAction: IUtmCallToAction;
@@ -70,12 +69,6 @@ export interface IStoreRecomendation {
 // Process Gobal Variables
 
 const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
-const BASE_DATE = new Date('2025/03/05').setHours(
-  0,
-  0,
-  0,
-  0,
-) as unknown as number;
 const UUID = uuid();
 
 // Main Function
@@ -88,8 +81,6 @@ async function main(
 ) {
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
-  // const storeMap = generateStoreMap(filteredData, campaignsBySatatus, day);
-  // console.error(storeMap.size);
   const otherMap = generateOtherMap(filteredData, day);
   let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
   if (includeShortlinks) {
@@ -97,11 +88,10 @@ async function main(
     preEntries = generatePathVariable(preEntries);
   }
   generateCampaignMessages(preEntries);
-  // console.error(preEntries);
-  // connectlyCampaignMapping(preEntries);
-  const [connectlyEntries, clevertapEntries] = await Promise.all([
-    reportConnectlyEntries(preEntries),
-    reportClevertapEntries(preEntries),
+  const [connectlyEntries, clevertapEntries] = splitPreEntries(preEntries);
+  await Promise.all([
+    reportMessages(CHANNEL.WhatsApp, connectlyEntries, true),
+    reportMessages(CHANNEL.PushNotification, clevertapEntries, false),
   ]);
   console.error(
     `Campaing ${UUID} generated for ${connectlyEntries.length} stores`,
@@ -205,38 +195,19 @@ const generateCampaignMessages = (preEntries: IPreEntry[]) => {
   });
 };
 
-const reportClevertapEntries = async (
+const reportMessages = async (
+  channel: CHANNEL,
   preEntries: IPreEntry[],
-): Promise<IClevertapEntry[]> => {
-  const entries: IClevertapEntry[] = preEntries
-    .filter(
-      (preEntry) =>
-        preEntry.campaignService &&
-        preEntry.campaignService instanceof ClevertapCampaignService,
-    )
-    .map(
-      (preEntry) =>
-        preEntry.campaignService?.integrationBody as IClevertapEntry[],
-    )
-    .flat();
-  console.log(JSON.stringify(entries, null, 2));
-  console.log('===================');
-  return entries;
-};
-
-const reportConnectlyEntries = async (
-  preEntries: IPreEntry[],
-): Promise<IConnectlyEntry[]> => {
+  includeMessageNumber: boolean,
+): Promise<(IClevertapMessage | IConnectlyEntry)[]> => {
   const summaryMap = preEntries
-    .filter(
-      (preEntry) =>
-        preEntry.campaignService instanceof ConnectlyCampaignService,
-    )
     .map((preEntry) => preEntry.utm.campaignName)
     .reduce(
       (acc, name) => {
         const [cityId, , , , , , status, campaingName] = name.split('_');
-        const [, , message] = campaingName.split('-');
+        const message = includeMessageNumber
+          ? campaingName.split('-')[2]
+          : 'Random';
 
         let key = `${CITY_NAME[cityId]}|${status}|${message}`;
         let value = acc.locationSegmentMessageMap.get(key) || 0;
@@ -270,28 +241,35 @@ const reportConnectlyEntries = async (
 
   const slackIntegration = new SlackIntegration();
   await slackIntegration.generateSendoutLocationSegmentReports(
-    summaryLocationSegmentMessage,
+    channel, summaryLocationSegmentMessage,
   );
-  await slackIntegration.generateSendoutMessageReports(summaryMessage);
-  //    slackIntegration.generateSendoutSummaryReports(summaryMessage),
-  //  ]);
+  await slackIntegration.generateSendoutMessageReports(channel, summaryMessage);
 
   console.error('Summary Per Campaign');
 
-  const entries: IConnectlyEntry[] = preEntries
-    .filter(
-      (preEntry) =>
-        preEntry.campaignService &&
-        preEntry.campaignService instanceof ConnectlyCampaignService,
-    )
+  const entries: (IConnectlyEntry | IClevertapMessage)[] = preEntries
     .map(
       (preEntry) =>
-        preEntry.campaignService?.integrationBody as IConnectlyEntry[],
+        preEntry.campaignService?.integrationBody as (IConnectlyEntry | IClevertapMessage)[],
     )
     .flat();
   console.log(JSON.stringify(entries, null, 2));
   console.log('===================');
   return entries;
+};
+
+const splitPreEntries = (preEntries: IPreEntry[]) => {
+  return preEntries.reduce(
+    (acc, preEntry) => {
+      if (preEntry.campaignService instanceof ConnectlyCampaignService) {
+        acc[0].push(preEntry);
+      } else if (preEntry.campaignService instanceof ClevertapCampaignService) {
+        acc[1].push(preEntry);
+      }
+      return acc;
+    },
+    [[], []] as [IPreEntry[], IPreEntry[]],
+  );
 };
 
 const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
@@ -301,7 +279,7 @@ const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
       city: row.city,
       utm: undefined,
       communicationChannel: row.communicationChannel,
-      campaign: getCamapignRange(
+      campaign: getCampaignRange(
         row.communicationChannel,
         row.storeStatus,
         day,
@@ -525,7 +503,7 @@ const getVariableFromStore = (
   const value =
     (store as TypeCampaignVariables)[varName ?? '-'] ?? `Store[${variable}]`;
   return {
-    [variable]: removeExtraSpaces(value),
+    [variable]: UTILS.removeExtraSpaces(value),
   };
 };
 
@@ -550,7 +528,7 @@ const getVariableFromSku = (
 
   return {
     variable: {
-      [variable]: removeExtraSpaces(value),
+      [variable]: UTILS.removeExtraSpaces(value),
     },
     storeReferenceId: sku.storeReferenceId,
   };
@@ -600,28 +578,7 @@ const getSku = (row: IStoreSuggestion): TypeSku => ({
   image: StoreReferenceMap.get(row.storeReferenceId)?.regular ?? '',
 });
 
-const getCamapign = (
-  status: STORE_STATUS,
-  day: number,
-  campaignsByStatus: TypeCampaignByStatus,
-): TypeCampaignEntry | null => {
-  const campaigns = campaignsByStatus[status] as unknown as TypeCampaignStatus;
-  if (campaigns) {
-    const name = campaigns.names[day % campaigns.names.length];
-    const variables =
-      campaigns.variables?.[name] ??
-      campaigns.variables?._default ??
-      campaignsByStatus[STORE_STATUS._default].variables?._default;
-    return {
-      name,
-      variables,
-      paths: [],
-    };
-  }
-  return null;
-};
-
-const getCamapignRange = (
+const getCampaignRange = (
   communicationChannel: CHANNEL,
   storeStatus: STORE_STATUS,
   day: number,
@@ -676,10 +633,10 @@ const getUtm = (
   }
 
   const date = new Date(BASE_DATE + day * 24 * 60 * 60 * 1000);
-  const term = formatDDMMYY(date); // DDMMYY
-  const campaign = `${getCityId(locationId)}_${getCPG(locationId)}_${
+  const term = UTILS.formatDDMMYY(date); // DDMMYY
+  const campaign = `${UTILS.getCityId(locationId)}_${UTILS.getCPG(locationId)}_${
     asset
-  }_${payer}_${formatMMMDD(term)}_${type}_${segment}_${name.replace(
+  }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}_${name.replace(
     /[^a-zA-Z0-9.]/g,
     '-',
   )}`;
@@ -731,51 +688,51 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
 
 // Utility Functions
 
-const daysFromBaseDate = (date: Date): number =>
-  Math.trunc(((date as unknown as number) - BASE_DATE) / (1000 * 60 * 60 * 24));
+// const daysFromBaseDate = (date: Date): number =>
+//   Math.trunc(((date as unknown as number) - BASE_DATE) / (1000 * 60 * 60 * 24));
 
-const formatMMMDD = (ddmmyy: string): string => {
-  const mpnth = ddmmyy.slice(2, 4);
-  const day = ddmmyy.slice(0, 2);
-  const months = [
-    '_',
-    'Ene',
-    'Feb',
-    'Mar',
-    'Abr',
-    'May',
-    'Jun',
-    'Jul',
-    'Ago',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dic',
-  ];
-  return `${months[Number(mpnth)]}${day}`;
-};
+// const formatMMMDD = (ddmmyy: string): string => {
+//   const mpnth = ddmmyy.slice(2, 4);
+//   const day = ddmmyy.slice(0, 2);
+//   const months = [
+//     '_',
+//     'Ene',
+//     'Feb',
+//     'Mar',
+//     'Abr',
+//     'May',
+//     'Jun',
+//     'Jul',
+//     'Ago',
+//     'Sep',
+//     'Oct',
+//     'Nov',
+//     'Dic',
+//   ];
+//   return `${months[Number(mpnth)]}${day}`;
+// };
 
-const formatDDMMYY = (date: Date): string =>
-  date
-    .toLocaleDateString('es-US', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit',
-    })
-    .replace(/\//g, '');
+// const formatDDMMYY = (date: Date): string =>
+//   date
+//     .toLocaleDateString('es-US', {
+//       day: '2-digit',
+//       month: '2-digit',
+//       year: '2-digit',
+//     })
+//     .replace(/\//g, '');
 
-const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
+// const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
 
-const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
+// const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
 
-const removeExtraSpaces = (val: string | number): string | number =>
-  typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val;
+// const removeExtraSpaces = (val: string | number): string | number =>
+//   typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val;
 
 // Run Main Function
 
 const args = process.argv;
 main(
-  daysFromBaseDate(today),
+  UTILS.daysFromBaseDate(today),
   15000,
   0,
   `${args[2]}`.toLocaleLowerCase() === 'y',

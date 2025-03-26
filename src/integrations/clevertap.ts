@@ -1,7 +1,7 @@
 import { CloudTask } from './cloud-task.ts';
 
 import { Config } from '../config.ts';
-import { IClevertapCampaign } from './interfaces.ts';
+import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
 
 export class ClevertapIntegration {
   private readonly url: string;
@@ -15,22 +15,14 @@ export class ClevertapIntegration {
       'X-CleverTap-Passcode': Config.clevertap.passcode,
       'Content-Type': 'application/json',
     };
-    this.backoffSecondsStep = Config.environment === 'production' ? 450 : 15;
+    this.backoffSecondsStep = Config.environment === 'production' ? 3600 /* 60m */ : 15 /* 15s */;
   }
 
   public async sendOneCampaign({
-    campaignId,
-    variables,
+    message,
     inSeconds,
     timeoutSeconds,
-    identities,
-  }: {
-    campaignId: string;
-    identities: string[];
-    variables: { [key: string]: string | number };
-    inSeconds?: number;
-    timeoutSeconds?: number;
-  }): Promise<void> {
+  }: IClevertapCampaign): Promise<void> {
     const method: 'POST' | 'GET' | 'PUT' | 'DELETE' = 'POST';
     const request = {
       url: `${this.url}/1/send/externaltrigger.json`,
@@ -40,35 +32,33 @@ export class ClevertapIntegration {
         'X-CleverTap-Passcode': Config.clevertap.passcode,
         'Content-Type': 'application/json',
       },
-      body: {
-        to: {
-          identity: identities,
-        },
-        campaign_id: campaignId,
-        ExternalTrigger: variables,
-      },
+      body: message,
     };
     const cloudTask = new CloudTask('Campaign-Engine-Communication');
-    const response = await cloudTask.createOneTask({
-      name: `Clevertap-Campaign-${campaignId}`,
+    const name = `Clevertap-Campaign-${message.campaign_id}`;
+    await cloudTask.createOneTask({
+      name,
       request,
       inSeconds,
       timeoutSeconds,
+    }).catch((error) => {
+      console.error('Rejection: ', JSON.stringify({ name, request, inSeconds, timeoutSeconds }));
+      console.error('Error:', error);
     });
-    console.log(`Created task ${response.name}`);
+    // console.log(`Created task ${response.name}`);
   }
 
-  async sendAllCampaigns(campaigns: IClevertapCampaign[]): Promise<void> {
+  async sendAllMessages(messages: IClevertapMessage[]): Promise<void> {
     const promises = [];
     let inSeconds = 0;
     let k = -1;
-    for (const campaign of campaigns) {
-      inSeconds =
-        campaign.inSeconds ??
-        inSeconds + Math.floor(Math.pow(2, k)) * this.backoffSecondsStep;
-      console.log('Sending campaign in', inSeconds, 'seconds');
+    for (const message of messages) {
+      inSeconds += Math.floor(Math.pow(2, k)) * this.backoffSecondsStep;
       k++;
-      promises.push(this.sendOneCampaign({ ...campaign, inSeconds }));
+      promises.push(this.sendOneCampaign({ 
+        message: message,
+        inSeconds: inSeconds,
+      }));
     }
     await Promise.all(promises);
   }

@@ -1,5 +1,5 @@
 import { Config } from '../config.ts';
-import { STORE_STATUS } from '../enums.ts';
+import { CHANNEL, STORE_STATUS } from '../enums.ts';
 
 export class SlackIntegration {
   private readonly reportUrl;
@@ -9,6 +9,7 @@ export class SlackIntegration {
   }
 
   public async generateSendoutLocationSegmentReports(
+    channel: CHANNEL,
     list: {
       city: string;
       status: STORE_STATUS;
@@ -18,12 +19,12 @@ export class SlackIntegration {
   ): Promise<void> {
     if (list.length === 0) return;
 
-    const blockHeader = (city: string, qty: number): unknown => ({
+    const blockHeader = (channel: CHANNEL, city: string, qty: number): unknown => ({
       type: 'section',
       text: this.slackTextMarkdown(
-        `📣 Campaign Engine Sendout Report for *${
+        `📣 Campaign Engine *${channel}*'s Sendout Report for *${
           city
-        }* ℹ️\n\n*📊 Number of Messages*: ${qty}\n\nDetails per segment:`,
+        }* ℹ️\n\n*📊 Number of ${channel} Messages*: ${qty}\n\nDetails per segment:`,
       ),
     });
 
@@ -42,7 +43,7 @@ export class SlackIntegration {
       return {
         blocks: [
           this.slackDivider(),
-          blockHeader(city, qtyCity),
+          blockHeader(channel, city, qtyCity),
           ...this.slackBlockSection(fields),
         ],
       };
@@ -67,6 +68,7 @@ export class SlackIntegration {
   }
 
   public async generateSendoutMessageReports(
+    channel: CHANNEL,
     list: {
       messageName: string;
       qty: number;
@@ -74,10 +76,10 @@ export class SlackIntegration {
   ): Promise<void> {
     if (list.length === 0) return;
 
-    const blockHeader = (qty: number): unknown => ({
+    const blockHeader = (channel: CHANNEL, qty: number): unknown => ({
       type: 'section',
       text: this.slackTextMarkdown(
-        `📣 Campaign Engine Sendout Report Summary\n\n*🧾 Total Number of Messages*: ${qty} 📈\n\nDetails per Campaign Mesagge:`,
+        `📣 Campaign Engine *${channel}*'s Sendout Report Summary\n\n*🧾 Total Number of ${channel} Messages*: ${qty} 📈\n\nDetails per Campaign Mesagge:`,
       ),
     });
 
@@ -88,7 +90,7 @@ export class SlackIntegration {
       return {
         blocks: [
           this.slackDivider(),
-          blockHeader(qtyMessage),
+          blockHeader(channel, qtyMessage),
           ...this.slackBlockSection(fields),
           this.slackDivider(),
         ],
