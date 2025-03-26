@@ -1,17 +1,37 @@
-import { TypeCampaignVariables } from "../types.ts";
-import { IUtm } from "../integrations/interfaces.ts";
+import { ICallToActionLink } from '../main.ts';
+import { TypeCampaignVariables } from '../types.ts';
+import { MessageService } from './message.service.ts';
 
 export abstract class CampaignService {
-  protected readonly lng: string = 'es';
-  protected constructor(lng = 'es'){
+  protected readonly lng: string;
+  protected readonly messageValues: MessageService[];
+  protected variableValues: TypeCampaignVariables;
+
+  protected constructor(variables: TypeCampaignVariables, lng = 'es') {
     this.lng = lng;
+    this.messageValues = [];
+    this.variableValues = { ...variables };
   }
 
-  public abstract utm: IUtm;
+  public get messages() {
+    return this.messageValues;
+  }
+
+  public get variables() {
+    return this.variableValues;
+  }
+
+  public abstract setPathVariables(shortLinks: ICallToActionLink[]): this;
+
+  public abstract setMessagesVariables(): this;
+
+  public get integrationBody(): unknown[] {
+    return this.messageValues.map((message) => message.integrationBody);
+  }
 
   public getVariablesForN(
-    variables: TypeCampaignVariables, 
-    n: number
+    variables: TypeCampaignVariables,
+    n: number,
   ): TypeCampaignVariables {
     const common: TypeCampaignVariables = {};
     const obj: TypeCampaignVariables = {};

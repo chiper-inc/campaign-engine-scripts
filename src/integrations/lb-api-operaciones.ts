@@ -1,4 +1,4 @@
-import { CampaignService } from '../services/campaign.service.ts';
+// import { CampaignService } from '../services/campaign.service.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
@@ -67,8 +67,13 @@ export class LbApiOperacionesIntegration {
 
   async createAllShortLink(
     payloadsAndKeys: IShortLinkPayloadAndKey[],
-  ): Promise<{ key: string; campaignService: CampaignService, response: unknown }[]> {
-    let responses: { key: string; campaignService: CampaignService, response: unknown }[] = [];
+  ): Promise<
+    { key: string; /* campaignService: CampaignService, */ response: unknown }[]
+  > {
+    let responses: {
+      key: string;
+      /*  campaignService: CampaignService; */ response: unknown;
+    }[] = [];
     const batches = this.splitIntoBatches(payloadsAndKeys, this.BATCH_SIZE);
     const batchCount = batches.length;
     let batchIdx = 0;
@@ -78,15 +83,15 @@ export class LbApiOperacionesIntegration {
     for (const batch of batches) {
       const batchResponse: {
         key: string;
-        campaignService: CampaignService;
+        // campaignService: CampaignService;
         response: unknown;
       }[] = await Promise.all(
-        batch.map(async ({ key, value, campaignService }) => {
+        batch.map(async ({ key, value /* , campaignService */ }) => {
           // console.error('Creating shortLink for:', key, value, campaignService);
           return new Promise((resolve, reject) => {
             this.createOneShortLink(value)
               .then((result) => {
-                resolve({ key, campaignService, response: result });
+                resolve({ key, /* campaignService, */ response: result });
               })
               .catch((error) => {
                 console.error('ERROR - :', error, value, key, '-');

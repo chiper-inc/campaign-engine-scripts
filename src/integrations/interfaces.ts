@@ -1,4 +1,4 @@
-import { CampaignService } from '../services/campaign.service.ts';
+// import { CampaignService } from '../services/campaign.service.ts';
 import { TypeCampaignVariables } from '../types.ts';
 
 export interface IStoreReferenceData {
@@ -32,7 +32,7 @@ export interface IShortLinkPayload {
 export interface IShortLinkPayloadAndKey {
   key: string;
   value: IShortLinkPayload;
-  campaignService: CampaignService;
+  // campaignService: CampaignService;
 }
 export interface IConnectlyEntry {
   client: string;
@@ -67,7 +67,7 @@ export interface ICatalogueReference {
 
 export interface IClevertapCampaign {
   campaignId: string;
-  storeIds: number[];
+  identities: string[];
   variables: { [key: string]: string | number };
   inSeconds?: number;
   timeoutSeconds?: number;

@@ -76,8 +76,8 @@ export class BigQueryRepository {
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 500
-      -- OFFSET 1000
+      LIMIT 500
+      OFFSET 5000
     `;
 
     // console.error('<Query>', query, '</Query>');

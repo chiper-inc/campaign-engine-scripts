@@ -241,11 +241,11 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   // { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidLow_17_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   // { provider: PROVIDER.Connectly, name: 'API_Resurrected.Low_17_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
 
-  { provider: PROVIDER.Clevertap, name: 'API_Lead', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
-  { provider: PROVIDER.Clevertap, name: 'API_New', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
-  { provider: PROVIDER.Clevertap, name: 'API_Retained', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
-  { provider: PROVIDER.Clevertap, name: 'API_Hibernating', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
-  { provider: PROVIDER.Clevertap, name: 'API_Churn', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
-  { provider: PROVIDER.Clevertap, name: 'API_Resurrected', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
+  { provider: PROVIDER.Clevertap, name: 'API_Lead', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
+  { provider: PROVIDER.Clevertap, name: 'API_New', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
+  { provider: PROVIDER.Clevertap, name: 'API_Retained', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
+  { provider: PROVIDER.Clevertap, name: 'API_Hibernating', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
+  { provider: PROVIDER.Clevertap, name: 'API_Churn', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
+  { provider: PROVIDER.Clevertap, name: 'API_Resurrected', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: generateParams(PATH, 3) },
 
 ];

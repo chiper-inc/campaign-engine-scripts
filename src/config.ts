@@ -39,6 +39,7 @@ export const Config = {
     },
   },
   clevertap: {
+    apiUrl: process.env.CLEVERTAP_API_URL ?? '',
     accountId: process.env.CLEVERTAP_API_ACCOUNT_ID ?? '',
     passcode: process.env.CLEVERTAP_API_PASSCODE ?? '',
   },

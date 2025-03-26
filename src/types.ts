@@ -1,4 +1,5 @@
 import { LOCATION, STORE_STATUS } from './enums.ts';
+import { IUtm } from './integrations/interfaces.ts';
 
 export type TypeFrequencyByStatus = {
   [key in STORE_STATUS]:
@@ -40,4 +41,9 @@ export type TypeCampaignEntry = {
 
 export type TypeCampaignVariables = {
   [key: string]: string | number;
+};
+
+export type TypeCampaignMessage = {
+  variables: TypeCampaignVariables;
+  utm: IUtm;
 };
