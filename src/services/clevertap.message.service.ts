@@ -11,8 +11,8 @@ export class ClevertapMessageService extends MessageService {
   private readonly identity: string;
 
   constructor(store: TypeStore, campaignName: string, utm: IUtm) {
-    const iTitle = getRandomNumber(( MOCKS.titles[campaignName] ?? [] ).length);
-    const iOffer = getRandomNumber(( MOCKS.offers[campaignName] ?? [] ).length);
+    const iTitle = getRandomNumber((MOCKS.titles[campaignName] ?? []).length);
+    const iOffer = getRandomNumber((MOCKS.offers[campaignName] ?? []).length);
     const messageNumber = (iTitle + 1) * 100 + iOffer + 1;
 
     const campaignId = MOCKS.campaignIds[campaignName] || '';
@@ -34,13 +34,13 @@ export class ClevertapMessageService extends MessageService {
 
   public get integrationBody(): unknown {
     return {
-      to: { 
-        identity: [ this.identity ], 
+      to: {
+        identity: [this.identity],
       },
       campaign_id: this.campaignId,
       ExternalTrigger: this.varValues,
     };
-  };
+  }
 
   private generateConnectlyExternalTriger(
     obj: TypeCampaignVariables,
@@ -48,7 +48,10 @@ export class ClevertapMessageService extends MessageService {
     return {
       name: obj.name,
       title: this.replaceParams(this.titleTemplate, []),
-      message: this.replaceParams(this.offerTemplate, [obj.sku ?? '', obj.dsct ?? '']),
+      message: this.replaceParams(this.offerTemplate, [
+        obj.sku ?? '',
+        obj.dsct ?? '',
+      ]),
       path: obj.path,
     };
   }

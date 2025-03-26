@@ -209,8 +209,15 @@ const reportClevertapEntries = async (
   preEntries: IPreEntry[],
 ): Promise<IClevertapEntry[]> => {
   const entries: IClevertapEntry[] = preEntries
-    .filter((preEntry) => preEntry.campaignService && preEntry.campaignService instanceof ClevertapCampaignService)
-    .map((preEntry) => preEntry.campaignService?.integrationBody as IClevertapEntry[])
+    .filter(
+      (preEntry) =>
+        preEntry.campaignService &&
+        preEntry.campaignService instanceof ClevertapCampaignService,
+    )
+    .map(
+      (preEntry) =>
+        preEntry.campaignService?.integrationBody as IClevertapEntry[],
+    )
     .flat();
   console.log(JSON.stringify(entries, null, 2));
   console.log('===================');
@@ -221,7 +228,10 @@ const reportConnectlyEntries = async (
   preEntries: IPreEntry[],
 ): Promise<IConnectlyEntry[]> => {
   const summaryMap = preEntries
-    .filter((preEntry) => preEntry.campaignService instanceof ConnectlyCampaignService )
+    .filter(
+      (preEntry) =>
+        preEntry.campaignService instanceof ConnectlyCampaignService,
+    )
     .map((preEntry) => preEntry.utm.campaignName)
     .reduce(
       (acc, name) => {
@@ -269,8 +279,15 @@ const reportConnectlyEntries = async (
   console.error('Summary Per Campaign');
 
   const entries: IConnectlyEntry[] = preEntries
-    .filter((preEntry) => preEntry.campaignService && preEntry.campaignService instanceof ConnectlyCampaignService)
-    .map((preEntry) => preEntry.campaignService?.integrationBody as IConnectlyEntry[])
+    .filter(
+      (preEntry) =>
+        preEntry.campaignService &&
+        preEntry.campaignService instanceof ConnectlyCampaignService,
+    )
+    .map(
+      (preEntry) =>
+        preEntry.campaignService?.integrationBody as IConnectlyEntry[],
+    )
     .flat();
   console.log(JSON.stringify(entries, null, 2));
   console.log('===================');
