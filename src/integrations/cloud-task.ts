@@ -45,7 +45,6 @@ export class CloudTask {
         seconds: Date.now() / 1000 + inSeconds,
       };
     }
-
     // console.log('Creating task:', task.httpRequest, request.body);
     const [response] = await this.client.createTask({
       parent: this.parent,

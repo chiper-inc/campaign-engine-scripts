@@ -26,9 +26,7 @@ const readFileToJson = (filePath: string): Promise<IConnectlyEntry[]> => {
 };
 
 const script = async (filename: string): Promise<void> => {
-  const data = await readFileToJson(
-    path.join(__dirname, filename),
-  );
+  const data = await readFileToJson(path.join(__dirname, filename));
   const connectlyIntegration = new ConnectlyIntegration();
   await connectlyIntegration.sendAllEntries(data);
 };

@@ -241,7 +241,8 @@ const reportMessages = async (
 
   const slackIntegration = new SlackIntegration();
   await slackIntegration.generateSendoutLocationSegmentReports(
-    channel, summaryLocationSegmentMessage,
+    channel,
+    summaryLocationSegmentMessage,
   );
   await slackIntegration.generateSendoutMessageReports(channel, summaryMessage);
 
@@ -250,7 +251,10 @@ const reportMessages = async (
   const entries: (IConnectlyEntry | IClevertapMessage)[] = preEntries
     .map(
       (preEntry) =>
-        preEntry.campaignService?.integrationBody as (IConnectlyEntry | IClevertapMessage)[],
+        preEntry.campaignService?.integrationBody as (
+          | IConnectlyEntry
+          | IClevertapMessage
+        )[],
     )
     .flat();
   console.log(JSON.stringify(entries, null, 2));
@@ -685,48 +689,6 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
     [CHANNEL.WhatsApp, CHANNEL.PushNotification],
   );
 }
-
-// Utility Functions
-
-// const daysFromBaseDate = (date: Date): number =>
-//   Math.trunc(((date as unknown as number) - BASE_DATE) / (1000 * 60 * 60 * 24));
-
-// const formatMMMDD = (ddmmyy: string): string => {
-//   const mpnth = ddmmyy.slice(2, 4);
-//   const day = ddmmyy.slice(0, 2);
-//   const months = [
-//     '_',
-//     'Ene',
-//     'Feb',
-//     'Mar',
-//     'Abr',
-//     'May',
-//     'Jun',
-//     'Jul',
-//     'Ago',
-//     'Sep',
-//     'Oct',
-//     'Nov',
-//     'Dic',
-//   ];
-//   return `${months[Number(mpnth)]}${day}`;
-// };
-
-// const formatDDMMYY = (date: Date): string =>
-//   date
-//     .toLocaleDateString('es-US', {
-//       day: '2-digit',
-//       month: '2-digit',
-//       year: '2-digit',
-//     })
-//     .replace(/\//g, '');
-
-// const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
-
-// const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
-
-// const removeExtraSpaces = (val: string | number): string | number =>
-//   typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val;
 
 // Run Main Function
 

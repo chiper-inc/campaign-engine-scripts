@@ -1,4 +1,3 @@
-// import { CampaignService } from '../services/campaign.service.ts';
 import { TypeCampaignVariables } from '../types.ts';
 
 export interface IStoreReferenceData {
@@ -40,7 +39,7 @@ export interface IConnectlyEntry {
   variables: TypeCampaignVariables;
 }
 export interface IClevertapMessage {
-  to: { identity: string[]; };
+  to: { identity: string[] };
   campaign_id: string;
   ExternalTrigger: TypeCampaignVariables;
 }

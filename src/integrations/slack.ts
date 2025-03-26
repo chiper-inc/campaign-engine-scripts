@@ -19,7 +19,11 @@ export class SlackIntegration {
   ): Promise<void> {
     if (list.length === 0) return;
 
-    const blockHeader = (channel: CHANNEL, city: string, qty: number): unknown => ({
+    const blockHeader = (
+      channel: CHANNEL,
+      city: string,
+      qty: number,
+    ): unknown => ({
       type: 'section',
       text: this.slackTextMarkdown(
         `📣 Campaign Engine *${channel}*'s Sendout Report for *${

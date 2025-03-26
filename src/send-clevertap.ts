@@ -26,9 +26,7 @@ const readFileToJson = (filePath: string): Promise<IClevertapMessage[]> => {
 };
 
 const script = async (filename: string): Promise<void> => {
-  const data = await readFileToJson(
-    path.join(__dirname, filename),
-  );
+  const data = await readFileToJson(path.join(__dirname, filename));
   const clevertapIntegration = new ClevertapIntegration();
   let identity = null;
   let messages: IClevertapMessage[] = [];

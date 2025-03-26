@@ -14,7 +14,7 @@ export class ClevertapMessageService extends MessageService {
     const iTitle = getRandomNumber((MOCKS.titles[campaignName] ?? []).length);
     const iOffer = getRandomNumber((MOCKS.offers[campaignName] ?? []).length);
     const messageNumber = (iTitle + 1) * 100 + iOffer + 1;
-    
+
     const [mainCampaign] = campaignName.split('.');
 
     const campaignId = MOCKS.campaignIds[mainCampaign] || mainCampaign;
