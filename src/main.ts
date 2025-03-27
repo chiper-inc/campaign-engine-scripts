@@ -90,15 +90,13 @@ async function main(
   generateCampaignMessages(preEntries);
   const [connectlyEntries, clevertapEntries] = splitPreEntries(preEntries);
   await Promise.all([
-    reportMessages(CHANNEL.WhatsApp, connectlyEntries, true),
-    reportMessages(CHANNEL.PushNotification, clevertapEntries, false),
+    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries),
+    reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries, true),
   ]);
-  console.error(
-    `Campaing ${UUID} generated for ${connectlyEntries.length} stores`,
-  );
-  console.error(
-    `Campaing ${UUID} generated for ${clevertapEntries.length} stores`,
-  );
+  await Promise.all([
+    outputIntegrationMessages(CHANNEL.PushNotification, clevertapEntries),
+    reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries, false),
+  ]);
   console.error(
     `Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`,
   );
@@ -195,11 +193,11 @@ const generateCampaignMessages = (preEntries: IPreEntry[]) => {
   });
 };
 
-const reportMessages = async (
+const reportMessagesToSlack = async (
   channel: CHANNEL,
   preEntries: IPreEntry[],
   includeMessageNumber: boolean,
-): Promise<(IClevertapMessage | IConnectlyEntry)[]> => {
+): Promise<void> => {
   const summaryMap = preEntries
     .map((preEntry) => preEntry.utm.campaignName)
     .reduce(
@@ -247,18 +245,30 @@ const reportMessages = async (
   await slackIntegration.generateSendoutMessageReports(channel, summaryMessage);
 
   console.error('Summary Per Campaign');
+};
 
-  const entries: (IConnectlyEntry | IClevertapMessage)[] = preEntries
-    .map(
-      (preEntry) =>
-        preEntry.campaignService?.integrationBody as (
-          | IConnectlyEntry
-          | IClevertapMessage
-        )[],
-    )
-    .flat();
-  console.log(JSON.stringify(entries, null, 2));
-  console.log('===================');
+const outputIntegrationMessages = async (
+  channel: CHANNEL,
+  preEntries: IPreEntry[],
+) => {
+  const entries: (IConnectlyEntry | IClevertapMessage)[][] = preEntries.map(
+    (preEntry) =>
+      preEntry.campaignService?.integrationBody as (
+        | IConnectlyEntry
+        | IClevertapMessage
+      )[],
+  );
+  // .flat();
+  await UTILS.writeJsonToFile(
+    `tmp/${(
+      CHANNEL_PROVIDER[channel] ?? 'Unknown'
+    ).toLowerCase()}.${UTILS.formatYYYYMMDD(new Date())}.json`,
+    entries,
+  );
+  // console.log(JSON.stringify(entries, null, 2));
+  console.error(
+    `Campaing ${UUID} generated for ${entries.length} stores as ${channel}`,
+  );
   return entries;
 };
 
