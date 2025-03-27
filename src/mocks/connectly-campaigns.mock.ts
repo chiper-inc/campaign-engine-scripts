@@ -49,11 +49,17 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   // { provider: PROVIDER.Connectly, name: 'API_Churn.180to209_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
   // { provider: PROVIDER.Connectly, name: 'API_Churn.210to359_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
 
-  { provider: PROVIDER.Connectly, name: 'API_Churn.90to119_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Churn.120to149_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Churn.150to179_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Churn.180to209_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Churn.210to359_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Churn.90to119_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Churn.120to149_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Churn.150to179_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Churn.180to209_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Churn.210to359_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+
+  { provider: PROVIDER.Connectly, name: 'API_Churn.90to119_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1)},
+  { provider: PROVIDER.Connectly, name: 'API_Churn.120to149_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Churn.150to179_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Churn.180to209_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Churn.210to359_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
 
   // Missing campaigns
   // { provider: PROVIDER.Connectly, name: 'API_Churn.90to119_14_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
@@ -79,7 +85,7 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { provider: PROVIDER.Connectly, name: 'API_Lead_3_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: PATH_DSCT },
   { provider: PROVIDER.Connectly, name: 'API_Lead_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
   { provider: PROVIDER.Connectly, name: 'API_Lead_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Lead_6_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Lead_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { provider: PROVIDER.Connectly, name: 'API_Lead_7_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { provider: PROVIDER.Connectly, name: 'API_Lead_8_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
   { provider: PROVIDER.Connectly, name: 'API_Lead_9_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
@@ -102,7 +108,7 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { provider: PROVIDER.Connectly, name: 'API_New_3_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: PATH_DSCT },
   { provider: PROVIDER.Connectly, name: 'API_New_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
   { provider: PROVIDER.Connectly, name: 'API_New_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_New_6_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_New_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { provider: PROVIDER.Connectly, name: 'API_New_7_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { provider: PROVIDER.Connectly, name: 'API_New_8_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
   { provider: PROVIDER.Connectly, name: 'API_New_9_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
@@ -153,10 +159,15 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   // { provider: PROVIDER.Connectly, name: 'API_Hibernating.MidLow_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
   // { provider: PROVIDER.Connectly, name: 'API_Hibernating.Low_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
 
-  { provider: PROVIDER.Connectly, name: 'API_Hibernating.High_5-es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Hibernating.MidHigh_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Hibernating.MidLow_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Hibernating.Low_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Hibernating.High_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Hibernating.MidHigh_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Hibernating.MidLow_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Hibernating.Low_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+
+  { provider: PROVIDER.Connectly, name: 'API_Hibernating.High_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Hibernating.MidHigh_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Hibernating.MidLow_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Hibernating.Low_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
 
   // Missing campaigns
   // { provider: PROVIDER.Connectly, name: 'API_Hibernating.High_17_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
@@ -202,10 +213,15 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   // { provider: PROVIDER.Connectly, name: 'API_Retained.MidLow_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
   // { provider: PROVIDER.Connectly, name: 'API_Retained.Low_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
 
-  { provider: PROVIDER.Connectly, name: 'API_Retained.High_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Retained.MidHigh_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Retained.MidLow_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Retained.Low_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Retained.High_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Retained.MidHigh_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Retained.MidLow_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Retained.Low_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+
+  { provider: PROVIDER.Connectly, name: 'API_Retained.High_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Retained.MidHigh_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Retained.MidLow_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Retained.Low_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
 
   // Missing campaigns
   // { provider: PROVIDER.Connectly, name: 'API_Retained.High_17_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
@@ -251,10 +267,15 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   // { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidLow_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
   // { provider: PROVIDER.Connectly, name: 'API_Resurrected.Low_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
 
-  { provider: PROVIDER.Connectly, name: 'API_Resurrected.High_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidHigh_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidLow_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Resurrected.Low_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Resurrected.High_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidHigh_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidLow_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+  // { provider: PROVIDER.Connectly, name: 'API_Resurrected.Low_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
+
+  { provider: PROVIDER.Connectly, name: 'API_Resurrected.High_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidHigh_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Resurrected.MidLow_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Resurrected.Low_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
 
   // Missing campaigns
   // { provider: PROVIDER.Connectly, name: 'API_Resurrected.High_17_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
