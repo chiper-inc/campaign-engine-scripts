@@ -85,7 +85,7 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { provider: PROVIDER.Connectly, name: 'API_Lead_3_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 3)), paths: PATH_DSCT },
   { provider: PROVIDER.Connectly, name: 'API_Lead_4_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 4)), paths: PATH_DSCT },
   { provider: PROVIDER.Connectly, name: 'API_Lead_5_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 5)), paths: PATH_DSCT },
-  { provider: PROVIDER.Connectly, name: 'API_Lead_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_Lead_6_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { provider: PROVIDER.Connectly, name: 'API_Lead_7_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
   { provider: PROVIDER.Connectly, name: 'API_Lead_8_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 3)), paths: generateParams(PATH, 3) },
   { provider: PROVIDER.Connectly, name: 'API_Lead_9_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 4)), paths: generateParams(PATH, 4) },
@@ -120,6 +120,11 @@ export const connectlyConnectlyCampaigns: IConnectlyCampaignParameter[] = [
   { provider: PROVIDER.Connectly, name: 'API_New_15_es_v0', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 5)), paths: generateParams(PATH, 5) },
   { provider: PROVIDER.Connectly, name: 'API_New_16_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { provider: PROVIDER.Connectly, name: 'API_New_17_es_v1', variables: NAME.concat(generateParams(SKU_DSCT_IMG, 2)), paths: generateParams(PATH, 2) },
+
+  { provider: PROVIDER.Connectly, name: 'API_New.High_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_New.MidHigh_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_New.MidLow_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
+  { provider: PROVIDER.Connectly, name: 'API_New.Low_6_es_v1', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
 
   { provider: PROVIDER.Connectly, name: 'API_Hibernating_1_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 1)), paths: generateParams(PATH, 1) },
   { provider: PROVIDER.Connectly, name: 'API_Hibernating_2_es_v0', variables: NAME.concat(generateParams(SKU_DSCT, 2)), paths: generateParams(PATH, 2) },
