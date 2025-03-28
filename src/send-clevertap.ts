@@ -1,30 +1,6 @@
-// import * as fs from 'fs';
-// import * as path from 'path';
-// import { fileURLToPath } from 'url';
-// import { dirname } from 'path';
 import * as UTILS from './utils/index.ts';
 import { IClevertapMessage } from './integrations/interfaces.ts';
 import { ClevertapIntegration } from './integrations/clevertap.ts';
-
-// Define __dirname
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
-
-// const readFileToJson = (filePath: string): Promise<IClevertapMessage[]> => {
-//   return new Promise((resolve, reject) => {
-//     fs.readFile(filePath, 'utf8', (err, data) => {
-//       if (err) {
-//         reject(err);
-//       } else {
-//         try {
-//           resolve(JSON.parse(data));
-//         } catch (parseErr) {
-//           reject(parseErr as Error);
-//         }
-//       }
-//     });
-//   });
-// };
 
 const BATCH_SIZE = 10;
 

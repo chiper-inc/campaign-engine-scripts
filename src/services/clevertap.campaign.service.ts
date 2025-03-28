@@ -107,16 +107,4 @@ export class ClevertapCampaignService extends CampaignService {
       .sort(([a], [b]) => a - b)
       .map(([, value]) => ({ ...common, ...value }));
   }
-}
-
-// const x = new ClevertapService();
-// console.log(x.xxx({
-//   name: 'John Doe', path: "www.google.com",
-//   sku_1: 'Cereal Edicion Barbie - Kellogg´s - Paquete 75 g',
-//   dsct_1: '1.2%',
-//   name_2: 'name2',
-//   sku_2: 'Aceite Vegetal de Soya De Primera - DE PRIMERA - Cuñete 18 l',
-//   dsct_2: '2.5%',
-//   img_1: 'https://chiper-old-imgs.imgix.net/app/7702404005034-HkP4mupji-R.png?w=800&h=400&fit=fill&bg=white',
-//   img_2: 'https://chiper-old-imgs.imgix.net/app/7702535011706-H1cEmdajo-R.png?w=800&h=400&fit=fill&bg=white',
-// }));
+};
