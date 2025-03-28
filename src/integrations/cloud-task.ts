@@ -46,12 +46,12 @@ export class CloudTask {
       };
     }
 
-    console.log('Creating task:', task.httpRequest, request.body);
+    // console.log('Creating task:', task.httpRequest, request.body);
     const [response] = await this.client.createTask({
       parent: this.parent,
       task,
     });
-    console.log(`Created task ${response.name}`);
+    // console.log(`Created task ${response.name}`);
     return response;
   }
 }

@@ -37,8 +37,12 @@ export const Config = {
     cloudTask: {
       queue: process.env.GOOGLE_CLOUD_TASK_QUEUE ?? '',
     },
+    aiplatform: {
+      model: 'gemini-2.0-flash-001',
+    },
   },
   clevertap: {
+    apiUrl: process.env.CLEVERTAP_API_URL ?? '',
     accountId: process.env.CLEVERTAP_API_ACCOUNT_ID ?? '',
     passcode: process.env.CLEVERTAP_API_PASSCODE ?? '',
   },
