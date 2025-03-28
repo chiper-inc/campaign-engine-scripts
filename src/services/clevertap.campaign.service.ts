@@ -3,6 +3,8 @@ import { IUtm } from '../integrations/interfaces.ts';
 import { CampaignService } from './campaign.service.ts';
 import { ClevertapMessageService } from './clevertap.message.service.ts';
 import { ICallToActionLink } from '../main.ts';
+import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.ts';
+import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 
 export class ClevertapCampaignService extends CampaignService {
   constructor(
@@ -13,7 +15,8 @@ export class ClevertapCampaignService extends CampaignService {
     lng: string,
   ) {
     super(varibales, lng);
-    for (let i = 0; i < 3; i++) {
+    const n = MOCKS.version === 'v2' ? 6 : 3;
+    for (let i = 0; i < n; i++) {
       this.messageValues.push(
         new ClevertapMessageService(store, campaignName, utm),
       );
@@ -42,12 +45,43 @@ export class ClevertapCampaignService extends CampaignService {
     return url;
   }
 
-  public setMessagesVariables(): this {
+  public async setMessagesVariables(): Promise<this> {
+    const pushNotificationGenerator = ClevertapPushNotificationAI.getInstance();
+    const pushNotificationContent =
+      (await pushNotificationGenerator.generateContent(
+        this.variableValues,
+      )) as unknown as { titles: string[]; products: string[] };
+
     const splitedVars = this.splitVariables(this.variables);
+    this.mergeVariablesTitleAndProduct(
+      splitedVars,
+      pushNotificationContent.titles,
+      pushNotificationContent.products,
+    );
+
     this.messageValues.forEach((message, index) => {
       message.setVariables(splitedVars[index]);
     });
-    return this;
+    return Promise.resolve(this);
+  }
+
+  private mergeVariablesTitleAndProduct(
+    variables: TypeCampaignVariables[],
+    titles: string[],
+    products: string[],
+  ): void {
+    const getTitle = (titles: string[], i: number): string =>
+      titles[i % titles.length];
+
+    const getProductMessage = (products: string[], i: number): string => {
+      const offset = Math.ceil(products.length / 2);
+      return `${products[i % products.length]}\n${products[(i + offset) % products.length]}`;
+    };
+
+    variables.forEach((variable, i) => {
+      variable.title = getTitle(titles, i);
+      variable.message = getProductMessage(products, i);
+    });
   }
 
   private splitVariables(

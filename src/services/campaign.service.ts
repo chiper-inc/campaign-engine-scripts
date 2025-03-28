@@ -23,7 +23,7 @@ export abstract class CampaignService {
 
   public abstract setPathVariables(shortLinks: ICallToActionLink[]): this;
 
-  public abstract setMessagesVariables(): this;
+  public abstract setMessagesVariables(): Promise<this>;
 
   public get integrationBody(): unknown[] {
     return this.messageValues.map((message) => message.integrationBody);

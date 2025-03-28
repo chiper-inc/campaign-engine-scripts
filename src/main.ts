@@ -36,6 +36,7 @@ import { CampaignService } from './services/campaign.service.ts';
 import { MessageService } from './services/message.service.ts';
 import { ConnectlyCampaignService } from './services/connectly.campaign.service.ts';
 import { ClevertapCampaignService } from './services/clevertap.campaign.service.ts';
+import * as MOCKS from './mocks/clevertap-campaigns.mock.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
@@ -86,7 +87,7 @@ async function main(
     preEntries = await generateCallToActionShortLinks(preEntries);
     preEntries = generatePathVariable(preEntries);
   }
-  generateCampaignMessages(preEntries);
+  await generateCampaignMessages(preEntries);
   const [connectlyEntries, clevertapEntries] = splitPreEntries(preEntries);
   await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries),
@@ -186,10 +187,27 @@ const generatePathVariable = (preEntries: IPreEntry[]) => {
   });
 };
 
-const generateCampaignMessages = (preEntries: IPreEntry[]) => {
-  preEntries.forEach((preEntry) => {
-    preEntry.campaignService?.setMessagesVariables();
-  });
+const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
+  let i = 0;
+  const BATCH_SIZE = 16;
+  const n = Math.ceil(preEntries.length / BATCH_SIZE);
+  const promises: Promise<unknown>[] = [];
+  for (const preEntry of preEntries) {
+    if (promises.length >= 16) {
+      await Promise.all(promises);
+      promises.length = 0;
+      console.error(`batch ${++i} of ${n}, for AI Content Generative. done!`);
+    }
+    promises.push(
+      preEntry.campaignService
+        ? preEntry.campaignService.setMessagesVariables()
+        : Promise.resolve(),
+    );
+  }
+  if (promises.length) {
+    await Promise.all(promises);
+    console.error(`batch ${++i} of ${n} done`);
+  }
 };
 
 const reportMessagesToSlack = async (
@@ -204,7 +222,9 @@ const reportMessagesToSlack = async (
         const [cityId, , , , , , status, campaingName] = name.split('_');
         const message = includeMessageNumber
           ? campaingName.split('-')[2]
-          : 'Random';
+          : MOCKS.version === 'v2'
+            ? 'Generative AI'
+            : 'Random';
 
         let key = `${CITY_NAME[cityId]}|${status}|${message}`;
         let value = acc.locationSegmentMessageMap.get(key) || 0;

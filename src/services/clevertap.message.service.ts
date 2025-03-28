@@ -29,7 +29,7 @@ export class ClevertapMessageService extends MessageService {
   }
 
   public setVariables(vars: TypeCampaignVariables): this {
-    this.varValues = this.generateConnectlyExternalTriger(vars);
+    this.varValues = this.generateClevertapExternalTriger(vars);
     return this;
   }
 
@@ -43,9 +43,22 @@ export class ClevertapMessageService extends MessageService {
     };
   }
 
-  private generateConnectlyExternalTriger(
+  private generateClevertapExternalTriger(
     obj: TypeCampaignVariables,
   ): TypeCampaignVariables {
+    if (MOCKS.version === 'v2') {
+      return {
+        name: obj.name,
+        title: obj.title ?? this.replaceParams(this.titleTemplate, []),
+        message:
+          obj.message ??
+          this.replaceParams(this.offerTemplate, [
+            obj.sku ?? '',
+            obj.dsct ?? '',
+          ]),
+        path: obj.path,
+      };
+    }
     return {
       name: obj.name,
       title: this.replaceParams(this.titleTemplate, []),

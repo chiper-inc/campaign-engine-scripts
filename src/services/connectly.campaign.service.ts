@@ -18,11 +18,11 @@ export class ConnectlyCampaignService extends CampaignService {
     );
   }
 
-  public setMessagesVariables(): this {
+  public async setMessagesVariables(): Promise<this> {
     this.messageValues.forEach((message) => {
       message.setVariables(this.variableValues);
     });
-    return this;
+    return Promise.resolve(this);
   }
 
   public setPathVariables(shortLinks: ICallToActionLink[]): this {

@@ -31,8 +31,8 @@ const userInstructions: Content = {
       la 'descripción', la 'marca' y la 'presentación' del producto, es ese orden.
     `),
     partFromText(`
-      Cree una mensaje promocional hacia de Chiper hacia el comerciante mediante una PushNofication.
-      Cada 'PushNotification' debe incluir un 'título' y 2 'productos'.
+      Cree una mensaje promocional de Chiper hacia el comerciante mediante una PushNofication, 
+      compuesta por un 'título' y un mensaje para cada 'producto'.
 
       El mensaje para cada 'producto' en la 'PushNotification' debe ser una frase con máximo 15 palabras. 
       la frase debe ser una redacción mejorada con la combinación de: 
@@ -43,10 +43,13 @@ const userInstructions: Content = {
       que invitan al comerciante a aprovechar la oferta, y debe estar acomapañado por un emoji relacionado al título. 
       El nombre del comerciante puede ser usado eventualemente en el título.
     `),
+    // partFromText(`
+    //   Se debe generar 1 'titulo' por cada 2 'productos' en la 'PushNotification'.
+    // `),
     partFromText(`
-      Generar la respuesta en formato JSON con 2 propiedades:
-      1) \`\`\`titles\`\`\` (array de strings con los 'títulos')
-      2) \`\`\`products\`\`\` (array de strings con los mensajes de cada 'producto')
+      Generar la respuesta en formato JSON con las siguientes propiedades:
+      a) \`\`\`titles\`\`\` (array de strings con los 'títulos')
+      b) \`\`\`products\`\`\` (array de strings con los mensajes de cada 'producto')
       La respuesta debe incluir exclusivamente el JSON, sin ningun otro texto.
     `),
   ],
@@ -54,11 +57,19 @@ const userInstructions: Content = {
 };
 
 export class ClevertapPushNotificationAI extends VertexAIClient {
+  private static instance: ClevertapPushNotificationAI | null = null;
   private readonly userInstructions: Content;
 
-  constructor() {
+  private constructor() {
     super(systemInstruction, { maxOutputTokens: 1024, temperature: 1.0 });
     this.userInstructions = userInstructions;
+  }
+
+  public static getInstance(): ClevertapPushNotificationAI {
+    if (!ClevertapPushNotificationAI.instance) {
+      ClevertapPushNotificationAI.instance = new ClevertapPushNotificationAI();
+    }
+    return ClevertapPushNotificationAI.instance;
   }
 
   public async generateContent(
@@ -73,7 +84,6 @@ export class ClevertapPushNotificationAI extends VertexAIClient {
       role,
     });
     if (responseContent === null) return null;
-    console.log(`Response: ${JSON.stringify(responseContent, null, 2)}`);
     json = textFromParts(responseContent?.parts)
       .replace(/^```json/g, '')
       .replace(/```$/g, '');
