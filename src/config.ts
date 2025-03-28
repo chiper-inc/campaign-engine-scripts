@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import * as CONST from './constants.ts';
 import { env } from 'process';
-import * as aiplatform from '@google-cloud/aiplatform';
 
 dotenv.config();
 
