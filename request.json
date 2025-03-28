@@ -1,0 +1,43 @@
+{
+    "contents": [
+        {
+            "role": "user",
+            "parts": [
+                {
+                    "text": "A partir de un JSON que contiene los siguientes campos: , nombre del comerciante y parejas  ,  de 1 a 3. para los producto a ofertar.\n\nCree una mensaje llamativo para incluir una PushNofication que contenga los siguiente productos, con su correspondiente descuento.\nLos nombres de los productos incluyen ' - ' que separan el nombre del producto, la marca y la presentación. Incluir la marca y la presentación siempre.\nEl lenguaje del mensaje debe ser casual e informal.\nSe debe incluir un titulo de máximo 6 palabras y un mensaje que contenga los productos y un Call To Action. \nEn el titulo incluir un emoji relativo al titulo, y en cada producto uno relativo al producto. \n\nGenerar la respuesta en un JSON con 2 propiedades , ,  (single string with CRLF) y , mensaje no debe tener más de 40 palabras\n\nJSON: {\n      \"dsct_1\": \"14%\",\n      \"dsct_2\": \"14%\",\n      \"dsct_3\": \"3%\",\n      \"dsct_4\": \"3%\",\n      \"name\": \"Engie\",\n      \"sku_1\": \"Jabón Granada - Palmolive - Barra 110 g\",\n      \"sku_2\": \"Jabón Sandia y Lychee - Palmolive - Barra 110 g\",\n      \"sku_3\": \"Suavizante fresca primavera - Suavitel - Doypack 430 ml\",\n      \"sku_4\": \"Suavizante dulce placer fresa y chocolate - Suavitel - Doypack 430 ml\",\n      \"path_dsct\": \"5GR8?utm_source=connectly-campaign&utm_medium=164&utm_content=56c7c8ec-0a30-4bf8-b9fb-5b5ba49b2866&utm_campaign=2_1377_WA_1_Mar26_ot_Churn.210to359_API-Churn.210to359-4-es-v1&utm_term=260325\"\n    }"
+                }
+            ]
+        }
+    ]
+    , "systemInstruction": {
+        "parts": [
+        {
+            "text": "Usted como un creativo de marketing, que trabaja para un marketplace llamado Chiper. que vende productos de consumo masivo para comerciantes independientes. y su labor es generar las descripciones de productos, que el comerciante lea rápidamente. Evitar el uso de términos en Ingles,"
+        }
+      ]
+    }
+    , "generationConfig": {
+        "responseModalities": ["TEXT"]
+        ,"temperature": 1
+        ,"maxOutputTokens": 8192
+        ,"topP": 0.95
+    },
+    "safetySettings": [
+        {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "OFF"
+        },
+        {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "OFF"
+        },
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "OFF"
+        },
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "OFF"
+        }
+    ]
+}
