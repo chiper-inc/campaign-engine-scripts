@@ -40,7 +40,7 @@ export const Config = {
     },
     aiplatform: {
       model: 'gemini-2.0-flash-001',
-    }
+    },
   },
   clevertap: {
     apiUrl: process.env.CLEVERTAP_API_URL ?? '',
