@@ -1,5 +1,4 @@
 import { v4 as uuid } from 'uuid';
-import parseMobile from 'libphonenumber-js/mobile';
 
 // Constants
 
@@ -352,15 +351,6 @@ const generatePreEntries = (
 
     if (!variables || !storeReferenceIds) continue;
 
-    const client = `+${store.phone}`;
-
-    if (!parseMobile(client)) {
-      console.error(
-        `Invalid phone number: ${client} for store ${store.storeId} on campaign ${campaign.name}`,
-      );
-      continue;
-    }
-
     campaign.paths.forEach((path) => {
       variables[path] = path;
     });
@@ -430,7 +420,7 @@ const generateCallToActionPaths = (
           actionTypeId: Config.lbApiOperaciones.callToAction.reference,
           storeReferenceId: storeReferenceIds[i],
         };
-        utm = messageServices[i]?.utm;
+        utm = messageServices[i]?.utm ?? messageServices[0]?.utm;
       }
     } else {
       callToAction = {
