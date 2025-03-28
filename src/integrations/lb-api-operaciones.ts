@@ -1,3 +1,4 @@
+// import { CampaignService } from '../services/campaign.service.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
@@ -66,9 +67,13 @@ export class LbApiOperacionesIntegration {
 
   async createAllShortLink(
     payloadsAndKeys: IShortLinkPayloadAndKey[],
-  ): Promise<{ key: string; response: unknown }[]> {
-    // console.log({ payloadsAndKeys });
-    let responses: { key: string; response: unknown }[] = [];
+  ): Promise<
+    { key: string; /* campaignService: CampaignService, */ response: unknown }[]
+  > {
+    let responses: {
+      key: string;
+      /*  campaignService: CampaignService; */ response: unknown;
+    }[] = [];
     const batches = this.splitIntoBatches(payloadsAndKeys, this.BATCH_SIZE);
     const batchCount = batches.length;
     let batchIdx = 0;
@@ -78,13 +83,15 @@ export class LbApiOperacionesIntegration {
     for (const batch of batches) {
       const batchResponse: {
         key: string;
+        // campaignService: CampaignService;
         response: unknown;
       }[] = await Promise.all(
-        batch.map(async ({ key, value }) => {
+        batch.map(async ({ key, value /* , campaignService */ }) => {
+          // console.error('Creating shortLink for:', key, value, campaignService);
           return new Promise((resolve, reject) => {
             this.createOneShortLink(value)
               .then((result) => {
-                resolve({ key, response: result });
+                resolve({ key, /* campaignService, */ response: result });
               })
               .catch((error) => {
                 console.error('ERROR - :', error, value, key, '-');
@@ -93,7 +100,7 @@ export class LbApiOperacionesIntegration {
           });
         }),
       );
-      // console.log(JSON.stringify(batchResponse, null, 2));
+      // console.error(JSON.stringify(batchResponse, null, 2));
       responses = responses.concat(batchResponse);
       console.error(
         `batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`,
@@ -102,7 +109,7 @@ export class LbApiOperacionesIntegration {
         this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
       );
     }
-    // console.log('=======\n', JSON.stringify(responses, null, 2), "\n=======");
+    // console.error('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;
   }
 }

@@ -12,6 +12,17 @@ export interface ILocationRange {
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
   private readonly defaultOptions: object;
+  private readonly storeValueSegment = `
+    IF (MG.storeStatus = 'New', 
+      CASE
+        WHEN MG.numDeliveredOrders = 0 THEN NULL
+        WHEN MG.numDeliveredOrders = 1 THEN 'Low'
+        WHEN MG.numDeliveredOrders = 2 THEN 'MidLow'
+        WHEN MG.numDeliveredOrders = 3 THEN 'MidHigh'
+      ELSE 'High'
+      END,
+      MG.lastValueSegmentation
+    )`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
@@ -26,7 +37,7 @@ export class BigQueryRepository {
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
-      MG.lastValueSegmentation,
+      ${this.storeValueSegment} as lastValueSegmentation,
       MG.communicationChannel,
       IFNULL(MG.daysSinceLastOrderDelivered, 0) as daysSinceLastOrderDelivered,
       MG.warehouseId
@@ -35,7 +46,7 @@ export class BigQueryRepository {
       -- AND MG.ranking <= 10
       AND MG.phone NOT LIKE '5_9613739%'
       AND MG.phone NOT LIKE '5_9223372%'
-`;
+  `;
 
   constructor() {
     this.bigquery = new BigQuery();
@@ -51,6 +62,7 @@ export class BigQueryRepository {
       STORE_STATUS.Hibernating,
       STORE_STATUS.Resurrected,
       STORE_STATUS.Retained,
+      STORE_STATUS.New,
     ],
   ): Promise<IStoreSuggestion[]> {
     const query = `
@@ -77,7 +89,7 @@ export class BigQueryRepository {
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
       -- LIMIT 500
-      -- OFFSET 1000
+      -- OFFSET 5000
     `;
 
     // console.error('<Query>', query, '</Query>');

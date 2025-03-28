@@ -24,23 +24,24 @@ export interface IUtm {
 }
 
 export interface IShortLinkPayload {
-  callToAction: ICallToAction;
+  callToAction: Partial<ICallToAction>;
   utm: IUtm;
 }
 
 export interface IShortLinkPayloadAndKey {
   key: string;
   value: IShortLinkPayload;
+  // campaignService: CampaignService;
 }
 export interface IConnectlyEntry {
   client: string;
   campaignName: string;
   variables: TypeCampaignVariables;
 }
-export interface IClevertapEntry {
-  identity: number;
-  campaignId: string;
-  variables: TypeCampaignVariables;
+export interface IClevertapMessage {
+  to: { identity: string[] };
+  campaign_id: string;
+  ExternalTrigger: TypeCampaignVariables;
 }
 export interface ICatalogueReference {
   id: number;
@@ -64,9 +65,7 @@ export interface ICatalogueReference {
 }
 
 export interface IClevertapCampaign {
-  campaignId: string;
-  storeIds: number[];
-  variables: { [key: string]: string | number };
+  message: IClevertapMessage;
   inSeconds?: number;
   timeoutSeconds?: number;
 }
