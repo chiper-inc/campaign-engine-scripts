@@ -189,11 +189,11 @@ const generatePathVariable = (preEntries: IPreEntry[]) => {
 
 const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
   let i = 0;
-  const BATCH_SIZE = 16;
+  const BATCH_SIZE = 64;
   const n = Math.ceil(preEntries.length / BATCH_SIZE);
   const promises: Promise<unknown>[] = [];
   for (const preEntry of preEntries) {
-    if (promises.length >= 16) {
+    if (promises.length >= BATCH_SIZE) {
       await Promise.all(promises);
       promises.length = 0;
       console.error(`batch ${++i} of ${n}, for AI Content Generative. done!`);

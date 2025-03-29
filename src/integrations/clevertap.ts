@@ -5,11 +5,14 @@ import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
 
 export class ClevertapIntegration {
   private readonly url: string;
+
   private readonly headers: { [key: string]: string };
+  private readonly queueName: string;
   private readonly backoffSecondsStep: number;
 
   constructor() {
     this.url = Config.clevertap.apiUrl;
+    this.queueName = Config.google.cloudTask.queue;
     this.headers = {
       'X-CleverTap-Account-Id': Config.clevertap.accountId,
       'X-CleverTap-Passcode': Config.clevertap.passcode,
@@ -28,14 +31,10 @@ export class ClevertapIntegration {
     const request = {
       url: `${this.url}/1/send/externaltrigger.json`,
       method,
-      headers: {
-        'X-CleverTap-Account-Id': Config.clevertap.accountId,
-        'X-CleverTap-Passcode': Config.clevertap.passcode,
-        'Content-Type': 'application/json',
-      },
+      headers: this.headers,
       body: message,
     };
-    const cloudTask = new CloudTask('Campaign-Engine-Communication');
+    const cloudTask = new CloudTask(this.queueName);
     const name = `Clevertap-Campaign-${message.campaign_id}`;
     await cloudTask
       .createOneTask({
