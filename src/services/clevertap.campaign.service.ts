@@ -107,4 +107,4 @@ export class ClevertapCampaignService extends CampaignService {
       .sort(([a], [b]) => a - b)
       .map(([, value]) => ({ ...common, ...value }));
   }
-};
+}

@@ -61,10 +61,7 @@ export class ClevertapIntegration {
       inSeconds += Math.floor(Math.pow(2, k)) * this.backoffSecondsStep;
       k++;
       promises.push(
-        this.sendOneCampaign({
-          message: message,
-          inSeconds: inSeconds,
-        }),
+        this.sendOneCampaign({ message: message, inSeconds: inSeconds }),
       );
     }
     await Promise.all(promises);
