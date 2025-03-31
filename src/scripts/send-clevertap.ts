@@ -3,7 +3,9 @@ import { IClevertapMessage } from '../integrations/interfaces.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
 
 const script = async (filename: string): Promise<void> => {
-  const campaings = (await UTILS.readFileToJson(filename)) as IClevertapMessage[][];
+  const campaings = (await UTILS.readFileToJson(
+    filename,
+  )) as IClevertapMessage[][];
   const clevertapIntegration = new ClevertapIntegration();
   await clevertapIntegration.sendAllCampaigns(campaings);
 };

@@ -98,11 +98,16 @@ async function main({
   await generateCampaignMessages(preEntries);
   const [connectlyEntries, clevertapEntries] = splitPreEntries(preEntries);
   const [connectlyMessages] = await Promise.all([
-    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<IConnectlyEntry[][]>,
+    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
+      IConnectlyEntry[][]
+    >,
     reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries, true),
   ]);
   const [clevertapCampaigns] = await Promise.all([
-    outputIntegrationMessages(CHANNEL.PushNotification, clevertapEntries) as Promise<IClevertapMessage[][]>,
+    outputIntegrationMessages(
+      CHANNEL.PushNotification,
+      clevertapEntries,
+    ) as Promise<IClevertapMessage[][]>,
     reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries, false),
   ]);
   await sendCampaingsToIntegrations(
@@ -110,7 +115,7 @@ async function main({
     clevertapCampaigns,
     sendToConnectly,
     sendToClevertap,
-  );  
+  );
   console.error(
     `Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`,
   );
@@ -206,7 +211,9 @@ const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
   const BATCH_SIZE = Config.google.vertexAI.bacthSize;
   const n = Math.ceil(preEntries.length / BATCH_SIZE);
   const promises: Promise<unknown>[] = [];
-  console.error(`Start Generating AI Messages ${preEntries.length} in ${n} batches of ${BATCH_SIZE}`);
+  console.error(
+    `Start Generating AI Messages ${preEntries.length} in ${n} batches of ${BATCH_SIZE}`,
+  );
   for (const preEntry of preEntries) {
     if (promises.length >= BATCH_SIZE) {
       await Promise.all(promises);
@@ -289,8 +296,9 @@ const outputIntegrationMessages = async (
   const entries: (IConnectlyEntry | IClevertapMessage)[][] = preEntries.map(
     (preEntry) =>
       preEntry.campaignService?.integrationBody as (
-        | (IConnectlyEntry | IClevertapMessage)[]
-      ),
+        | IConnectlyEntry
+        | IClevertapMessage
+      )[],
   );
   // .flat();
   await UTILS.writeJsonToFile(
@@ -744,8 +752,8 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
 // Run Main Function
 
 const args = process.argv.slice(2);
-const includeParam = (args: string[], param: string) => args.some((arg) =>
-  arg.toLowerCase().startsWith(param.toLowerCase()));
+const includeParam = (args: string[], param: string) =>
+  args.some((arg) => arg.toLowerCase().startsWith(param.toLowerCase()));
 
 main({
   day: UTILS.daysFromBaseDate(today),

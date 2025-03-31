@@ -69,12 +69,10 @@ export class ClevertapIntegration {
     await Promise.all(promises);
   }
 
-  async sendAllCampaigns(
-    campaings: IClevertapMessage[][],
-  ): Promise<void> {
+  async sendAllCampaigns(campaings: IClevertapMessage[][]): Promise<void> {
     const promises = [];
     const totalBatches = Math.ceil(campaings.length / this.batchSize);
-  
+
     console.error(
       `Start Sending ${campaings.length} Clevertap Campaigns in ${totalBatches} batches of ${this.batchSize}`,
     );
@@ -88,16 +86,18 @@ export class ClevertapIntegration {
       promises.push(this.sendAllMessages(messages));
       if (promises.length >= this.batchSize) {
         await Promise.all(promises);
-        console.log(`batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done!`);
+        console.log(
+          `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done!`,
+        );
         promises.length = 0;
       }
     }
     if (promises.length > 0) {
       await Promise.all(promises);
-      console.log(`batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`);
+      console.log(
+        `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`,
+      );
     }
-    console.error(
-      `End Sending Clevertap Campaigns`,
-    );
+    console.error(`End Sending Clevertap Campaigns`);
   }
 }
