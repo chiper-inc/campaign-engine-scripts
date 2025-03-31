@@ -38,6 +38,8 @@ import { MessageService } from '../services/message.service.ts';
 import { ConnectlyCampaignService } from '../services/connectly.campaign.service.ts';
 import { ClevertapCampaignService } from '../services/clevertap.campaign.service.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
+import { ConnectlyIntegration } from '../integrations/connectly.ts';
+import { ClevertapIntegration } from '../integrations/clevertap.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
@@ -70,12 +72,21 @@ const UUID = uuid();
 
 // Main Function
 
-async function main(
-  day: number,
-  limit = 100,
+async function main({
+  day,
+  limit = 15000,
   offset = 0,
   includeShortlinks = false,
-) {
+  sendToConnectly = false,
+  sendToClevertap = false,
+}: {
+  day: number;
+  limit?: number;
+  offset?: number;
+  includeShortlinks?: boolean;
+  sendToConnectly?: boolean;
+  sendToClevertap?: boolean;
+}) {
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
   const otherMap = generateOtherMap(filteredData, day);
@@ -86,14 +97,20 @@ async function main(
   }
   await generateCampaignMessages(preEntries);
   const [connectlyEntries, clevertapEntries] = splitPreEntries(preEntries);
-  await Promise.all([
-    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries),
+  const [connectlyMessages] = await Promise.all([
+    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<IConnectlyEntry[][]>,
     reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries, true),
   ]);
-  await Promise.all([
-    outputIntegrationMessages(CHANNEL.PushNotification, clevertapEntries),
+  const [clevertapCampaigns] = await Promise.all([
+    outputIntegrationMessages(CHANNEL.PushNotification, clevertapEntries) as Promise<IClevertapMessage[][]>,
     reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries, false),
   ]);
+  await sendCampaingsToIntegrations(
+    connectlyMessages,
+    clevertapCampaigns,
+    sendToConnectly,
+    sendToClevertap,
+  );  
   console.error(
     `Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`,
   );
@@ -186,14 +203,15 @@ const generatePathVariable = (preEntries: IPreEntry[]) => {
 
 const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
   let i = 0;
-  const BATCH_SIZE = 64;
+  const BATCH_SIZE = Config.google.vertexAI.bacthSize;
   const n = Math.ceil(preEntries.length / BATCH_SIZE);
   const promises: Promise<unknown>[] = [];
+  console.error(`Start Generating AI Messages ${preEntries.length} in ${n} batches of ${BATCH_SIZE}`);
   for (const preEntry of preEntries) {
     if (promises.length >= BATCH_SIZE) {
       await Promise.all(promises);
+      console.error(`batch ${++i} of ${n}, for GenAI done!`);
       promises.length = 0;
-      console.error(`batch ${++i} of ${n}, for AI Content Generative. done!`);
     }
     promises.push(
       preEntry.campaignService
@@ -203,8 +221,9 @@ const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
   }
   if (promises.length) {
     await Promise.all(promises);
-    console.error(`batch ${++i} of ${n} done`);
+    console.error(`batch ${++i} of ${n}, for GenAI done`);
   }
+  console.error('End Generating AI Messages');
 };
 
 const reportMessagesToSlack = async (
@@ -220,7 +239,7 @@ const reportMessagesToSlack = async (
         const message = includeMessageNumber
           ? campaingName.split('-')[2]
           : MOCKS.version === 'v2'
-            ? 'Generative AI'
+            ? 'GenAI'
             : 'Random';
 
         let key = `${CITY_NAME[cityId]}|${status}|${message}`;
@@ -270,9 +289,8 @@ const outputIntegrationMessages = async (
   const entries: (IConnectlyEntry | IClevertapMessage)[][] = preEntries.map(
     (preEntry) =>
       preEntry.campaignService?.integrationBody as (
-        | IConnectlyEntry
-        | IClevertapMessage
-      )[],
+        | (IConnectlyEntry | IClevertapMessage)[]
+      ),
   );
   // .flat();
   await UTILS.writeJsonToFile(
@@ -286,6 +304,22 @@ const outputIntegrationMessages = async (
     `Campaing ${UUID} generated for ${entries.length} stores as ${channel}`,
   );
   return entries;
+};
+
+const sendCampaingsToIntegrations = async (
+  connectlyEntries: IConnectlyEntry[][],
+  clevertapEntries: IClevertapMessage[][],
+  sendToConnectly: boolean,
+  sendToClevertap: boolean,
+) => {
+  const connectlyIntegration = new ConnectlyIntegration();
+  const clevertapIntegration = new ClevertapIntegration();
+  if (sendToConnectly) {
+    await connectlyIntegration.sendAllEntries(connectlyEntries.flat());
+  }
+  if (sendToClevertap) {
+    await clevertapIntegration.sendAllCampaigns(clevertapEntries);
+  }
 };
 
 const splitPreEntries = (preEntries: IPreEntry[]) => {
@@ -709,12 +743,15 @@ function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
 
 // Run Main Function
 
-const args = process.argv;
-main(
-  UTILS.daysFromBaseDate(today),
-  15000,
-  0,
-  `${args[2]}`.toLocaleLowerCase() === 'y',
-)
+const args = process.argv.slice(2);
+const includeParam = (args: string[], param: string) => args.some((arg) =>
+  arg.toLowerCase().startsWith(param.toLowerCase()));
+
+main({
+  day: UTILS.daysFromBaseDate(today),
+  includeShortlinks: includeParam(args, 'link'),
+  sendToClevertap: includeParam(args, 'clevertap'),
+  sendToConnectly: includeParam(args, 'connectly'),
+})
   .then()
   .catch(console.error);

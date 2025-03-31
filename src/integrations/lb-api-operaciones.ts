@@ -8,12 +8,12 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export class LbApiOperacionesIntegration {
   url;
   apiKey; // Replace with a real token if needed
-  BATCH_SIZE;
+  batchSize;
   headers;
   WAITING_TIME = 750;
 
-  constructor(batchSize = 10) {
-    this.BATCH_SIZE = batchSize;
+  constructor() {
+    this.batchSize = Config.lbApiOperaciones.batchSize;
 
     this.url = `${Config.lbApiOperaciones.apiUrl}`;
     this.apiKey = Config.lbApiOperaciones.apiKey; // Replace with a real token if needed
@@ -74,11 +74,11 @@ export class LbApiOperacionesIntegration {
       key: string;
       /*  campaignService: CampaignService; */ response: unknown;
     }[] = [];
-    const batches = this.splitIntoBatches(payloadsAndKeys, this.BATCH_SIZE);
+    const batches = this.splitIntoBatches(payloadsAndKeys, this.batchSize);
     const batchCount = batches.length;
     let batchIdx = 0;
     console.error(
-      `Creating ${payloadsAndKeys.length} shortLinks in ${batchCount} batches of ${this.BATCH_SIZE}...`,
+      `Start Creating ${payloadsAndKeys.length} shortLinks in ${batchCount} batches of ${this.batchSize}`,
     );
     for (const batch of batches) {
       const batchResponse: {
@@ -109,6 +109,7 @@ export class LbApiOperacionesIntegration {
         this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
       );
     }
+    console.error('End Creating shortLinks');
     // console.error('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;
   }

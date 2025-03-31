@@ -23,7 +23,7 @@ export abstract class VertexAIClient {
       location: Config.google.location,
     });
     this.generativeModel = this.vertexAI.getGenerativeModel({
-      model: Config.google.aiplatform.model,
+      model: Config.google.vertexAI.model,
     });
     this.systemInstruction = systemInstruction;
     this.generationConfig = {
