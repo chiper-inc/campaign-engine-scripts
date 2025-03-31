@@ -1,8 +1,7 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm } from '../integrations/interfaces.ts';
+import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
 import { CampaignService } from './campaign.service.ts';
 import { ClevertapMessageService } from './clevertap.message.service.ts';
-import { ICallToActionLink } from '../main.ts';
 import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 

@@ -1,8 +1,7 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm } from '../integrations/interfaces.ts';
+import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
 import { CampaignService } from './campaign.service.ts';
 import { ConnectlyMessageService } from './connectly.message.service.ts';
-import { ICallToActionLink } from '../main.ts';
 
 export class ConnectlyCampaignService extends CampaignService {
   constructor(

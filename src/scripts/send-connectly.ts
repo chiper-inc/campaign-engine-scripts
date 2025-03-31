@@ -1,6 +1,6 @@
-import * as UTILS from './utils/index.ts';
-import { IConnectlyEntry } from './integrations/interfaces.ts';
-import { ConnectlyIntegration } from './integrations/connectly.ts';
+import * as UTILS from '../utils/index.ts';
+import { IConnectlyEntry } from '../integrations/interfaces.ts';
+import { ConnectlyIntegration } from '../integrations/connectly.ts';
 
 const script = async (filename: string): Promise<void> => {
   const data = (await UTILS.readFileToJson(filename)) as IConnectlyEntry[];

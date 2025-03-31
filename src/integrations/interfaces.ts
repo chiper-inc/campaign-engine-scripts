@@ -22,6 +22,10 @@ export interface IUtm {
   campaignContent: string;
   campaignTerm: string;
 }
+export interface ICallToActionLink {
+  fullUrl: string;
+  shortenUrl: string;
+}
 
 export interface IShortLinkPayload {
   callToAction: Partial<ICallToAction>;

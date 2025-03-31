@@ -2,8 +2,8 @@ import { v4 as uuid } from 'uuid';
 
 // Constants
 
-import * as UTILS from './utils/index.ts';
-import { Config } from './config.ts';
+import * as UTILS from '../utils/index.ts';
+import { Config } from '../config.ts';
 import {
   // campaignsBySatatus,
   getLocationStatusRangeKey,
@@ -11,32 +11,33 @@ import {
   frequencyByLocationAndStatusAndRange,
   connectlyCampaignMap,
   getConnectlyCampaignKey,
-} from './parameters.ts';
-import { BASE_DATE, CHANNEL_PROVIDER, CITY_NAME } from './constants.ts';
-import { LbApiOperacionesIntegration } from './integrations/lb-api-operaciones.ts';
-import { StoreReferenceMap } from './mocks/store-reference.mock.ts';
+} from '../parameters.ts';
+import { BASE_DATE, CHANNEL_PROVIDER, CITY_NAME } from '../constants.ts';
+import { LbApiOperacionesIntegration } from '../integrations/lb-api-operaciones.ts';
+import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import {
   ICallToAction,
   IConnectlyEntry,
   IClevertapMessage,
   IUtm,
-} from './integrations/interfaces.ts';
-import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
+  ICallToActionLink,
+} from '../integrations/interfaces.ts';
+import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from '../enums.ts';
 import {
   TypeCampaignEntry,
   TypeSku,
   TypeStore,
   TypeCampaignVariables,
-} from './types.ts';
-import { BigQueryRepository } from './repositories/big-query.ts';
-import { IStoreSuggestion } from './repositories/interfaces.ts';
-import { SlackIntegration } from './integrations/slack.ts';
-import { CampaignFactory } from './services/campaign.factory.ts';
-import { CampaignService } from './services/campaign.service.ts';
-import { MessageService } from './services/message.service.ts';
-import { ConnectlyCampaignService } from './services/connectly.campaign.service.ts';
-import { ClevertapCampaignService } from './services/clevertap.campaign.service.ts';
-import * as MOCKS from './mocks/clevertap-campaigns.mock.ts';
+} from '../types.ts';
+import { BigQueryRepository } from '../repositories/big-query.ts';
+import { IStoreSuggestion } from '../repositories/interfaces.ts';
+import { SlackIntegration } from '../integrations/slack.ts';
+import { CampaignFactory } from '../services/campaign.factory.ts';
+import { CampaignService } from '../services/campaign.service.ts';
+import { MessageService } from '../services/message.service.ts';
+import { ConnectlyCampaignService } from '../services/connectly.campaign.service.ts';
+import { ClevertapCampaignService } from '../services/clevertap.campaign.service.ts';
+import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
@@ -52,10 +53,6 @@ export interface IPreEntry {
 export interface IUtmCallToAction {
   callToAction: Partial<ICallToAction>;
   utm: IUtm;
-}
-export interface ICallToActionLink {
-  fullUrl: string;
-  shortenUrl: string;
 }
 
 export interface IStoreRecomendation {

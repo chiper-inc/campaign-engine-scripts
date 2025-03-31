@@ -1,6 +1,6 @@
-import * as UTILS from './utils/index.ts';
-import { IClevertapMessage } from './integrations/interfaces.ts';
-import { ClevertapIntegration } from './integrations/clevertap.ts';
+import * as UTILS from '../utils/index.ts';
+import { IClevertapMessage } from '../integrations/interfaces.ts';
+import { ClevertapIntegration } from '../integrations/clevertap.ts';
 
 const BATCH_SIZE = 10;
 
