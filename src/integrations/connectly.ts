@@ -65,7 +65,7 @@ export class ConnectlyIntegration {
                 rejected += 1;
                 return;
               }
-              // console.log('Rejection Response:', response.data);
+              // console.error('Rejection Response:', response.data);
               const data = response.data as unknown as {
                 acceptedCount: number;
                 rejectedCount: number;
@@ -81,12 +81,12 @@ export class ConnectlyIntegration {
             .catch((error) => {
               rejections.push({ request: payload, response: error.response });
               console.error({ error });
-              console.log('Error:', error.response?.data || error.message);
+              console.error('Error:', error.response?.data || error.message);
               rejected += 1;
             });
         }),
       ).finally(() => {
-        console.log(
+        console.error(
           `batch ${batchIdx} of ${batches.length} done, accepted = ${accepted}, rejected = ${rejected}, statuses = ${JSON.stringify(statuses)}`,
         );
       });
@@ -94,7 +94,7 @@ export class ConnectlyIntegration {
     }
 
     rejections.forEach((r, idx) => {
-      console.log(`Rejection ${idx}: ${JSON.stringify(r)}`);
+      console.error(`Rejection ${idx}: ${JSON.stringify(r)}`);
     });
   }
 

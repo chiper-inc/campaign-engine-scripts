@@ -532,7 +532,7 @@ export const offers: { [k: string]: string[] } = {
   ],
 }
 
-export const version: string = 'v1';
+export const version: string = 'v2';
 
 export const campaignIds: { [k: string]: string }= {
   'API_Retained': '1742937356',
