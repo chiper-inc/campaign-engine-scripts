@@ -1,3 +1,7 @@
+import { PROVIDER } from "../enums.ts";
+import { ICampaignParameter } from "./interfaces.ts";
+import * as UTILS from './utils.ts';
+
 export const titles: { [k: string]: string[] } = {
   'API_Lead': [
     'Empieza a ahorrar con Chiper 🚀', 
@@ -579,3 +583,22 @@ for (const key in offers) {
     throw new Error(`Offers ${key} is too short`);
   }
 }
+
+const getClevertapCampaignKey = (num: number, lng = 'es') => (`${PROVIDER.Clevertap}|${num}|${lng}`);
+
+export const clevertapCampaignMap = new Map<string, ICampaignParameter[]>();
+
+for (let i = 2; i <= 6; i++) {
+  clevertapCampaignMap.set(getClevertapCampaignKey(i), 
+    [
+      {
+        provider: PROVIDER.Clevertap,
+        name: `API_PN_${i}_es_v1`, variables: 
+        UTILS.NAME.concat(UTILS.generateParams(UTILS.SKU_DSCT, i)),
+        paths: UTILS.generateParams(UTILS.PATH, i),
+      }
+    ],
+  );
+}
+
+console.log('Clevertap Campaign Map:', clevertapCampaignMap);

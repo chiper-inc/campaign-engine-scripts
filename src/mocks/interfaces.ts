@@ -9,7 +9,7 @@ export interface IFrequencyParameter {
   to?: number | null;
 }
 
-export interface IConnectlyCampaignParameter {
+export interface ICampaignParameter {
   provider: PROVIDER;
   name: string;
   variables: string[];

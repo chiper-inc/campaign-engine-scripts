@@ -9,8 +9,8 @@ import {
   getLocationStatusRangeKey,
   frequencyMap,
   frequencyByLocationAndStatusAndRange,
-  connectlyCampaignMap,
-  getConnectlyCampaignKey,
+  campaignMap,
+  getCampaignKey,
 } from '../parameters.ts';
 import { BASE_DATE, CHANNEL_PROVIDER, CITY_NAME } from '../constants.ts';
 import { LbApiOperacionesIntegration } from '../integrations/lb-api-operaciones.ts';
@@ -41,6 +41,7 @@ import { ClevertapCampaignService } from '../services/clevertap.campaign.service
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
+import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
@@ -90,7 +91,7 @@ async function main({
 }) {
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
-  let storeMap = generateStoreAndSkuMap(filteredData, day);
+  let storeMap = generateStoreAndSkuMap(filteredData);
   storeMap = assignCampaignAndUtm(storeMap, day);
   let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
   if (includeShortlinks) {
@@ -348,7 +349,6 @@ const splitPreEntries = (preEntries: IPreEntry[]) => {
 
 const generateStoreAndSkuMap = (
   filteredData: IStoreSuggestion[],
-  day: number,
 ): Map<number, IStoreRecomendation> => {
   return filteredData.reduce((acc, row) => {
     const params: TypeStoreParams = {
@@ -367,7 +367,6 @@ const generateStoreAndSkuMap = (
     };
     a.skus.push(getSku(row));
     acc.set(row.storeId, a);
-    // }
     return acc;
   }, new Map());
 };
@@ -381,7 +380,13 @@ const assignCampaignAndUtm = (
     const { params, skus } = storeRecomendation;
     const campaign = getCampaignRange(params, day, skus.length);
     if (!campaign) continue;
-    const utm = getUtm(params, day, campaign.name, campaign.name.split('_')[1]);
+    const utm = getUtm(
+      params,
+      day,
+      campaign.name,
+      getCampaignSegmentName(params),
+    );
+    console.log({ utm });
     newStoreMap.set(storeId, {
       ...storeRecomendation,
       campaign,
@@ -652,17 +657,14 @@ const getSku = (row: IStoreSuggestion): TypeSku => ({
 });
 
 const getCampaignRange = (
-  { communicationChannel, storeStatus, storeValue, from, to, locationId }: TypeStoreParams,
+  { communicationChannel, locationId }: TypeStoreParams,
   day: number,
   numberOfSkus: number,
 ): TypeCampaignEntry | null => {
-  const campaigns = connectlyCampaignMap.get(
-    getConnectlyCampaignKey({
+  const campaigns = campaignMap.get(
+    getCampaignKey({
       communicationChannel,
-      storeStatus,
-      from,
-      to,
-      storeValue: storeValue ?? undefined,
+      numberOfSkus,
     }),
   );
   if (campaigns) {
