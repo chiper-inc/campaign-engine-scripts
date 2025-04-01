@@ -6,9 +6,9 @@ export { frequencyByLocationAndStatusAndRange };
 export const getLocationStatusRangeKey = (
   frequencyParameter: Partial<IFrequencyParameter>,
 ): string => {
-  const { locationId, storeStatus, from, to, communicationChannel } = frequencyParameter;
+  const { locationId, storeStatus, from, to, communicationChannel } =
+    frequencyParameter;
   const timeRange = from || to ? `${from ?? 'Any'}-${to ?? 'Any'}` : null;
-  console.log('getLocationStatusRangeKey', `${communicationChannel}|${locationId}|${storeStatus}|${timeRange ?? ''}`);
   return `${communicationChannel}|${locationId}|${storeStatus}|${timeRange ?? ''}`;
 };
 
@@ -19,5 +19,3 @@ export const frequencyMap = frequencyByLocationAndStatusAndRange.reduce(
   },
   new Map(),
 );
-
-console.log('frequencyMap', frequencyMap);

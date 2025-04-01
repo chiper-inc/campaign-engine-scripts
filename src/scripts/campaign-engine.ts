@@ -22,12 +22,13 @@ import {
   IUtm,
   ICallToActionLink,
 } from '../integrations/interfaces.ts';
-import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from '../enums.ts';
+import { CHANNEL } from '../enums.ts';
 import {
   TypeCampaignEntry,
   TypeSku,
   TypeStore,
   TypeCampaignVariables,
+  TypeStoreParams,
 } from '../types.ts';
 import { BigQueryRepository } from '../repositories/big-query.ts';
 import { IStoreSuggestion } from '../repositories/interfaces.ts';
@@ -59,7 +60,7 @@ export interface IUtmCallToAction {
 
 export interface IStoreRecomendation {
   store: TypeStore;
-  communicationChannel: CHANNEL;
+  params: TypeStoreParams;
   campaign: TypeCampaignEntry;
   skus: TypeSku[];
   utm: IUtm;
@@ -89,8 +90,9 @@ async function main({
 }) {
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
-  const storeSkuMap = generateStoreAndSkuMap(filteredData, day);
-  let preEntries = generatePreEntries(storeSkuMap).slice(offset, offset + limit);
+  let storeMap = generateStoreAndSkuMap(filteredData, day);
+  storeMap = assignCampaignAndUtm(storeMap, day);
+  let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
   if (includeShortlinks) {
     preEntries = await generateCallToActionShortLinks(preEntries);
     preEntries = generatePathVariable(preEntries);
@@ -344,41 +346,49 @@ const splitPreEntries = (preEntries: IPreEntry[]) => {
   );
 };
 
-const generateStoreAndSkuMap = (filteredData: IStoreSuggestion[], day: number) => {
+const generateStoreAndSkuMap = (
+  filteredData: IStoreSuggestion[],
+  day: number,
+): Map<number, IStoreRecomendation> => {
   return filteredData.reduce((acc, row) => {
-    const a = acc.get(row.storeId) || {
-      storeStatus: row.storeStatus,
-      city: row.city,
-      // utm: undefined,
+    const params: TypeStoreParams = {
+      locationId: row.locationId,
       communicationChannel: row.communicationChannel,
-      campaign: getCampaignRange(
-        row.communicationChannel,
-        row.storeStatus,
-        day,
-        row.storeValue,
-        row.from,
-        row.to,
-      ),
+      storeStatus: row.storeStatus,
+      storeValue: row.storeValue,
+      city: row.city,
+      from: row.from ?? null,
+      to: row.to ?? null,
+    };
+    const a = acc.get(row.storeId) || {
+      params,
       store: getStore(row),
       skus: [],
     };
-    if (a.campaign) {
-      if (!a.skus.length) {
-        a.utm = getUtm(
-          day,
-          row.storeStatus,
-          row.locationId,
-          a.campaign.name,
-          row.communicationChannel,
-          row.rangeName,
-          row.storeValue,
-        );
-      }
-      a.skus.push(getSku(row));
-      acc.set(row.storeId, a);
-    }
+    a.skus.push(getSku(row));
+    acc.set(row.storeId, a);
+    // }
     return acc;
   }, new Map());
+};
+
+const assignCampaignAndUtm = (
+  storeMap: Map<number, IStoreRecomendation>,
+  day: number,
+): Map<number, IStoreRecomendation> => {
+  const newStoreMap = new Map();
+  for (const [storeId, storeRecomendation] of storeMap.entries()) {
+    const { params, skus } = storeRecomendation;
+    const campaign = getCampaignRange(params, day, skus.length);
+    if (!campaign) continue;
+    const utm = getUtm(params, day, campaign.name, campaign.name.split('_')[1]);
+    newStoreMap.set(storeId, {
+      ...storeRecomendation,
+      campaign,
+      utm,
+    });
+  }
+  return newStoreMap;
 };
 
 const generatePreEntries = (
@@ -391,7 +401,7 @@ const generatePreEntries = (
       campaign,
       skus,
       utm: coreUtm,
-      communicationChannel: channel,
+      params: { communicationChannel: channel },
     } = data;
 
     const {
@@ -642,12 +652,9 @@ const getSku = (row: IStoreSuggestion): TypeSku => ({
 });
 
 const getCampaignRange = (
-  communicationChannel: CHANNEL,
-  storeStatus: STORE_STATUS,
+  { communicationChannel, storeStatus, storeValue, from, to, locationId }: TypeStoreParams,
   day: number,
-  storeValue: STORE_VALUE | null,
-  from?: number | null,
-  to?: number | null,
+  numberOfSkus: number,
 ): TypeCampaignEntry | null => {
   const campaigns = connectlyCampaignMap.get(
     getConnectlyCampaignKey({
@@ -660,6 +667,20 @@ const getCampaignRange = (
   );
   if (campaigns) {
     const campaign = campaigns[day % campaigns.length];
+
+    if (!campaign) return null;
+    if (
+      campaign.variables.filter((v) => v.startsWith('sku')).length >
+      numberOfSkus
+    ) {
+      console.log(
+        communicationChannel,
+        locationId,
+        campaign.variables.filter((v) => v.startsWith('sku')),
+        numberOfSkus,
+      );
+      return null;
+    }
     return {
       name: campaign.name,
       variables: campaign.variables,
@@ -670,13 +691,10 @@ const getCampaignRange = (
 };
 
 const getUtm = (
+  { locationId, communicationChannel }: TypeStoreParams,
   day: number,
-  storeStatus: STORE_STATUS,
-  locationId: LOCATION,
   name: string,
-  communicationChannel: CHANNEL,
-  rangeName: string | null,
-  storeValue: string | null,
+  segment: string | null,
 ) => {
   const channelMap: { [k in CHANNEL]: string } = {
     [CHANNEL.WhatsApp]: 'WA',
@@ -685,15 +703,6 @@ const getUtm = (
   const asset = channelMap[communicationChannel] ?? 'XX';
   const payer = '1'; // Fix value
   const type = 'ot';
-
-  let segment = storeStatus as string;
-  if (rangeName) {
-    segment = `${segment}.${rangeName}`;
-  }
-
-  if (storeValue) {
-    segment = `${segment}.${storeValue}`;
-  }
 
   const date = new Date(BASE_DATE + day * 24 * 60 * 60 * 1000);
   const term = UTILS.formatDDMMYY(date); // DDMMYY
