@@ -89,8 +89,8 @@ async function main({
 }) {
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
-  const otherMap = generateOtherMap(filteredData, day);
-  let preEntries = generatePreEntries(otherMap).slice(offset, offset + limit);
+  const storeSkuMap = generateStoreAndSkuMap(filteredData, day);
+  let preEntries = generatePreEntries(storeSkuMap).slice(offset, offset + limit);
   if (includeShortlinks) {
     preEntries = await generateCallToActionShortLinks(preEntries);
     preEntries = generatePathVariable(preEntries);
@@ -344,12 +344,12 @@ const splitPreEntries = (preEntries: IPreEntry[]) => {
   );
 };
 
-const generateOtherMap = (filteredData: IStoreSuggestion[], day: number) => {
+const generateStoreAndSkuMap = (filteredData: IStoreSuggestion[], day: number) => {
   return filteredData.reduce((acc, row) => {
     const a = acc.get(row.storeId) || {
       storeStatus: row.storeStatus,
       city: row.city,
-      utm: undefined,
+      // utm: undefined,
       communicationChannel: row.communicationChannel,
       campaign: getCampaignRange(
         row.communicationChannel,
@@ -398,8 +398,8 @@ const generatePreEntries = (
       variables,
       storeReferenceIds,
     }: {
-      variables: TypeCampaignVariables | undefined;
-      storeReferenceIds: number[] | undefined;
+      variables?: TypeCampaignVariables;
+      storeReferenceIds?: number[];
     } = generateVariablesAndStoreReferenceIds(campaign.variables, {
       store,
       skus,
