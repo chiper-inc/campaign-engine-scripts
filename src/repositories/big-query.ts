@@ -92,7 +92,7 @@ export class BigQueryRepository {
       -- OFFSET 25000
     `;
 
-    // console.error('<Query>', query, '</Query>');
+    console.error('<Query>', query, '</Query>');
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 

@@ -720,12 +720,7 @@ function getFrequency(
   row: IStoreSuggestion,
   frequencyMap: Map<string, number>,
 ): number {
-  const key = getLocationStatusRangeKey({
-    storeStatus: row.storeStatus,
-    locationId: row.locationId,
-    from: row.from,
-    to: row.to,
-  });
+  const key = getLocationStatusRangeKey(row);
   return frequencyMap.get(key) ?? 0;
 }
 

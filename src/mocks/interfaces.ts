@@ -1,8 +1,9 @@
-import { LOCATION, PROVIDER, STORE_STATUS } from '../enums.ts';
+import { CHANNEL, LOCATION, PROVIDER, STORE_STATUS } from '../enums.ts';
 
 export interface IFrequencyParameter {
   locationId: LOCATION;
   storeStatus: STORE_STATUS;
+  communicationChannel: CHANNEL;
   frequency: number;
   from?: number | null;
   to?: number | null;
