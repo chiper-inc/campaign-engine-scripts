@@ -22,12 +22,13 @@ import {
   IUtm,
   ICallToActionLink,
 } from '../integrations/interfaces.ts';
-import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from '../enums.ts';
+import { CHANNEL } from '../enums.ts';
 import {
   TypeCampaignEntry,
   TypeSku,
   TypeStore,
   TypeCampaignVariables,
+  TypeStoreParams,
 } from '../types.ts';
 import { BigQueryRepository } from '../repositories/big-query.ts';
 import { IStoreSuggestion } from '../repositories/interfaces.ts';
@@ -57,19 +58,9 @@ export interface IUtmCallToAction {
   utm: IUtm;
 }
 
-export type TypeStoreParams = { 
-  communicationChannel: CHANNEL;
-  locationId: LOCATION;
-  storeStatus: STORE_STATUS;
-  storeValue: STORE_VALUE | null;
-  city: string;
-  from: number | null;
-  to: number | null;
-}
-
 export interface IStoreRecomendation {
   store: TypeStore;
-  params: TypeStoreParams
+  params: TypeStoreParams;
   campaign: TypeCampaignEntry;
   skus: TypeSku[];
   utm: IUtm;
@@ -355,7 +346,10 @@ const splitPreEntries = (preEntries: IPreEntry[]) => {
   );
 };
 
-const generateStoreAndSkuMap = (filteredData: IStoreSuggestion[], day: number): Map<number, IStoreRecomendation> => {
+const generateStoreAndSkuMap = (
+  filteredData: IStoreSuggestion[],
+  day: number,
+): Map<number, IStoreRecomendation> => {
   return filteredData.reduce((acc, row) => {
     const params: TypeStoreParams = {
       locationId: row.locationId,
@@ -365,32 +359,12 @@ const generateStoreAndSkuMap = (filteredData: IStoreSuggestion[], day: number): 
       city: row.city,
       from: row.from ?? null,
       to: row.to ?? null,
-    }
+    };
     const a = acc.get(row.storeId) || {
       params,
-      // campaign: getCampaignRange(
-      //   row.communicationChannel,
-      //   row.storeStatus,
-      //   day,
-      //   row.storeValue,
-      //   row.from,
-      //   row.to,
-      // ),
       store: getStore(row),
       skus: [],
     };
-    // if (a.campaign) {
-    //   if (!a.skus.length) {
-    //     a.utm = getUtm(
-    //       day,
-    //       row.storeStatus,
-    //       row.locationId,
-    //       a.campaign.name,
-    //       row.communicationChannel,
-    //       row.rangeName,
-    //       row.storeValue,
-    //     );
-    //   }
     a.skus.push(getSku(row));
     acc.set(row.storeId, a);
     // }
@@ -398,8 +372,10 @@ const generateStoreAndSkuMap = (filteredData: IStoreSuggestion[], day: number): 
   }, new Map());
 };
 
-
-const assignCampaignAndUtm = (storeMap: Map<number, IStoreRecomendation>, day: number): Map<number, IStoreRecomendation> => {
+const assignCampaignAndUtm = (
+  storeMap: Map<number, IStoreRecomendation>,
+  day: number,
+): Map<number, IStoreRecomendation> => {
   const newStoreMap = new Map();
   for (const [storeId, storeRecomendation] of storeMap.entries()) {
     const { params, skus } = storeRecomendation;
@@ -676,13 +652,7 @@ const getSku = (row: IStoreSuggestion): TypeSku => ({
 });
 
 const getCampaignRange = (
-  { 
-    communicationChannel,
-    storeStatus,
-    storeValue,
-    from,
-    to,
-  }: TypeStoreParams,
+  { communicationChannel, storeStatus, storeValue, from, to, locationId }: TypeStoreParams,
   day: number,
   numberOfSkus: number,
 ): TypeCampaignEntry | null => {
@@ -699,8 +669,16 @@ const getCampaignRange = (
     const campaign = campaigns[day % campaigns.length];
 
     if (!campaign) return null;
-    if (campaign.variables.filter((v) => v.startsWith('sku')).length > numberOfSkus) {
-      console.log(communicationChannel, campaign.variables.filter((v) => v.startsWith('sku')), numberOfSkus);
+    if (
+      campaign.variables.filter((v) => v.startsWith('sku')).length >
+      numberOfSkus
+    ) {
+      console.log(
+        communicationChannel,
+        locationId,
+        campaign.variables.filter((v) => v.startsWith('sku')),
+        numberOfSkus,
+      );
       return null;
     }
     return {
@@ -712,10 +690,8 @@ const getCampaignRange = (
   return null;
 };
 
-const getUtm = ({
-    locationId,
-    communicationChannel,
-  }: TypeStoreParams,
+const getUtm = (
+  { locationId, communicationChannel }: TypeStoreParams,
   day: number,
   name: string,
   segment: string | null,
