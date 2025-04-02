@@ -10,7 +10,7 @@ const systemInstruction: Content = {
     `),
     partFromText(`
       Su labor es generar frases que el comerciante lea rapidamente, 
-      para encontrar mas facilmente los productos que busca.
+      para encontrar mas facilmente los productos que busca en el marketplace.
     `),
     partFromText(`
       Debe usar un lenguaje casual y directo, evitando tecnisismos.
@@ -40,8 +40,8 @@ const userInstructions: Content = {
       reventa por parte del comerciante, y debe estar precedido por un emoji relacionado al 'producto'.
       
       El 'título' de la 'PushNotification' debe ser un frase promocional de maximmo 6 palabras,
-      que invitan al comerciante a aprovechar la oferta, y debe estar acomapañado por un emoji relacionado al título. 
-      El nombre del comerciante puede ser usado eventualemente en el título.
+      que invitan al comerciante a aprovechar la oferta, y debe estar acompañado por un emoji relacionado al título. 
+      El nombre del comerciante puede ser usado eventualmente en el título.
     `),
     // partFromText(`
     //   Se debe generar 1 'titulo' por cada 2 'productos' en la 'PushNotification'.
@@ -50,7 +50,7 @@ const userInstructions: Content = {
       Generar la respuesta en formato JSON con las siguientes propiedades:
       a) \`\`\`titles\`\`\` (array de strings con los 'títulos')
       b) \`\`\`products\`\`\` (array de strings con los mensajes de cada 'producto')
-      La respuesta debe incluir exclusivamente el JSON, sin ningun otro texto.
+      La respuesta debe incluir exclusivamente el JSON, sin ningún otro texto.
     `),
   ],
   role: 'user',
