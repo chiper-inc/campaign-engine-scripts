@@ -47,11 +47,11 @@ export const connectlyCampaignMap: Map<string, ICampaignParameter[]> =
   }, new Map()
 );
 
-console.log('Campaings:', connectlyCampaignMap);
+// console.log('Campaings:', connectlyCampaignMap);
 
 // for (let i = 0; i < 50; i++) {
 //   const campaingsOfTheDay = [];
-//   for (const messages of carruselMap.values()) {
+//   for (const messages of connectlyCampaignMap.values()) {
 //     campaingsOfTheDay.push(messages[i % messages.length].name);
 //   }
 //   console.log(`Campaings of the day ${i + 1}:`, campaingsOfTheDay);
