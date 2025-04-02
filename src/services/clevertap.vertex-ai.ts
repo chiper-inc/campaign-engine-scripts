@@ -10,7 +10,7 @@ const systemInstruction: Content = {
     `),
     partFromText(`
       Su labor es generar frases que el comerciante lea rapidamente, 
-      para encontrar mas facilmente los productos que busca.
+      para encontrar mas facilmente los productos que busca en el marketplace.
     `),
     partFromText(`
       Debe usar un lenguaje casual y directo, evitando tecnisismos.
