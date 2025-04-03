@@ -42,6 +42,7 @@ import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provi
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
+import { Logger } from 'logging-chiper';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
@@ -89,6 +90,10 @@ async function main({
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
+  Logger.init({
+    projectId: 'Campaign Engine',
+    service: 'Script: Campaign Engine',
+  });
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
   let storeMap = generateStoreAndSkuMap(filteredData);
@@ -809,4 +814,10 @@ main({
   sendToConnectly: includeParam(args, 'connectly'),
 })
   .then()
-  .catch(console.error);
+  .catch(err => {
+    Logger.getInstance().error({
+      stt: 'script',
+      message: err.message,
+      error: err,
+    });
+  });

@@ -25,14 +25,17 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
       this.variableValues,
     )) as unknown as { greeting: string; products: string[] };
 
-    console.log({ carouselContent });
     const products: TypeCampaignVariables = {};
     for (let i = 0; i < carouselContent.products.length; i++) {
       products[`sku_${i + 1}`] = carouselContent.products[i];
     }
 
     this.messageValues.forEach((message) => {
-      message.setVariables({ ...this.variableValues, ...products, greeting: carouselContent.greeting });
+      message.setVariables({
+        ...this.variableValues,
+        ...products,
+        greeting: carouselContent.greeting,
+      });
     });
 
     return Promise.resolve(this);
