@@ -1,11 +1,11 @@
 import { IUtm } from '../integrations/interfaces.ts';
-import { MessageService } from './message.service.ts';
+import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 
 const getRandomNumber = (n: number): number => Math.floor(Math.random() * n);
 
-export class ClevertapMessageService extends MessageService {
+export class ClevertapMessageProvider extends MessageProvider {
   private readonly titleTemplate: string;
   private readonly offerTemplate: string;
   private readonly identity: string;

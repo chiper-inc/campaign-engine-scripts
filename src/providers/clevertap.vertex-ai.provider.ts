@@ -1,5 +1,9 @@
 import { Content } from '@google-cloud/vertexai';
-import { VertexAIClient, partFromText, textFromParts } from './vertex-ai.ts';
+import {
+  VertexAIClient,
+  partFromText,
+  textFromParts,
+} from './vertex-ai.provider.ts';
 import { TypeCampaignVariables } from '../types.ts';
 
 const systemInstruction: Content = {

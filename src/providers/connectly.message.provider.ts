@@ -1,8 +1,8 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import { IUtm } from '../integrations/interfaces.ts';
-import { MessageService } from './message.service.ts';
+import { MessageProvider } from './message.provider.ts';
 
-export class ConnectlyMessageService extends MessageService {
+export class ConnectlyMessageProvider extends MessageProvider {
   private readonly client: string;
   constructor(store: TypeStore, campaignName: string, utm: IUtm) {
     const [, messageClass, messageNumber] = campaignName.split('_');

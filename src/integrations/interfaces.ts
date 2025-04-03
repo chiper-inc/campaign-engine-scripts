@@ -35,7 +35,7 @@ export interface IShortLinkPayload {
 export interface IShortLinkPayloadAndKey {
   key: string;
   value: IShortLinkPayload;
-  // campaignService: CampaignService;
+  // campaignService: CampaignProvider;
 }
 export interface IConnectlyEntry {
   client: string;

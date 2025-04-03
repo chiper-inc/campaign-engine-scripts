@@ -1,10 +1,10 @@
 import { ICallToActionLink } from '../integrations/interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
-import { MessageService } from './message.service.ts';
+import { MessageProvider } from './message.provider.ts';
 
-export abstract class CampaignService {
+export abstract class CampaignProvider {
   protected readonly lng: string;
-  protected readonly messageValues: MessageService[];
+  protected readonly messageValues: MessageProvider[];
   protected variableValues: TypeCampaignVariables;
 
   protected constructor(variables: TypeCampaignVariables, lng = 'es') {

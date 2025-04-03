@@ -1,9 +1,9 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
-import { CampaignService } from './campaign.service.ts';
-import { ConnectlyMessageService } from './connectly.message.service.ts';
+import { CampaignProvider } from './campaign.provider.ts';
+import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 
-export class ConnectlyCampaignService extends CampaignService {
+export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
     store: TypeStore,
     campaignName: string,
@@ -13,7 +13,7 @@ export class ConnectlyCampaignService extends CampaignService {
   ) {
     super(variables, lng);
     this.messageValues.push(
-      new ConnectlyMessageService(store, campaignName, utm),
+      new ConnectlyMessageProvider(store, campaignName, utm),
     );
   }
 

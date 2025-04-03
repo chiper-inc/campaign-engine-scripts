@@ -1,4 +1,4 @@
-// import { CampaignService } from '../services/campaign.service.ts';
+// import { CampaignProvider } from '../services/campaign.service.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
@@ -68,11 +68,14 @@ export class LbApiOperacionesIntegration {
   async createAllShortLink(
     payloadsAndKeys: IShortLinkPayloadAndKey[],
   ): Promise<
-    { key: string; /* campaignService: CampaignService, */ response: unknown }[]
+    {
+      key: string;
+      /* campaignService: CampaignProvider, */ response: unknown;
+    }[]
   > {
     let responses: {
       key: string;
-      /*  campaignService: CampaignService; */ response: unknown;
+      /*  campaignService: CampaignProvider; */ response: unknown;
     }[] = [];
     const batches = this.splitIntoBatches(payloadsAndKeys, this.batchSize);
     const batchCount = batches.length;
@@ -83,7 +86,7 @@ export class LbApiOperacionesIntegration {
     for (const batch of batches) {
       const batchResponse: {
         key: string;
-        // campaignService: CampaignService;
+        // campaignService: CampaignProvider;
         response: unknown;
       }[] = await Promise.all(
         batch.map(async ({ key, value /* , campaignService */ }) => {

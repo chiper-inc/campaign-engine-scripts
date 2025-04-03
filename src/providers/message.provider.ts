@@ -1,7 +1,7 @@
 import { IUtm } from '../integrations/interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 
-export abstract class MessageService {
+export abstract class MessageProvider {
   protected utmValue: IUtm;
   protected varValues: TypeCampaignVariables;
   protected readonly lng: string;

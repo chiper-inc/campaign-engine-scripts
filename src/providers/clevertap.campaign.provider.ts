@@ -1,11 +1,11 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
-import { CampaignService } from './campaign.service.ts';
-import { ClevertapMessageService } from './clevertap.message.service.ts';
-import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.ts';
+import { CampaignProvider } from './campaign.provider.ts';
+import { ClevertapMessageProvider } from './clevertap.message.provider.ts';
+import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 
-export class ClevertapCampaignService extends CampaignService {
+export class ClevertapCampaignProvider extends CampaignProvider {
   constructor(
     store: TypeStore,
     campaignName: string,
@@ -17,7 +17,7 @@ export class ClevertapCampaignService extends CampaignService {
     const n = MOCKS.maxMessagesPerCampaign;
     for (let i = 1; i <= n && variables[`sku_${i}`]; i++) {
       this.messageValues.push(
-        new ClevertapMessageService(store, campaignName, utm),
+        new ClevertapMessageProvider(store, campaignName, utm),
       );
     }
   }

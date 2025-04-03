@@ -33,11 +33,11 @@ import {
 import { BigQueryRepository } from '../repositories/big-query.ts';
 import { IStoreSuggestion } from '../repositories/interfaces.ts';
 import { SlackIntegration } from '../integrations/slack.ts';
-import { CampaignFactory } from '../services/campaign.factory.ts';
-import { CampaignService } from '../services/campaign.service.ts';
-import { MessageService } from '../services/message.service.ts';
-import { ConnectlyCampaignService } from '../services/connectly.campaign.service.ts';
-import { ClevertapCampaignService } from '../services/clevertap.campaign.service.ts';
+import { CampaignFactory } from '../providers/campaign.factory.ts';
+import { CampaignProvider } from '../providers/campaign.provider.ts';
+import { MessageProvider } from '../providers/message.provider.ts';
+import { ConnectlyCampaignProvider } from '../providers/connectly.campaign.provider.ts';
+import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provider.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
@@ -45,7 +45,7 @@ import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
   clevertapEntry: IClevertapMessage | undefined;
-  campaignService?: CampaignService;
+  campaignService?: CampaignProvider;
   utm: IUtm;
   utmCallToAction: IUtmCallToAction;
   utmCallToActions: IUtmCallToAction[];
@@ -186,7 +186,7 @@ const createShortLinks = async (
     const { key, response, campaignService } = obj as {
       key: string;
       response: { data?: { shortLink?: string } };
-      campaignService: CampaignService;
+      campaignService: CampaignProvider;
     };
     const data = (response?.data ?? { utm: {} }) as {
       utm: { websiteURL?: string; shortenURL?: string };
@@ -244,7 +244,7 @@ const reportMessagesToSlack = async (
       (preEntry) =>
         [preEntry.utm.campaignName, preEntry.campaignService] as [
           string,
-          CampaignService,
+          CampaignProvider,
         ],
     )
     .reduce(
@@ -336,9 +336,11 @@ const sendCampaingsToIntegrations = async (
 const splitPreEntries = (preEntries: IPreEntry[]) => {
   return preEntries.reduce(
     (acc, preEntry) => {
-      if (preEntry.campaignService instanceof ConnectlyCampaignService) {
+      if (preEntry.campaignService instanceof ConnectlyCampaignProvider) {
         acc[0].push(preEntry);
-      } else if (preEntry.campaignService instanceof ClevertapCampaignService) {
+      } else if (
+        preEntry.campaignService instanceof ClevertapCampaignProvider
+      ) {
         acc[1].push(preEntry);
       }
       return acc;
@@ -469,7 +471,7 @@ const generatePreEntries = (
 };
 
 const generateCallToActionPaths = (
-  messageServices: MessageService[],
+  messageServices: MessageProvider[],
   channel: CHANNEL,
   paths: string[],
   storeReferenceIds: number[],
