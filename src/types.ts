@@ -32,6 +32,7 @@ export type TypeCampaignByStatus = {
 
 export type TypeStore = {
   storeId: number;
+  storeStatus: STORE_STATUS;
   name: string;
   phone: string;
 };
