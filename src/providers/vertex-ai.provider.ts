@@ -9,6 +9,7 @@ import {
 import { Config } from '../config.ts';
 
 export abstract class VertexAIClient {
+  protected readonly maxRetries = 3;
   protected readonly vertexAI: VertexAI;
   protected readonly generativeModel: GenerativeModel;
   protected readonly generationConfig?: GenerationConfig;
@@ -38,14 +39,22 @@ export abstract class VertexAIClient {
 
   public async predictContent(
     userInstructions: Content,
+    retry = 1,
   ): Promise<Content | null> {
-    const resp = await this.generativeModel.generateContent({
-      contents: [userInstructions],
-      generationConfig: this.generationConfig,
-      systemInstruction: this.systemInstruction,
-    });
-    const { candidates = [] } = resp.response;
-    return candidates[0]?.content || null;
+    try {
+      const resp = await this.generativeModel.generateContent({
+        contents: [userInstructions],
+        generationConfig: this.generationConfig,
+        systemInstruction: this.systemInstruction,
+      });
+      const { candidates = [] } = resp.response;
+      return candidates[0]?.content || null;
+    } catch (error) {
+      console.error(error);
+      if (retry >= this.maxRetries) throw error;
+
+      return this.predictContent(userInstructions, retry + 1);
+    }
   }
 }
 

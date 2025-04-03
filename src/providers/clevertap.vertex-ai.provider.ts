@@ -62,7 +62,6 @@ const userInstructions: Content = {
 
 export class ClevertapPushNotificationAI extends VertexAIClient {
   private static instance: ClevertapPushNotificationAI | null = null;
-  private readonly maxRetries = 3;
   private readonly userInstructions: Content;
 
   private constructor() {
@@ -102,6 +101,7 @@ export class ClevertapPushNotificationAI extends VertexAIClient {
         outputJsonText,
       );
       if (retry >= this.maxRetries) throw new Error('Error parsing JSON');
+
       return this.generateContent(variables, retry + 1);
     }
   }
