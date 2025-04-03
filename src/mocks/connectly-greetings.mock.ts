@@ -1,6 +1,11 @@
 import { STORE_STATUS } from '../enums.ts';
 
-export const GREETINGS = {
+export const version = 'v2';
+
+export const GREETINGS: { [k in STORE_STATUS]: string[]} = {
+  [STORE_STATUS._default]: [
+    'Hola {{0}}! 👋 Más productos, más descuentos, más ahorro para ti 🔥 Las mejores marcas siguen aquí para ti 🔥',
+  ],
   [STORE_STATUS.Churn]: 
     [
       'Hey, {{0}}! Te extrañamos, vuelve y compra fácil con Chiper 💪 Miles de productos te esperan 🔥',

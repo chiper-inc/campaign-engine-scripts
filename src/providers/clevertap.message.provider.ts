@@ -2,8 +2,7 @@ import { IUtm } from '../integrations/interfaces.ts';
 import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-
-const getRandomNumber = (n: number): number => Math.floor(Math.random() * n);
+import * as UTILS from '../utils/index.ts';
 
 export class ClevertapMessageProvider extends MessageProvider {
   private readonly titleTemplate: string;
@@ -20,8 +19,8 @@ export class ClevertapMessageProvider extends MessageProvider {
       utm,
     );
 
-    const iTitle = getRandomNumber(MOCKS.titles[mainCampaign].length);
-    const iOffer = getRandomNumber(MOCKS.offers[mainCampaign].length);
+    const iTitle = UTILS.getRandomNumber(MOCKS.titles[mainCampaign].length);
+    const iOffer = UTILS.getRandomNumber(MOCKS.offers[mainCampaign].length);
     const messageNumber = (iTitle + 1) * 100 + iOffer + 1;
 
     const messageName = `${mainCampaign}_${
@@ -58,10 +57,10 @@ export class ClevertapMessageProvider extends MessageProvider {
     if (MOCKS.version === 'v2') {
       return {
         name: obj.name,
-        title: obj.title ?? this.replaceParams(this.titleTemplate, []),
+        title: obj.title ?? UTILS.replaceParams(this.titleTemplate, []),
         message:
           obj.message ??
-          this.replaceParams(this.offerTemplate, [
+          UTILS.replaceParams(this.offerTemplate, [
             obj.sku ?? '',
             obj.dsct ?? '',
           ]),
@@ -70,19 +69,12 @@ export class ClevertapMessageProvider extends MessageProvider {
     }
     return {
       name: obj.name,
-      title: this.replaceParams(this.titleTemplate, []),
-      message: this.replaceParams(this.offerTemplate, [
+      title: UTILS.replaceParams(this.titleTemplate, []),
+      message: UTILS.replaceParams(this.offerTemplate, [
         obj.sku ?? '',
         obj.dsct ?? '',
       ]),
       path: obj.path,
     };
-  }
-
-  private replaceParams(template: string, params: (string | number)[]): string {
-    return params.reduce(
-      (acc: string, param, i) => acc.replace(`{{${i}}}`, String(param)),
-      template,
-    );
   }
 }

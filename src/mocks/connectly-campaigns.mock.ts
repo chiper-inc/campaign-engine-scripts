@@ -34,7 +34,7 @@ export const connectlyCampaignMap: Map<string, ICampaignParameter[]> =
       variables = campaings[0].variables;
       paths = campaings[0].paths;
     } else {
-      variables = UTILS.NAME.concat(UTILS.generateParams(UTILS.SKU_DSCT_IMG, numCards));
+      variables = UTILS.NAME_SGMT.concat(UTILS.generateParams(UTILS.SKU_DSCT_IMG, numCards));
       paths = UTILS.generateParams(UTILS.PATH, numCards);
     }
     const i = campaings ? campaings.length + 1 : 1;

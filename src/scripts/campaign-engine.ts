@@ -522,6 +522,7 @@ const generateVariablesAndStoreReferenceIds = (
 } | null => {
   const typeMap: { [k: string]: string } = {
     name: 'store',
+    sgmt: 'store',
     sku: 'skus',
     dsct: 'skus',
     img: 'skus',
@@ -529,6 +530,7 @@ const generateVariablesAndStoreReferenceIds = (
   };
   const subTypeMap: { [k: string]: string } = {
     name: 'name',
+    sgmt: 'storeStatus',
     sku: 'reference',
     dsct: 'discountFormatted',
     img: 'image',
@@ -646,6 +648,7 @@ const getStore = (row: IStoreSuggestion): TypeStore => ({
   storeId: row.storeId,
   name: row.name,
   phone: row.phone,
+  storeStatus: row.storeStatus,
 });
 
 const getSku = (row: IStoreSuggestion): TypeSku => ({
