@@ -602,5 +602,3 @@ for (let i = 1; i <= maxMessagesPerCampaign; i++) {
     ],
   );
 }
-
-console.log('Clevertap Campaign Map:', clevertapCampaignMap);

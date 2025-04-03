@@ -58,6 +58,7 @@ const userInstructions: Content = {
 
 export class ClevertapPushNotificationAI extends VertexAIClient {
   private static instance: ClevertapPushNotificationAI | null = null;
+  private readonly maxRetries = 3;
   private readonly userInstructions: Content;
 
   private constructor() {
@@ -74,19 +75,30 @@ export class ClevertapPushNotificationAI extends VertexAIClient {
 
   public async generateContent(
     variables: TypeCampaignVariables,
+    retry: number = 1,
   ): Promise<TypeCampaignVariables | null> {
     if (!variables || !variables.name) return null;
 
-    let json = JSON.stringify(variables);
+    const inputJson = JSON.stringify(variables);
     const { parts, role } = this.userInstructions;
     const responseContent = await this.predictContent({
-      parts: [...parts, partFromText(`JSON: \`\`\`${json}\`\`\``)],
+      parts: [...parts, partFromText(`JSON: \`\`\`${inputJson}\`\`\``)],
       role,
     });
     if (responseContent === null) return null;
-    json = textFromParts(responseContent?.parts)
+    const outputJsonText = textFromParts(responseContent?.parts)
       .replace(/^```json/g, '')
       .replace(/```$/g, '');
-    return JSON.parse(json) as TypeCampaignVariables;
+    try {
+      return JSON.parse(outputJsonText) as TypeCampaignVariables;
+    } catch (error) {
+      console.error(
+        `Error parsing JSON (Retry = ${retry}):`,
+        error,
+        outputJsonText,
+      );
+      if (retry >= this.maxRetries) throw new Error('Error parsing JSON');
+      return this.generateContent(variables, retry + 1);
+    }
   }
 }
