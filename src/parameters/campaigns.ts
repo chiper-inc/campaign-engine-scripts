@@ -8,7 +8,7 @@ import { TypeStoreParams } from '../types.ts';
 export const getCampaignSegmentName = (params: TypeStoreParams): string => {
   const { storeStatus, storeValue, from, to } = params;
   const storeValueKey = storeValue ? `.${storeValue}` : '';
-  const timeRangeKey = from || to ? `.${from ?? 'Any'}-${to ?? 'Any'}` : '';
+  const timeRangeKey = from || to ? `.${from ?? 'Any'}to${to ?? 'Any'}` : '';
   return `${storeStatus}${storeValueKey}${timeRangeKey}`;
 };
 

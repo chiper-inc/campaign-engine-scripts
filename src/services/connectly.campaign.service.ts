@@ -53,4 +53,8 @@ export class ConnectlyCampaignService extends CampaignService {
     }&utm_term=${utm.campaignTerm || ''}`;
     return `${url.split('/').slice(3)}?${queryParams}`; // remove protocol and hostname
   }
+
+  public getMessageName(): string {
+    return `${this.messageValues[0]?.messageName ?? ''}`;
+  }
 }

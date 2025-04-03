@@ -38,7 +38,6 @@ import { CampaignService } from '../services/campaign.service.ts';
 import { MessageService } from '../services/message.service.ts';
 import { ConnectlyCampaignService } from '../services/connectly.campaign.service.ts';
 import { ClevertapCampaignService } from '../services/clevertap.campaign.service.ts';
-import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
@@ -104,14 +103,14 @@ async function main({
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
       IConnectlyEntry[][]
     >,
-    reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries, true),
+    reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries),
   ]);
   const [clevertapCampaigns] = await Promise.all([
     outputIntegrationMessages(
       CHANNEL.PushNotification,
       clevertapEntries,
     ) as Promise<IClevertapMessage[][]>,
-    reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries, false),
+    reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries),
   ]);
   await sendCampaingsToIntegrations(
     connectlyMessages,
@@ -239,35 +238,36 @@ const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
 const reportMessagesToSlack = async (
   channel: CHANNEL,
   preEntries: IPreEntry[],
-  includeMessageNumber: boolean,
 ): Promise<void> => {
   const summaryMap = preEntries
-    .map((preEntry) => preEntry.utm.campaignName)
+    .map(
+      (preEntry) =>
+        [preEntry.utm.campaignName, preEntry.campaignService] as [
+          string,
+          CampaignService,
+        ],
+    )
     .reduce(
-      (acc, name) => {
-        const [cityId, , , , , , status, campaingName] = name.split('_');
-        const message = includeMessageNumber
-          ? campaingName.split('-')[2]
-          : MOCKS.version === 'v2'
-            ? 'GenAI'
-            : 'Random';
+      (acc, [name, campaignService]) => {
+        const [cityId, , , , , , status] = name.split('_');
 
-        let key = `${CITY_NAME[cityId]}|${status}|${message}`;
-        let value = acc.locationSegmentMessageMap.get(key) || 0;
-        acc.locationSegmentMessageMap.set(key, value + 1);
+        const message = campaignService.getMessageName();
+        const keyLocation = `${CITY_NAME[cityId]}|${status}|${message}`;
+        let value = acc.locationSegmentMessageMap.get(keyLocation) || 0;
+        acc.locationSegmentMessageMap.set(keyLocation, value + 1);
 
-        key = campaingName.replace(/[^a-zA-Z0-9.]/g, '_');
-        value = acc.messageMap.get(key) || 0;
-        acc.messageMap.set(key, value + 1);
+        const keyChannel = `${status}`;
+        value = acc.channelSegmentMap.get(keyChannel) || 0;
+        acc.channelSegmentMap.set(keyChannel, value + 1);
         return acc;
       },
       {
         locationSegmentMessageMap: new Map(),
-        messageMap: new Map(),
+        channelSegmentMap: new Map(),
       },
     );
 
-  const summaryMessage = Array.from(summaryMap.messageMap.entries())
+  const summaryMessage = Array.from(summaryMap.channelSegmentMap.entries())
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([messageName, qty]) => {
       return { messageName, qty };
@@ -383,10 +383,10 @@ const assignCampaignAndUtm = (
     const utm = getUtm(
       params,
       day,
-      campaign.name,
-      getCampaignSegmentName(params),
+      // getCampaignSegmentName(params),
+      // campaign.name,
     );
-    console.log({ utm });
+    // console.log({ utm });
     newStoreMap.set(storeId, {
       ...storeRecomendation,
       campaign,
@@ -693,15 +693,18 @@ const getCampaignRange = (
 };
 
 const getUtm = (
-  { locationId, communicationChannel }: TypeStoreParams,
+  params: TypeStoreParams,
   day: number,
-  name: string,
-  segment: string | null,
+  // name: string,
+  // segment: string | null,
 ) => {
   const channelMap: { [k in CHANNEL]: string } = {
     [CHANNEL.WhatsApp]: 'WA',
     [CHANNEL.PushNotification]: 'PN',
   };
+
+  const segment = getCampaignSegmentName(params);
+  const { communicationChannel, locationId } = params;
   const asset = channelMap[communicationChannel] ?? 'XX';
   const payer = '1'; // Fix value
   const type = 'ot';
@@ -710,10 +713,7 @@ const getUtm = (
   const term = UTILS.formatDDMMYY(date); // DDMMYY
   const campaign = `${UTILS.getCityId(locationId)}_${UTILS.getCPG(locationId)}_${
     asset
-  }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}_${name.replace(
-    /[^a-zA-Z0-9.]/g,
-    '-',
-  )}`;
+  }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}`;
   const source =
     `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
   const content = UUID; // uuid

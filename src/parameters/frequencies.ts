@@ -8,7 +8,7 @@ export const getLocationStatusRangeKey = (
 ): string => {
   const { locationId, storeStatus, from, to, communicationChannel } =
     frequencyParameter;
-  const timeRange = from || to ? `${from ?? 'Any'}-${to ?? 'Any'}` : null;
+  const timeRange = from || to ? `${from ?? 'Any'}to${to ?? 'Any'}` : null;
   return `${communicationChannel}|${locationId}|${storeStatus}|${timeRange ?? ''}`;
 };
 

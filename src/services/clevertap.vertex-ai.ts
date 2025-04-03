@@ -34,7 +34,7 @@ const userInstructions: Content = {
       Cree una mensaje promocional de Chiper hacia el comerciante mediante una PushNofication, 
       compuesta por un 'título' y un mensaje para cada 'producto'.
 
-      El mensaje para cada 'producto' en la 'PushNotification' debe ser una frase con máximo 15 palabras. 
+      El mensaje para cada 'producto' en la 'PushNotification' debe ser una frase con máximo 20 palabras. 
       la frase debe ser una redacción mejorada con la combinación de: 
       'descripción', 'marca', 'presentación' y el 'descuento' correspondiente en forma promocional para la 
       reventa por parte del comerciante, y debe estar precedido por un emoji relacionado al 'producto'.

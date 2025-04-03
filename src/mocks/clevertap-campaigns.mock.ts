@@ -536,7 +536,11 @@ export const offers: { [k: string]: string[] } = {
   ],
 }
 
-export const version: string = 'v1';
+// CONSTANTS
+
+export const version: string = 'v2';
+export const maxMessagesPerCampaign: number = 5;
+const MAX_LENGTH = 41;
 
 export const campaignIds: { [k: string]: string }= {
   'API_Retained': '1742937356',
@@ -564,8 +568,6 @@ export const campaignIds: { [k: string]: string }= {
   'API_Hibernating.Low': '1742937080',
 };
 
-const MAX_LENGTH = 41;
-
 for (const key in titles) {
   const template = titles[key];
   if (template.length > MAX_LENGTH) {
@@ -588,12 +590,12 @@ const getClevertapCampaignKey = (num: number, lng = 'es') => (`${PROVIDER.Clever
 
 export const clevertapCampaignMap = new Map<string, ICampaignParameter[]>();
 
-for (let i = 2; i <= 6; i++) {
+for (let i = 1; i <= maxMessagesPerCampaign; i++) {
   clevertapCampaignMap.set(getClevertapCampaignKey(i), 
     [
       {
         provider: PROVIDER.Clevertap,
-        name: `API_PN_${i}_es_v1`, variables: 
+        name: `API_Clevertap.${i}_es_${version}`, variables: 
         UTILS.NAME.concat(UTILS.generateParams(UTILS.SKU_DSCT, i)),
         paths: UTILS.generateParams(UTILS.PATH, i),
       }

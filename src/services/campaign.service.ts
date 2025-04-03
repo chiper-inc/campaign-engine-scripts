@@ -25,6 +25,8 @@ export abstract class CampaignService {
 
   public abstract setMessagesVariables(): Promise<this>;
 
+  public abstract getMessageName(): string;
+
   public get integrationBody(): unknown[] {
     return this.messageValues.map((message) => message.integrationBody);
   }

@@ -5,20 +5,20 @@ export abstract class MessageService {
   protected utmValue: IUtm;
   protected varValues: TypeCampaignVariables;
   protected readonly lng: string;
-  protected readonly messageNumber: number;
+  protected readonly message: string;
   protected readonly campaignId: string;
 
   protected constructor(
-    campaigId: string,
-    messageNumber: number,
+    campaignId: string,
+    messageName: string,
     utm: IUtm,
     lng = 'es',
   ) {
     this.lng = lng;
     this.utmValue = { ...utm };
     this.varValues = {};
-    this.campaignId = campaigId;
-    this.messageNumber = messageNumber;
+    this.campaignId = campaignId;
+    this.message = messageName;
   }
 
   public get utm(): IUtm {
@@ -27,6 +27,10 @@ export abstract class MessageService {
 
   public set utm(utm: IUtm) {
     this.utmValue = utm;
+  }
+
+  public get messageName(): string {
+    return this.message;
   }
 
   public abstract setVariables(vars: TypeCampaignVariables): this;

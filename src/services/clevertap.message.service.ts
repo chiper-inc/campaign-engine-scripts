@@ -10,25 +10,34 @@ export class ClevertapMessageService extends MessageService {
   private readonly offerTemplate: string;
   private readonly identity: string;
 
-  constructor(store: TypeStore, campaignName: string, utm: IUtm) {
-    const iTitle = getRandomNumber((MOCKS.titles[campaignName] ?? []).length);
-    const iOffer = getRandomNumber((MOCKS.offers[campaignName] ?? []).length);
+  constructor(store: TypeStore, _: string, utm: IUtm) {
+    const campaignName = utm.campaignName.split('_').slice(-1)[0] ?? '';
+    const mainCampaign = `API_${campaignName.split('.')[0] ?? 'XYZ'}`;
+
+    super(
+      MOCKS.campaignIds[mainCampaign] || mainCampaign,
+      MOCKS.version === 'v1' ? 'Random' : 'GenAI',
+      utm,
+    );
+
+    const iTitle = getRandomNumber(MOCKS.titles[mainCampaign].length);
+    const iOffer = getRandomNumber(MOCKS.offers[mainCampaign].length);
     const messageNumber = (iTitle + 1) * 100 + iOffer + 1;
 
-    const [mainCampaign] = campaignName.split('.');
+    const messageName = `${mainCampaign}_${
+      MOCKS.version === 'v1' ? String(messageNumber) : 'GenAI'
+    }_${this.lng}_${MOCKS.version}`;
 
-    const campaignId = MOCKS.campaignIds[mainCampaign] || mainCampaign;
-    super(campaignId, messageNumber, utm);
-
-    this.utm.campaignName = `${utm.campaignName}-${
-      messageNumber
-    }-${this.lng}-${MOCKS.version}`;
+    this.utm.campaignName = `${utm.campaignName}_${messageName.replace(/_/g, '-')}`;
     this.titleTemplate = MOCKS.titles[mainCampaign][iTitle];
     this.offerTemplate = MOCKS.offers[mainCampaign][iOffer];
     this.identity = `uuId-${store.storeId}-uuId`;
+    // console.log('UTM PN: ', JSON.stringify(this.utm));
   }
 
   public setVariables(vars: TypeCampaignVariables): this {
+    // console.log('this:', this, 'vars: ', vars);
+
     this.varValues = this.generateClevertapExternalTriger(vars);
     return this;
   }

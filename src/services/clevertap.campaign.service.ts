@@ -9,13 +9,13 @@ export class ClevertapCampaignService extends CampaignService {
   constructor(
     store: TypeStore,
     campaignName: string,
-    varibales: TypeCampaignVariables,
+    variables: TypeCampaignVariables,
     utm: IUtm,
     lng: string,
   ) {
-    super(varibales, lng);
-    const n = MOCKS.version === 'v2' ? 6 : 3;
-    for (let i = 0; i < n; i++) {
+    super(variables, lng);
+    const n = MOCKS.maxMessagesPerCampaign;
+    for (let i = 1; i <= n && variables[`sku_${i}`]; i++) {
       this.messageValues.push(
         new ClevertapMessageService(store, campaignName, utm),
       );
@@ -72,10 +72,13 @@ export class ClevertapCampaignService extends CampaignService {
     const getTitle = (titles: string[], i: number): string =>
       titles[i % titles.length];
 
-    const getProductMessage = (products: string[], i: number): string => {
-      const offset = Math.ceil(products.length / 2);
-      return `${products[i % products.length]}\n${products[(i + offset) % products.length]}`;
-    };
+    const getProductMessage = (products: string[], i: number): string =>
+      products[i % products.length];
+
+    // const getProductMessage = (products: string[], i: number): string => {
+    //   const offset = Math.ceil(products.length / 2);
+    //   return `${products[i % products.length]}\n${products[(i + offset) % products.length]}`;
+    // };
 
     variables.forEach((variable, i) => {
       variable.title = getTitle(titles, i);
@@ -105,5 +108,9 @@ export class ClevertapCampaignService extends CampaignService {
     return Array.from(map.entries())
       .sort(([a], [b]) => a - b)
       .map(([, value]) => ({ ...common, ...value }));
+  }
+
+  public getMessageName(): string {
+    return MOCKS.version === 'v2' ? 'GenAI' : 'Random';
   }
 }
