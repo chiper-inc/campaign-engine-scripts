@@ -35,7 +35,8 @@ export const userInstructionsConnectlyCarousel: Content = {
       El mensaje para cada 'producto' en la 'Whatapp' debe ser una frase con máximo 20 palabras. 
       la frase debe ser una redacción mejorada con la combinación de: 
       'descripción', 'marca', 'presentación' y el 'descuento' correspondiente en forma promocional para la 
-      reventa por parte del comerciante, y debe estar precedido por un emoji relacionado al 'producto'.
+      reventa por parte del comerciante, debe estar precedido por un emoji relacionado al 'producto', y 
+      la información del 'descuento' debe ir entre \`\`\`*\`\`\` (Bolded in markdown).
     `),
     // partFromText(`
     //   Se debe generar 1 'titulo' por cada 2 'productos' en la 'PushNotification'.
@@ -66,7 +67,7 @@ export const userInstructionsClevertapPushNotification: Content = {
       El mensaje para cada 'producto' en la 'PushNotification' debe ser una frase con máximo 20 palabras. 
       la frase debe ser una redacción mejorada con la combinación de: 
       'descripción', 'marca', 'presentación' y el 'descuento' correspondiente en forma promocional para la 
-      reventa por parte del comerciante, y debe estar precedido por un emoji relacionado al 'producto'.
+      reventa por parte del comerciante, y debe estar precedido por un emoji relacionado al 'producto'
       
       El 'título' de la 'PushNotification' debe ser un frase promocional de maximmo 6 palabras,
       que invitan al comerciante a aprovechar la oferta, y debe estar acompañado por un emoji relacionado al título. 

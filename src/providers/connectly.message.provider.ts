@@ -11,10 +11,12 @@ export class ConnectlyMessageProvider extends MessageProvider {
   constructor(store: TypeStore, campaignName: string, utm: IUtm) {
     const [, messageClass, messageNumber] = campaignName.split('_');
     const campaignId = campaignName.replace(/_/g, ' ').toLowerCase();
-    const greetings = MOCKS.GREETINGS[store.storeStatus] || MOCKS.GREETINGS[STORE_STATUS._default];
-    
+    const greetings =
+      MOCKS.GREETINGS[store.storeStatus] ||
+      MOCKS.GREETINGS[STORE_STATUS._default];
+
     super(campaignId, `${messageClass}.${messageNumber}`, utm);
-    
+
     this.greetingTemplate = greetings[UTILS.getRandomNumber(greetings.length)];
     this.client = `+${store.phone}`;
     this.utm.campaignName = `${this.utm.campaignName}_${campaignName.replace(/_/g, '-')}`;
@@ -37,14 +39,14 @@ export class ConnectlyMessageProvider extends MessageProvider {
     obj: TypeCampaignVariables,
   ): TypeCampaignVariables {
     if (MOCKS.version === 'v2') {
-      const greetings = MOCKS.GREETINGS[obj.sgmt as STORE_STATUS] || MOCKS.GREETINGS[STORE_STATUS._default];
-      const greetingTemplate = greetings[UTILS.getRandomNumber(greetings.length)];
-
-      const vars: TypeCampaignVariables = {
-        greeting: UTILS.replaceParams(greetingTemplate, [obj.name]),
-      }
+      const vars: TypeCampaignVariables = { greeting: obj.greeting };
       for (const key in obj) {
-        if (key.startsWith('path') || key.startsWith('sku')) {
+        if (
+          key.startsWith('path') ||
+          key.startsWith('sku') ||
+          key.startsWith('img') ||
+          key.startsWith('greeting')
+        ) {
           vars[key] = obj[key];
         }
       }

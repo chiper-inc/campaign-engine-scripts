@@ -2,6 +2,7 @@ import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
+import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
 
 export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
@@ -18,9 +19,22 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
   }
 
   public async setMessagesVariables(): Promise<this> {
+    const carouselContentGenerator =
+      ConnectlyCarouselNotificationAI.getInstance();
+    const carouselContent = (await carouselContentGenerator.generateContent(
+      this.variableValues,
+    )) as unknown as { greeting: string; products: string[] };
+
+    console.log({ carouselContent });
+    const products: TypeCampaignVariables = {};
+    for (let i = 0; i < carouselContent.products.length; i++) {
+      products[`sku_${i + 1}`] = carouselContent.products[i];
+    }
+
     this.messageValues.forEach((message) => {
-      message.setVariables(this.variableValues);
+      message.setVariables({ ...this.variableValues, ...products, greeting: carouselContent.greeting });
     });
+
     return Promise.resolve(this);
   }
 

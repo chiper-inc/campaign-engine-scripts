@@ -8,7 +8,10 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
   private readonly userInstructions: Content;
 
   private constructor() {
-    super(PROMPTS.systemInstruction, { maxOutputTokens: 1024, temperature: 1.0 });
+    super(PROMPTS.systemInstruction, {
+      maxOutputTokens: 1024,
+      temperature: 1.0,
+    });
     this.userInstructions = PROMPTS.userInstructionsClevertapPushNotification;
   }
 
@@ -28,7 +31,10 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
     const inputJson = JSON.stringify(variables);
     const { parts, role } = this.userInstructions;
     const responseContent = await this.predictContent({
-      parts: [...parts, VERTEX_AI.partFromText(`JSON: \`\`\`${inputJson}\`\`\``)],
+      parts: [
+        ...parts,
+        VERTEX_AI.partFromText(`JSON: \`\`\`${inputJson}\`\`\``),
+      ],
       role,
     });
     if (responseContent === null) return null;

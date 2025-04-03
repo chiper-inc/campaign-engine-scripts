@@ -56,7 +56,6 @@ export abstract class VertexAIClient {
       return this.predictContent(userInstructions, retry + 1);
     }
   }
-
 }
 
 export const partFromText = (text: string): TextPart => ({

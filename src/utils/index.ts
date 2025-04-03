@@ -36,14 +36,18 @@ export const formatDDMMYY = (date: Date): string => {
 export const formatYYYYMMDD = (date: Date): string =>
   date.toISOString().slice(0, 10);
 
-export const replaceParams = (template: string, params: (string | number)[]): string => {
+export const replaceParams = (
+  template: string,
+  params: (string | number)[],
+): string => {
   return params.reduce(
     (acc: string, param, i) => acc.replace(`{{${i}}}`, String(param)),
     template,
   );
-}
+};
 
-export const getRandomNumber = (n: number): number => Math.floor(Math.random() * n);
+export const getRandomNumber = (n: number): number =>
+  Math.floor(Math.random() * n);
 
 export const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
 

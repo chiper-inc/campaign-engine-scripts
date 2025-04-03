@@ -139,5 +139,3 @@ export const GREETINGS: { [k in STORE_STATUS]: string[]} = {
       'Un gusto hablarte, {{0}}! ¡Activa tu cuenta y haz tu pedido ahora! 🚀 Empieza tu camino con Chiper y crece con nosotros 🚀',
     ]
 }
-
-console.log(GREETINGS);
