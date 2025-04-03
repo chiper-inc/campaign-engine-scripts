@@ -571,12 +571,12 @@ const generateVariablesAndStoreReferenceIds = (
 const getVariableFromStore = (
   variable: string,
   store: TypeStore,
-  varName: string = '_',
+  varName: string = '-',
 ): TypeCampaignVariables => {
   const value =
-    (store as TypeCampaignVariables)[varName ?? '-'] ?? `Store[${variable}]`;
+    (store as TypeCampaignVariables)[varName || '-'] ?? `Store[${variable}]`;
   return {
-    [variable]: UTILS.removeExtraSpaces(value),
+    [variable]: UTILS.removeExtraSpaces(value) || 'Visitante',
   };
 };
 
