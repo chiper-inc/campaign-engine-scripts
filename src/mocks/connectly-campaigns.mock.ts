@@ -38,7 +38,7 @@ export const connectlyCampaignMap: Map<string, ICampaignParameter[]> =
       paths = UTILS.generateParams(UTILS.PATH, numCards);
     }
     const i = campaings ? campaings.length + 1 : 1;
-    const name = `API_Carrossel.${numCards}_${i}_${lng}_${version}`;
+    const name = `API_Carousel.${numCards}_${i}_${lng}_${version}`;
     campaings.push(
       { provider: PROVIDER.Connectly, name, variables, paths },
     )

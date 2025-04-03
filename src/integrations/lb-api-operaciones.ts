@@ -65,9 +65,7 @@ export class LbApiOperacionesIntegration {
     }, [] as IShortLinkPayloadAndKey[][]);
   }
 
-  async createAllShortLink(
-    payloadsAndKeys: IShortLinkPayloadAndKey[],
-  ): Promise<
+  async createAllShortLink(payloadsAndKeys: IShortLinkPayloadAndKey[]): Promise<
     {
       key: string;
       /* campaignService: CampaignProvider, */ response: unknown;

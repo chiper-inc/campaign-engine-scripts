@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 // Constants
 
 import * as UTILS from '../utils/index.ts';
+import * as CLEVERATAP from '../mocks/clevertap-campaigns.mock.ts';
 import { Config } from '../config.ts';
 import {
   // campaignsBySatatus,
@@ -381,14 +382,10 @@ const assignCampaignAndUtm = (
   for (const [storeId, storeRecomendation] of storeMap.entries()) {
     const { params, skus } = storeRecomendation;
     const campaign = getCampaignRange(params, day, skus.length);
+
     if (!campaign) continue;
-    const utm = getUtm(
-      params,
-      day,
-      // getCampaignSegmentName(params),
-      // campaign.name,
-    );
-    // console.log({ utm });
+
+    const utm = getUtm(params, day);
     newStoreMap.set(storeId, {
       ...storeRecomendation,
       campaign,
@@ -661,8 +658,47 @@ const getSku = (row: IStoreSuggestion): TypeSku => ({
 const getCampaignRange = (
   { communicationChannel, locationId }: TypeStoreParams,
   day: number,
-  numberOfSkus: number,
+  numberOfAvailableSkus: number,
 ): TypeCampaignEntry | null => {
+  const generateArray = (n: number): number[] => {
+    const arr = [];
+    for (let i = 1; i <= n; i++) {
+      arr.push(i);
+    }
+    return arr;
+  };
+
+  const adjustToMessageConstraint = (channel: CHANNEL, n: number): number => {
+    const MESSAGE_CONSTRAINT = {
+      [CHANNEL.WhatsApp]: [2, 4],
+      [CHANNEL.PushNotification]: generateArray(
+        CLEVERATAP.maxMessagesPerCampaign,
+      ),
+    };
+    const options = MESSAGE_CONSTRAINT[channel] ?? [];
+    if (!options.length) return 0;
+
+    const min = Math.min(...options);
+    const max = Math.max(...options);
+
+    if (n < min) return 0; // No hay productos suficientes
+    if (n > max) return max; // Se toma la cantidad maxima de productos
+
+    let resp = min;
+    for (const option of options) {
+      if (resp < option && option <= n) {
+        resp = option;
+      }
+    }
+    return resp;
+  };
+
+  const numberOfSkus = adjustToMessageConstraint(
+    communicationChannel,
+    numberOfAvailableSkus,
+  );
+  if (!numberOfSkus) return null;
+
   const campaigns = campaignMap.get(
     getCampaignKey({
       communicationChannel,

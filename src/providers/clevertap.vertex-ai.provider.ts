@@ -98,6 +98,7 @@ export class ClevertapPushNotificationAI extends VertexAIClient {
       console.error(
         `Error parsing JSON (Retry = ${retry}):`,
         error,
+        inputJson,
         outputJsonText,
       );
       if (retry >= this.maxRetries) throw new Error('Error parsing JSON');
