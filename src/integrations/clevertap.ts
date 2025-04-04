@@ -24,7 +24,7 @@ export class ClevertapIntegration {
     };
     this.batchSize = Config.clevertap.batchSize;
     this.backoffSecondsStep = UTILS.isProduction() ? 3600 /* 60m */ : 15 /* 15s */;
-    this.logger = new LoggingProvider({ context: ClevertapIntegration.name });
+    this.logger = new LoggingProvider({ context: ClevertapIntegration.name, levels: ['warn', 'error'] });
     this.logger.log({
       message: 'ClevertapIntegration initialized',
       data: {
@@ -121,6 +121,9 @@ export class ClevertapIntegration {
           functionName,
           data: { batchSize: this.batchSize, numBatch, totalBatches },
         })
+        await UTILS.sleep(
+          1000 + Math.floor((Math.random() * 1000) / 2),
+        );  
         promises.length = 0;
       }
     }

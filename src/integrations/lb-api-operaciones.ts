@@ -3,8 +3,7 @@ import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { sleep } from '../utils/index.ts';
 
 export class LbApiOperacionesIntegration {
   private readonly url;

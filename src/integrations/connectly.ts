@@ -115,7 +115,8 @@ export class ConnectlyIntegration {
       this.logger.error({
         functionName,
         message: `Rejection ${idx}`,
-        data: rejection,
+        error: new Error('Rejection'),
+        data: { rejection },
       });
     });
   }

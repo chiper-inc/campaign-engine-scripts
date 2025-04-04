@@ -63,6 +63,8 @@ export const isProduction = (): boolean => {
   return Config.environment.toLowerCase() === 'production';
 };
 
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // File Utilities
 
 const filePath = (filename: string): string => {
