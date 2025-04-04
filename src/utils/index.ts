@@ -3,6 +3,7 @@ import * as path from 'path';
 
 import { BASE_DATE, CITY, CPG } from '../constants.ts';
 import { LOCATION } from '../enums.ts';
+import { Config } from '../config.ts';
 
 export const daysFromBaseDate = (date: Date): number =>
   Math.trunc(((date as unknown as number) - BASE_DATE) / (1000 * 60 * 60 * 24));
@@ -55,6 +56,12 @@ export const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
 
 export const removeExtraSpaces = (val: string | number): string | number =>
   typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val;
+
+// Environment utilities
+
+export const isProduction = (): boolean => {
+  return Config.environment.toLowerCase() === 'production';
+};
 
 // File Utilities
 

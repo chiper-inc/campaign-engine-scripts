@@ -8,11 +8,16 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
   private readonly userInstructions: Content;
 
   private constructor() {
-    super(PROMPTS.systemInstruction, {
-      maxOutputTokens: 1024,
-      temperature: 1.0,
-    });
+    super(
+      PROMPTS.systemInstruction, 
+      { maxOutputTokens: 1024, temperature: 1.0 },
+      { context: ClevertapPushNotificationAI.name },
+    );
     this.userInstructions = PROMPTS.userInstructionsClevertapPushNotification;
+    this.logger.log({
+      message: 'ClevertapPushNotificationAI initialized',
+      data: { userInstructions: this.userInstructions },
+    });
   }
 
   public static getInstance(): ClevertapPushNotificationAI {
@@ -44,13 +49,13 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
     try {
       return JSON.parse(outputJsonText) as TypeCampaignVariables;
     } catch (error) {
-      console.error(
-        `Error parsing JSON (Retry = ${retry}):`,
-        error,
-        inputJson,
-        outputJsonText,
-      );
-      if (retry >= this.maxRetries) throw new Error('Error parsing JSON');
+      this.logger.error({
+        functionName: this.generateContent.name,
+        message: 'Error parsing JSON response',
+        error: new Error(error as string),
+        data: { retry, inputJson, outputJsonText },
+      });
+      if (retry >= this.maxRetries) throw new Error(error as string);
 
       return this.generateContent(variables, retry + 1);
     }

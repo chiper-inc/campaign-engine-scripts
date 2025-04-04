@@ -15,7 +15,7 @@ export class ConnectlyMessageProvider extends MessageProvider {
       MOCKS.GREETINGS[store.storeStatus] ||
       MOCKS.GREETINGS[STORE_STATUS._default];
 
-    super(campaignId, `${messageClass}.${messageNumber}`, utm);
+    super(campaignId, `${messageClass}_${messageNumber}`, utm);
 
     this.greetingTemplate = greetings[UTILS.getRandomNumber(greetings.length)];
     this.client = `+${store.phone}`;

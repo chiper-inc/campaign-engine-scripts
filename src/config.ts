@@ -6,6 +6,9 @@ dotenv.config();
 
 export const Config = {
   environment: env.ENVIRONMENT ?? 'development',
+  logging:{ 
+    level: ['error'],
+  },
   connectly: {
     apiKey: process.env.CONNECTLY_API_KEY ?? '',
     apiUrl: process.env.CONNECTLY_API_URL ?? '',

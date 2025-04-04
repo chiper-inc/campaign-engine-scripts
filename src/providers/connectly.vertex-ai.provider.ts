@@ -15,11 +15,16 @@ export class ConnectlyCarouselNotificationAI extends VertexAIClient {
   private readonly userInstructions: Content;
 
   private constructor() {
-    super(PROMPTS.systemInstruction, {
-      maxOutputTokens: 1024,
-      temperature: 1.0,
-    });
+    super(
+      PROMPTS.systemInstruction, 
+      { maxOutputTokens: 1024, temperature: 1.0 },
+      { context: ConnectlyCarouselNotificationAI.name }
+    );
     this.userInstructions = PROMPTS.userInstructionsConnectlyCarousel;
+    this.logger.log({
+      message: 'ConnectlyCarouselNotificationAI initialized',
+      data: { userInstructions: this.userInstructions },
+    });
   }
 
   public static getInstance(): ConnectlyCarouselNotificationAI {
@@ -59,12 +64,12 @@ export class ConnectlyCarouselNotificationAI extends VertexAIClient {
       const parsedJson = JSON.parse(outputJsonText) as { products: string[] };
       return { greeting, ...parsedJson };
     } catch (error) {
-      console.error(
-        `Error parsing JSON (Retry = ${retry}):`,
-        error,
-        inputJson,
-        outputJsonText,
-      );
+      this.logger.error({
+        functionName: this.generateContent.name,
+        message: 'Error parsing JSON response',
+        error: new Error(error as string),
+        data: { retry, inputJson, outputJsonText },
+      });
       if (retry >= this.maxRetries) throw new Error('Error parsing JSON');
 
       return this.generateContent(variables, retry + 1);
