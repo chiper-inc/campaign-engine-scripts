@@ -2,6 +2,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { IStoreSuggestion } from './interfaces.ts';
 import { IFrequencyParameter } from '../mocks/interfaces.ts';
 import { CHANNEL, LOCATION, STORE_STATUS } from '../enums.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 
 export interface ILocationRange {
   locationId: number;
@@ -12,6 +13,7 @@ export interface ILocationRange {
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
   private readonly defaultOptions: object;
+  private readonly logger: LoggingProvider;
   private readonly storeValueSegment = `
     IF (MG.storeStatus = 'New', 
       CASE
@@ -53,6 +55,7 @@ export class BigQueryRepository {
     this.defaultOptions = {
       location: 'US',
     };
+    this.logger = new LoggingProvider({ context: BigQueryRepository.name});
   }
 
   public selectStoreSuggestions(
@@ -88,30 +91,54 @@ export class BigQueryRepository {
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 750
-      -- OFFSET 10000
+      LIMIT 750
+      OFFSET 10000
     `;
 
-    // console.error('<Query>', query, '</Query>');
+    this.logger.log({
+      functionName: this.selectStoreSuggestions.name,
+      message: 'Executing BigQuery',
+      data: {
+        query,
+        channels,
+        storeStatus,
+        churnRanges,
+      },
+    })
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 
   private async executeQueryBigQuery(query: string): Promise<unknown[]> {
+    const functionName = this.executeQueryBigQuery.name;
     const options = {
       ...this.defaultOptions,
       query,
     };
 
     try {
-      console.error('Big Query');
+      this.logger.warn({ 
+        message: 'Executing BigQuery',
+        functionName,
+      })
       const [job] = await this.bigquery.createQueryJob(options);
-      console.error(`Job ${job.id} started.`);
+      this.logger.warn({ 
+        message: `Job ${job.id} started.`,
+        functionName,
+      })
 
       const [rows] = await job.getQueryResults();
-      console.error(`Job ${job.id} Results: ${rows.length}`);
+      this.logger.warn({ 
+        message: `Job ${job.id} Results: ${rows.length}`,
+        functionName,
+      })
       return rows;
     } catch (error) {
-      console.error('ERROR:', error);
+      this.logger.error({
+        message: 'Error executing BigQuery',
+        functionName,
+        error: new Error(error as string),
+        data: { query },
+      });
       throw error;
     }
   }

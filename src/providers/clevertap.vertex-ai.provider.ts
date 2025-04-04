@@ -31,6 +31,8 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
     variables: TypeCampaignVariables,
     retry: number = 1,
   ): Promise<TypeCampaignVariables | null> {
+    const functionName = this.generateContent.name;
+
     if (!variables || !variables.name) return null;
 
     const inputJson = JSON.stringify(variables);
@@ -50,7 +52,7 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
       return JSON.parse(outputJsonText) as TypeCampaignVariables;
     } catch (error) {
       this.logger.error({
-        functionName: this.generateContent.name,
+        functionName,
         message: 'Error parsing JSON response',
         error: new Error(error as string),
         data: { retry, inputJson, outputJsonText },

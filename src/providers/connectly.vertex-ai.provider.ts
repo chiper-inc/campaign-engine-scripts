@@ -39,6 +39,8 @@ export class ConnectlyCarouselNotificationAI extends VertexAIClient {
     variables: TypeCampaignVariables,
     retry: number = 1,
   ): Promise<{ greeting: string; products: string[] } | null> {
+    const functionName = this.generateContent.name;
+
     if (!variables || !variables.name) return null;
 
     const inputJson = JSON.stringify(variables);
@@ -65,7 +67,7 @@ export class ConnectlyCarouselNotificationAI extends VertexAIClient {
       return { greeting, ...parsedJson };
     } catch (error) {
       this.logger.error({
-        functionName: this.generateContent.name,
+        functionName,
         message: 'Error parsing JSON response',
         error: new Error(error as string),
         data: { retry, inputJson, outputJsonText },

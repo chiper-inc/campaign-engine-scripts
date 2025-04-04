@@ -2,6 +2,8 @@ import { CloudTask } from './cloud-task.ts';
 
 import { Config } from '../config.ts';
 import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
+import * as UTILS from '../utils/index.ts';
 
 export class ClevertapIntegration {
   private readonly url: string;
@@ -10,6 +12,7 @@ export class ClevertapIntegration {
   private readonly queueName: string;
   private readonly backoffSecondsStep: number;
   private readonly batchSize: number;
+  private logger: LoggingProvider;
 
   constructor() {
     this.url = Config.clevertap.apiUrl;
@@ -20,8 +23,18 @@ export class ClevertapIntegration {
       'Content-Type': 'application/json',
     };
     this.batchSize = Config.clevertap.batchSize;
-    this.backoffSecondsStep =
-      Config.environment === 'production' ? 3600 /* 60m */ : 15 /* 15s */;
+    this.backoffSecondsStep = UTILS.isProduction() ? 3600 /* 60m */ : 15 /* 15s */;
+    this.logger = new LoggingProvider({ context: ClevertapIntegration.name });
+    this.logger.log({
+      message: 'ClevertapIntegration initialized',
+      data: {
+        url: this.url,
+        queueName: this.queueName,
+        accountId: this.headers['X-CleverTap-Account-Id'],
+        batchSize: this.batchSize,
+        backoffSecondsStep: this.backoffSecondsStep,
+      },
+    });
   }
 
   public async sendOneCampaign({
@@ -29,6 +42,8 @@ export class ClevertapIntegration {
     inSeconds,
     timeoutSeconds,
   }: IClevertapCampaign): Promise<void> {
+    const functionName = this.sendOneCampaign.name;
+
     const method: 'POST' | 'GET' | 'PUT' | 'DELETE' = 'POST';
     const request = {
       url: `${this.url}/1/send/externaltrigger.json`,
@@ -45,12 +60,21 @@ export class ClevertapIntegration {
         inSeconds,
         timeoutSeconds,
       })
+      .then((response) => {
+        this.logger.log({
+          message: 'Cloud Task created successfully',
+          functionName,
+          data: { request: { name, request, inSeconds, timeoutSeconds }, response },
+        });
+        return response;
+      })
       .catch((error) => {
-        console.error(
-          'Rejection: ',
-          JSON.stringify({ name, request, inSeconds, timeoutSeconds }),
-        );
-        console.error('Error:', error);
+        this.logger.error({
+          message: 'Error creating cloud task',
+          functionName,
+          error,
+          data: { request: { name, request, inSeconds, timeoutSeconds } },
+        });
       });
     // console.log(`Created task ${response.name}`);
   }
@@ -70,15 +94,21 @@ export class ClevertapIntegration {
   }
 
   async sendAllCampaigns(campaings: IClevertapMessage[][]): Promise<void> {
+    const functionName = this.sendAllCampaigns.name;
+
     const promises = [];
     const totalBatches = Math.ceil(campaings.length / this.batchSize);
 
-    console.error(
-      `Start Sending ${campaings.length} Clevertap Campaigns in ${totalBatches} batches of ${this.batchSize}`,
-    );
-
+    this.logger.warn({
+      message: `Start Sending Clevertap Campaigns`,
+      functionName,
+      data: { totalBatches, batchSize: this.batchSize, campaingsLength: campaings.length },
+    });
     if (totalBatches === 0) {
-      console.error('No data to send');
+      this.logger.warn({
+        message: `No Clevertap Campaigns to send`,
+        functionName,
+      });
       return;
     }
     let numBatch = 0;
@@ -86,18 +116,26 @@ export class ClevertapIntegration {
       promises.push(this.sendAllMessages(messages));
       if (promises.length >= this.batchSize) {
         await Promise.all(promises);
-        console.log(
-          `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done!`,
-        );
+        this.logger.warn({
+          message: `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done!`,
+          functionName,
+          data: { batchSize: this.batchSize, numBatch, totalBatches },
+        })
         promises.length = 0;
       }
     }
     if (promises.length > 0) {
       await Promise.all(promises);
-      console.log(
-        `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`,
-      );
+      this.logger.warn({
+        message: `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`,
+        functionName,
+        data: { batchSize: this.batchSize, numBatch, totalBatches },
+      });
     }
-    console.error(`End Sending Clevertap Campaigns`);
+    this.logger.warn({
+      message: `End Sending Clevertap Campaigns`,
+      functionName,
+      data: { batchSize: this.batchSize, numBatch, totalBatches },
+    });
   }
 }

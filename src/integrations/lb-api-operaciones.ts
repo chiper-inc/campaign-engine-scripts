@@ -1,4 +1,5 @@
 // import { CampaignProvider } from '../services/campaign.service.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
@@ -6,11 +7,12 @@ import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class LbApiOperacionesIntegration {
-  url;
-  apiKey; // Replace with a real token if needed
-  batchSize;
-  headers;
-  WAITING_TIME = 750;
+  private readonly url;
+  private readonly apiKey; // Replace with a real token if needed
+  private readonly batchSize;
+  private readonly headers;
+  private readonly WAITING_TIME = 750;
+  private readonly logger: LoggingProvider;
 
   constructor() {
     this.batchSize = Config.lbApiOperaciones.batchSize;
@@ -23,32 +25,49 @@ export class LbApiOperacionesIntegration {
         ? Config.lbApiOperaciones.apiKey
         : `Bearer ${Config.lbApiOperaciones.apiToken}`, // Replace with a real token if needed
     };
-
-    // console.log(this);
+    this.logger = new LoggingProvider({ 
+      context: LbApiOperacionesIntegration.name,
+      levels: ['warn', 'error'],
+    });
+    this.logger.log({
+      message: 'LbApiOperacionesIntegration initialized',
+      data: { url: this.url, batchSize: this.batchSize },
+    });
   }
 
   async createOneShortLink(payload: IShortLinkPayload) {
+    const functionName = this.createOneShortLink.name;
+
     const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
     if (payload?.callToAction?.storeReferenceId) {
       payload.callToAction.referenceId = StoreReferenceMap.get(
         payload.callToAction.storeReferenceId,
       )?.referenceId as number;
     }
-    // console.log({ headers: this.headers, payload });
-    return fetch(url, {
-      method: 'POST',
+    const request = { url, method: 'POST', body: payload };
+    return fetch(request.url, {
+      method: request.method,
       headers: this.headers,
-      body: JSON.stringify(payload),
+      body: JSON.stringify(request.body),
     })
       .then((response) => {
         if (response.status !== 200) {
-          console.error('ERROR:', response.status, ':', response.statusText);
-          return null;
+          this.logger.error({
+            message: 'Error creating short link',
+            functionName,
+            error: new Error(`Status: ${response.status} - ${response.statusText}`),
+            data: { request, response },
+          });
         }
         return response.json();
       })
       .catch((error) => {
-        console.error('ERROR:', error);
+        this.logger.error({
+          message: 'Error creating short link',
+          functionName,
+          error: new Error(error as string),
+          data: { request },
+        });
         return null;
       });
   }
@@ -71,6 +90,8 @@ export class LbApiOperacionesIntegration {
       /* campaignService: CampaignProvider, */ response: unknown;
     }[]
   > {
+    const functionName = this.createAllShortLink.name;
+
     let responses: {
       key: string;
       /*  campaignService: CampaignProvider; */ response: unknown;
@@ -78,9 +99,10 @@ export class LbApiOperacionesIntegration {
     const batches = this.splitIntoBatches(payloadsAndKeys, this.batchSize);
     const batchCount = batches.length;
     let batchIdx = 0;
-    console.error(
-      `Start Creating ${payloadsAndKeys.length} shortLinks in ${batchCount} batches of ${this.batchSize}`,
-    );
+    this.logger.warn({ 
+      message: 'Start Creating shortLinks',
+      data: { batchCount, batchSize: this.batchSize },
+    })
     for (const batch of batches) {
       const batchResponse: {
         key: string;
@@ -95,7 +117,12 @@ export class LbApiOperacionesIntegration {
                 resolve({ key, /* campaignService, */ response: result });
               })
               .catch((error) => {
-                console.error('ERROR - :', error, value, key, '-');
+                this.logger.error({
+                  message: 'Error creating short link',
+                  functionName,
+                  error: new Error(error as string),
+                  data: { key, value },
+                });
                 reject(error);
               });
           });
@@ -103,14 +130,20 @@ export class LbApiOperacionesIntegration {
       );
       // console.error(JSON.stringify(batchResponse, null, 2));
       responses = responses.concat(batchResponse);
-      console.error(
-        `batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`,
-      );
+      this.logger.warn({
+        message: `batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`,
+        functionName,
+        data: { batchIdx, batchCount, responses: responses.length },
+      });
       await sleep(
         this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
       );
     }
-    console.error('End Creating shortLinks');
+    this.logger.warn({
+      message: `End Creating ShortLinks`,
+      functionName,
+      data: { batchIdx, batchCount, responses: responses.length},
+    });
     // console.error('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;
   }

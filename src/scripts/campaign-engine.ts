@@ -43,6 +43,7 @@ import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 import { Logger } from 'logging-chiper';
+import { LoggingProvider, LogLevel } from '../providers/logging.provider.ts';
 
 export interface IPreEntry {
   connectlyEntry: IConnectlyEntry | undefined;
@@ -72,6 +73,14 @@ export interface IStoreRecomendation {
 
 const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
 const UUID = uuid();
+Logger.init({
+  projectId: 'Campaign Engine',
+  service: 'Script: Campaign Engine',
+});
+const logger = new LoggingProvider({ 
+  context: 'Campaign Engine',
+  levels: [LogLevel.WARN, LogLevel.ERROR],
+});
 
 // Main Function
 
@@ -90,10 +99,6 @@ async function main({
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
-  Logger.init({
-    projectId: 'Campaign Engine',
-    service: 'Script: Campaign Engine',
-  });
   const data = await executeQueryBigQuery();
   const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
   let storeMap = generateStoreAndSkuMap(filteredData);
@@ -219,14 +224,19 @@ const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
   const BATCH_SIZE = Config.google.vertexAI.bacthSize;
   const n = Math.ceil(preEntries.length / BATCH_SIZE);
   const promises: Promise<unknown>[] = [];
-  console.error(
-    `Start Generating AI Messages ${preEntries.length} in ${n} batches of ${BATCH_SIZE}`,
-  );
+  logger.warn({
+    message: `Start Generating AI Messages ${preEntries.length} in ${n} batches of ${BATCH_SIZE}`,
+    functionName: generateCampaignMessages.name,
+    data: { batchSize: BATCH_SIZE, n, preEntriesLength: preEntries.length },
+  });
   for (const preEntry of preEntries) {
     if (promises.length >= BATCH_SIZE) {
       await Promise.all(promises);
-      console.error(`batch ${++i} of ${n}, for GenAI done!`);
-      promises.length = 0;
+      logger.warn({
+        message: `batch ${++i} of ${n}, for GenAI done!`,
+        functionName: generateCampaignMessages.name,
+      });
+        promises.length = 0;
     }
     promises.push(
       preEntry.campaignService
@@ -236,9 +246,15 @@ const generateCampaignMessages = async (preEntries: IPreEntry[]) => {
   }
   if (promises.length) {
     await Promise.all(promises);
-    console.error(`batch ${++i} of ${n}, for GenAI done`);
+    logger.warn({
+      message: `batch ${++i} of ${n}, for GenAI done!`,
+      functionName: generateCampaignMessages.name,
+    });
   }
-  console.error('End Generating AI Messages');
+  logger.warn({
+    message: `End Generating AI Messages`,
+    functionName: generateCampaignMessages.name,
+  });
 };
 
 const reportMessagesToSlack = async (

@@ -57,6 +57,8 @@ export abstract class VertexAIClient {
     userInstructions: Content,
     retry = 1,
   ): Promise<Content | null> {
+    const functionName = this.predictContent.name;
+
     try {
       const request = {
         contents: [userInstructions],
@@ -66,7 +68,7 @@ export abstract class VertexAIClient {
       const { response } = await this.generativeModel.generateContent(request)
         .then((resp) => {
           this.logger.log({
-            functionName: this.predictContent.name,
+            functionName,
             message: 'Content generated successfully',
             data: { request:{ contents: request.contents, response: resp } },
           });
@@ -74,7 +76,7 @@ export abstract class VertexAIClient {
         })
         .catch((err) => {
           this.logger.error({
-            functionName: this.predictContent.name,
+            functionName,
             message: 'Error generating content',
             error: new Error(err as string),
             data: { retry, request }
