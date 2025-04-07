@@ -29,7 +29,7 @@ export class LbApiOperacionesIntegration {
     };
     this.logger = new LoggingProvider({
       context: LbApiOperacionesIntegration.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingLevel.NONE, // LoggingLevel.WARN | LoggingLevel.ERROR,
     });
     this.logger.log({
       message: 'LbApiOperacionesIntegration initialized',
@@ -40,7 +40,10 @@ export class LbApiOperacionesIntegration {
   async createOneShortLink(payload: IShortLinkPayload) {
     const functionName = this.createOneShortLink.name;
 
-    const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
+    const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action${
+      (payload?.callToAction?.storeReferenceId || 1) % 101 === 0 ? '/sss' : ''
+    }`;
+
     if (payload?.callToAction?.storeReferenceId) {
       payload.callToAction.referenceId = StoreReferenceMap.get(
         payload.callToAction.storeReferenceId,
@@ -62,6 +65,7 @@ export class LbApiOperacionesIntegration {
             ),
             data: { request, response },
           });
+          return null;
         }
         return response.json();
       })
@@ -88,18 +92,12 @@ export class LbApiOperacionesIntegration {
     }, [] as IShortLinkPayloadAndKey[][]);
   }
 
-  async createAllShortLink(payloadsAndKeys: IShortLinkPayloadAndKey[]): Promise<
-    {
-      key: string;
-      /* campaignService: CampaignProvider, */ response: unknown;
-    }[]
-  > {
+  async createAllShortLink(
+    payloadsAndKeys: IShortLinkPayloadAndKey[],
+  ): Promise<{ key: string; response: unknown }[]> {
     const functionName = this.createAllShortLink.name;
 
-    let responses: {
-      key: string;
-      /*  campaignService: CampaignProvider; */ response: unknown;
-    }[] = [];
+    let responses: { key: string; response: unknown }[] = [];
     const batches = this.splitIntoBatches(payloadsAndKeys, this.batchSize);
     const batchCount = batches.length;
     let batchIdx = 0;
@@ -110,15 +108,13 @@ export class LbApiOperacionesIntegration {
     for (const batch of batches) {
       const batchResponse: {
         key: string;
-        // campaignService: CampaignProvider;
         response: unknown;
       }[] = await Promise.all(
-        batch.map(async ({ key, value /* , campaignService */ }) => {
-          // console.error('Creating shortLink for:', key, value, campaignService);
+        batch.map(async ({ key, value }) => {
           return new Promise((resolve, reject) => {
             this.createOneShortLink(value)
               .then((result) => {
-                resolve({ key, /* campaignService, */ response: result });
+                resolve({ key, response: result });
               })
               .catch((error) => {
                 this.logger.error({
@@ -132,7 +128,6 @@ export class LbApiOperacionesIntegration {
           });
         }),
       );
-      // console.error(JSON.stringify(batchResponse, null, 2));
       responses = responses.concat(batchResponse);
       this.logger.warn({
         message: `batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`,
@@ -148,7 +143,6 @@ export class LbApiOperacionesIntegration {
       functionName,
       data: { batchIdx, batchCount, responses: responses.length },
     });
-    // console.error('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;
   }
 }

@@ -14,6 +14,7 @@ import { campaignMap, getCampaignKey } from '../parameters.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 import * as CLEVERATAP from '../mocks/clevertap-campaigns.mock.ts';
+import { v4 as uuid } from 'uuid';
 
 export class StoreRecomendationProvider {
   private readonly baseDate: number;
@@ -182,7 +183,7 @@ export class StoreRecomendationProvider {
     }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}`;
     const source =
       `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
-    const content = this.uuid; // uuid
+    const content = uuid();
     const medium = '164';
     return {
       campaignName: campaign,

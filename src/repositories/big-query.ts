@@ -91,8 +91,8 @@ export class BigQueryRepository {
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 750
-      -- OFFSET 10000
+      LIMIT 750
+      OFFSET 10000
     `;
 
     this.logger.log({

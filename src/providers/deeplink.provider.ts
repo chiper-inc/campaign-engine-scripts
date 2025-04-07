@@ -5,7 +5,6 @@ import {
   IUtm,
 } from '../integrations/interfaces.ts';
 import { IPreEntry, IUtmCallToAction } from '../scripts/interfaces.ts';
-import { CampaignProvider } from './campaign.provider.ts';
 
 export class DeeplinkProvider {
   private readonly lbApiOperacionesIntegration: LbApiOperacionesIntegration;
@@ -16,49 +15,53 @@ export class DeeplinkProvider {
   public generateLinks = async (
     preEntries: IPreEntry[],
     includeLinks: boolean,
-  ): Promise<IPreEntry[]> => {
-    if (!includeLinks) return Promise.resolve(preEntries);
+  ): Promise<number[]> => {
+    if (!includeLinks) return Promise.resolve([]);
 
-    const preEntriesWithShortLinks =
-      await this.generateCallToActionShortLinks(preEntries);
-    return this.generatePathVariable(preEntriesWithShortLinks);
+    const storeIds = await this.generateCallToActionShortLinks(preEntries);
+    this.generatePathVariable(preEntries);
+    return storeIds;
   };
 
   private async generateCallToActionShortLinks(
     preEntries: IPreEntry[],
-  ): Promise<IPreEntry[]> {
-    const preMap: Map<string, IUtmCallToAction> = preEntries.reduce(
+  ): Promise<number[]> {
+    const preEntryMap = preEntries.reduce(
       (acc, preEntry) => {
         const { utmCallToActions } = preEntry;
         for (const utmCallToAction of utmCallToActions) {
           const key = this.getUtmAndCallToActionKey(utmCallToAction);
           acc.set(key, utmCallToAction);
         }
+        acc.set(
+          this.getUtmAndCallToActionKey(preEntry.utmCallToAction),
+          preEntry.utmCallToAction,
+        );
         return acc;
       },
-      new Map(),
+      new Map() as Map<string, IUtmCallToAction>,
     );
-
-    // console.error('Short Links:', preMap);
-
-    const shortLinkMap = new Map();
+    const shortLinkMap = new Map<string, ICallToActionLink>();
     for (const [key, value] of (
-      await this.createShortLinks(preMap)
+      await this.createShortLinks(preEntryMap)
     ).entries()) {
       shortLinkMap.set(key, value);
     }
-    return preEntries.map((preEntry) => {
-      const { utmCallToAction, utmCallToActions } = preEntry;
-      return {
-        ...preEntry,
-        shortLink: shortLinkMap.get(
-          this.getUtmAndCallToActionKey(utmCallToAction),
-        ),
-        shortLinks: utmCallToActions.map((utmCallToAction) =>
-          shortLinkMap.get(this.getUtmAndCallToActionKey(utmCallToAction)),
-        ),
-      };
+
+    const storeSet = new Set<number>();
+
+    preEntries.forEach((preEntry) => {
+      const { utmCallToActions, utmCallToAction, storeId } = preEntry;
+      preEntry.shortLinks = utmCallToActions.map((utmCallToAction) =>
+        this.func(storeSet, shortLinkMap, { utmCallToAction, storeId }),
+      );
+
+      preEntry.shortLink = this.func(storeSet, shortLinkMap, {
+        utmCallToAction,
+        storeId,
+      });
     });
+    return Array.from(storeSet);
   }
 
   private generatePathVariable = (preEntries: IPreEntry[]): IPreEntry[] => {
@@ -94,23 +97,43 @@ export class DeeplinkProvider {
           utm: value.utm,
           callToAction: value.callToAction,
         },
+        storeId: value.storeId,
       })),
     );
     return responses.reduce((acc, obj) => {
-      const { key, response, campaignService } = obj as {
+      const { key, response } = obj as {
         key: string;
         response: { data?: { shortLink?: string } };
-        campaignService: CampaignProvider;
       };
       const data = (response?.data ?? { utm: {} }) as {
         utm: { websiteURL?: string; shortenURL?: string };
       }; // TODO include the interface for LB-API response
       acc.set(key, {
-        fullUrl: data?.utm?.websiteURL ?? '',
+        fullUrl: data.utm.websiteURL ?? '',
         shortenUrl: data.utm.shortenURL ?? '',
-        campaignService,
       });
       return acc;
     }, new Map());
   }
+
+  private isEmptyLink(link: ICallToActionLink | undefined): boolean {
+    return !link || link.fullUrl === '' || link.shortenUrl === '';
+  }
+
+  private func = (
+    storeSet: Set<number>,
+    shortLinkMap: Map<string, ICallToActionLink>,
+    {
+      utmCallToAction,
+      storeId,
+    }: { utmCallToAction: IUtmCallToAction; storeId: number },
+  ) => {
+    const shortLink = shortLinkMap.get(
+      this.getUtmAndCallToActionKey(utmCallToAction),
+    );
+    if (this.isEmptyLink(shortLink)) {
+      storeSet.add(storeId);
+    }
+    return shortLink as ICallToActionLink;
+  };
 }

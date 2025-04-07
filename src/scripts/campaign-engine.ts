@@ -80,28 +80,21 @@ async function main({
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
-  const data = await executeQueryBigQuery();
-  const filteredData = data.filter((row) => filterData(row, frequencyMap, day));
   const storeReferenceProvider = new StoreRecomendationProvider(
     BASE_DATE,
     UUID,
   );
+  const data = await executeQueryBigQuery();
   const storeMap = storeReferenceProvider.assignCampaignAndUtm(
-    storeReferenceProvider.generateMap(filteredData),
+    storeReferenceProvider.generateMap(
+      data.filter((row) => filterData(row, frequencyMap, day)),
+    ),
     day,
   );
-  // let storeMap = generateStoreAndSkuMap(filteredData);
-  // storeMap = assignCampaignAndUtm(storeMap, day);
-  let preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
-  preEntries = await new DeeplinkProvider().generateLinks(
-    preEntries,
-    includeShortlinks,
-  );
-  // if (includeShortlinks) {
-  //   preEntries = await generateCallToActionShortLinks(preEntries);
-  //   preEntries = generatePathVariable(preEntries);
-  // }
+  const preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
+  await new DeeplinkProvider().generateLinks(preEntries, includeShortlinks);
   await new GenAiProvider().generateCampaignMessages(preEntries);
+
   const [connectlyEntries, clevertapEntries] = splitPreEntries(preEntries);
   const [connectlyMessages] = await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
@@ -289,8 +282,8 @@ const generatePreEntries = (
 
     const utmCallToActions = generateCallToActionPaths(
       campaignService.messages,
-      channel,
       campaign.paths,
+      store.storeId,
       storeReferenceIds,
     );
 
@@ -300,11 +293,12 @@ const generatePreEntries = (
 
     const utmCallToAction = generateCallToAction(
       coreUtm,
-      channel,
+      store.storeId,
       storeReferenceIds,
     );
 
     entries.push({
+      storeId: store.storeId,
       campaignService,
       connectlyEntry: undefined,
       clevertapEntry: undefined,
@@ -319,8 +313,8 @@ const generatePreEntries = (
 
 const generateCallToActionPaths = (
   messageServices: MessageProvider[],
-  channel: CHANNEL,
   paths: string[],
+  storeId: number,
   storeReferenceIds: number[],
 ): IUtmCallToAction[] | null => {
   const pathObj = [];
@@ -352,6 +346,7 @@ const generateCallToActionPaths = (
       utm = messageServices[0]?.utm;
     }
     pathObj.push({
+      storeId,
       utm,
       callToAction,
     });
@@ -465,7 +460,7 @@ const getVariableFromSku = (
 
 const generateCallToAction = (
   utm: IUtm,
-  channel: CHANNEL,
+  storeId: number,
   storeReferenceIds: number[],
 ): IUtmCallToAction => {
   let callToAction: Partial<ICallToAction> = {};
@@ -489,6 +484,7 @@ const generateCallToAction = (
   }
   return {
     callToAction,
+    storeId,
     utm,
     // campaignService: CampaignFactory.createCampaignService(channel, 'es', utm),
   };
