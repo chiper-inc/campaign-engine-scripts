@@ -9,7 +9,7 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
 
   private constructor() {
     super(
-      PROMPTS.systemInstruction, 
+      PROMPTS.systemInstruction,
       { maxOutputTokens: 1024, temperature: 1.0 },
       { context: ClevertapPushNotificationAI.name },
     );

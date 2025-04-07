@@ -16,9 +16,9 @@ export class ConnectlyCarouselNotificationAI extends VertexAIClient {
 
   private constructor() {
     super(
-      PROMPTS.systemInstruction, 
+      PROMPTS.systemInstruction,
       { maxOutputTokens: 1024, temperature: 1.0 },
-      { context: ConnectlyCarouselNotificationAI.name }
+      { context: ConnectlyCarouselNotificationAI.name },
     );
     this.userInstructions = PROMPTS.userInstructionsConnectlyCarousel;
     this.logger.log({

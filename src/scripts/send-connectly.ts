@@ -8,7 +8,7 @@ const script = async (filename: string): Promise<void> => {
     projectId: 'Campaign Engine',
     service: 'Script: Send Connectly',
   });
-  
+
   const data = (await UTILS.readFileToJson(filename)) as IConnectlyEntry[];
   const connectlyIntegration = new ConnectlyIntegration();
   await connectlyIntegration.sendAllEntries(data.flat());
@@ -19,8 +19,12 @@ if (args.length < 3) {
   console.error('Please provide a filename as an argument.');
   process.exit(1);
 }
-script(args[2]).then().catch((err) => Logger.getInstance().error({
-  stt: 'script',
-  message: err.message,
-  error: err,
-}));
+script(args[2])
+  .then()
+  .catch((err) =>
+    Logger.getInstance().error({
+      stt: 'script',
+      message: err.message,
+      error: err,
+    }),
+  );
