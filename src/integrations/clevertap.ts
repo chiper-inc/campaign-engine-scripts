@@ -2,7 +2,10 @@ import { CloudTask } from './cloud-task.ts';
 
 import { Config } from '../config.ts';
 import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
-import { LoggingProvider } from '../providers/logging.provider.ts';
+import {
+  LoggingProvider,
+  LoggingLevel,
+} from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
 
 export class ClevertapIntegration {
@@ -23,8 +26,13 @@ export class ClevertapIntegration {
       'Content-Type': 'application/json',
     };
     this.batchSize = Config.clevertap.batchSize;
-    this.backoffSecondsStep = UTILS.isProduction() ? 3600 /* 60m */ : 15 /* 15s */;
-    this.logger = new LoggingProvider({ context: ClevertapIntegration.name, levels: ['warn', 'error'] });
+    this.backoffSecondsStep = UTILS.isProduction()
+      ? 3600 /* 60m */
+      : 15 /* 15s */;
+    this.logger = new LoggingProvider({
+      context: ClevertapIntegration.name,
+      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+    });
     this.logger.log({
       message: 'ClevertapIntegration initialized',
       data: {
@@ -64,7 +72,10 @@ export class ClevertapIntegration {
         this.logger.log({
           message: 'Cloud Task created successfully',
           functionName,
-          data: { request: { name, request, inSeconds, timeoutSeconds }, response },
+          data: {
+            request: { name, request, inSeconds, timeoutSeconds },
+            response,
+          },
         });
         return response;
       })
@@ -102,7 +113,11 @@ export class ClevertapIntegration {
     this.logger.warn({
       message: `Start Sending Clevertap Campaigns`,
       functionName,
-      data: { totalBatches, batchSize: this.batchSize, campaingsLength: campaings.length },
+      data: {
+        totalBatches,
+        batchSize: this.batchSize,
+        campaingsLength: campaings.length,
+      },
     });
     if (totalBatches === 0) {
       this.logger.warn({
@@ -120,10 +135,8 @@ export class ClevertapIntegration {
           message: `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done!`,
           functionName,
           data: { batchSize: this.batchSize, numBatch, totalBatches },
-        })
-        await UTILS.sleep(
-          1000 + Math.floor((Math.random() * 1000) / 2),
-        );  
+        });
+        await UTILS.sleep(1000 + Math.floor((Math.random() * 1000) / 2));
         promises.length = 0;
       }
     }

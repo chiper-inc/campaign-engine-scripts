@@ -1,4 +1,7 @@
-import { LoggingProvider } from '../providers/logging.provider.ts';
+import {
+  LoggingProvider,
+  LoggingLevel,
+} from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 
 import { IConnectlyEntry } from './interfaces.ts';
@@ -18,9 +21,9 @@ export class ConnectlyIntegration {
       'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
     };
-    this.logger = new LoggingProvider({ 
-      context: ConnectlyIntegration.name, 
-      levels: ['warn', 'error'],
+    this.logger = new LoggingProvider({
+      context: ConnectlyIntegration.name,
+      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
     });
     this.logger.log({
       message: 'ConnectlyIntegration initialized',
@@ -57,7 +60,7 @@ export class ConnectlyIntegration {
 
   public async sendAllEntries(data: IConnectlyEntry[]) {
     const functionName = this.sendAllEntries.name;
-    
+
     const batches = this.splitIntoBatches(data, this.batchSize);
 
     let accepted = 0;
@@ -105,8 +108,14 @@ export class ConnectlyIntegration {
         this.logger.warn({
           functionName,
           message: `batch ${batchIdx} of ${batches.length} done, accepted = ${accepted}, rejected = ${rejected}, statuses = ${JSON.stringify(statuses)}`,
-          data: { batchIdx, batches: batches.length, accepted, rejected, statuses },
-        })
+          data: {
+            batchIdx,
+            batches: batches.length,
+            accepted,
+            rejected,
+            statuses,
+          },
+        });
       });
       batchIdx += 1;
     }

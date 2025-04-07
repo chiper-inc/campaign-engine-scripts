@@ -1,5 +1,8 @@
 // import { CampaignProvider } from '../services/campaign.service.ts';
-import { LoggingProvider } from '../providers/logging.provider.ts';
+import {
+  LoggingProvider,
+  LoggingLevel,
+} from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
@@ -24,9 +27,9 @@ export class LbApiOperacionesIntegration {
         ? Config.lbApiOperaciones.apiKey
         : `Bearer ${Config.lbApiOperaciones.apiToken}`, // Replace with a real token if needed
     };
-    this.logger = new LoggingProvider({ 
+    this.logger = new LoggingProvider({
       context: LbApiOperacionesIntegration.name,
-      levels: ['warn', 'error'],
+      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
     });
     this.logger.log({
       message: 'LbApiOperacionesIntegration initialized',
@@ -54,7 +57,9 @@ export class LbApiOperacionesIntegration {
           this.logger.error({
             message: 'Error creating short link',
             functionName,
-            error: new Error(`Status: ${response.status} - ${response.statusText}`),
+            error: new Error(
+              `Status: ${response.status} - ${response.statusText}`,
+            ),
             data: { request, response },
           });
         }
@@ -98,10 +103,10 @@ export class LbApiOperacionesIntegration {
     const batches = this.splitIntoBatches(payloadsAndKeys, this.batchSize);
     const batchCount = batches.length;
     let batchIdx = 0;
-    this.logger.warn({ 
+    this.logger.warn({
       message: 'Start Creating shortLinks',
       data: { batchCount, batchSize: this.batchSize },
-    })
+    });
     for (const batch of batches) {
       const batchResponse: {
         key: string;
@@ -141,7 +146,7 @@ export class LbApiOperacionesIntegration {
     this.logger.warn({
       message: `End Creating ShortLinks`,
       functionName,
-      data: { batchIdx, batchCount, responses: responses.length},
+      data: { batchIdx, batchCount, responses: responses.length },
     });
     // console.error('=======\n', JSON.stringify(responses, null, 2), "\n=======");
     return responses;

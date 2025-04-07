@@ -55,7 +55,7 @@ export class BigQueryRepository {
     this.defaultOptions = {
       location: 'US',
     };
-    this.logger = new LoggingProvider({ context: BigQueryRepository.name});
+    this.logger = new LoggingProvider({ context: BigQueryRepository.name });
   }
 
   public selectStoreSuggestions(
@@ -104,7 +104,7 @@ export class BigQueryRepository {
         storeStatus,
         churnRanges,
       },
-    })
+    });
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 
@@ -116,21 +116,21 @@ export class BigQueryRepository {
     };
 
     try {
-      this.logger.warn({ 
+      this.logger.warn({
         message: 'Executing BigQuery',
         functionName,
-      })
+      });
       const [job] = await this.bigquery.createQueryJob(options);
-      this.logger.warn({ 
+      this.logger.warn({
         message: `Job ${job.id} started.`,
         functionName,
-      })
+      });
 
       const [rows] = await job.getQueryResults();
-      this.logger.warn({ 
+      this.logger.warn({
         message: `Job ${job.id} Results: ${rows.length}`,
         functionName,
-      })
+      });
       return rows;
     } catch (error) {
       this.logger.error({

@@ -8,7 +8,7 @@ import {
   GenerateContentResult,
 } from '@google-cloud/vertexai';
 import { Config } from '../config.ts';
-import { LoggingProvider } from './logging.provider.ts';
+import { LoggingProvider, LoggingLevel } from './logging.provider.ts';
 
 export abstract class VertexAIClient {
   protected readonly maxRetries = 3;
@@ -21,9 +21,13 @@ export abstract class VertexAIClient {
   constructor(
     systemInstruction: Content,
     generationConfig?: Partial<GenerationConfig>,
-    loggingOptions?: { context?: string; levels?: string[] },
+    loggingOptions?: { context?: string; levels?: LoggingLevel },
   ) {
-    const { context = VertexAIClient.name, levels = [] } = loggingOptions || {};
+    const { context = VertexAIClient.name, levels = LoggingLevel.NONE } =
+      loggingOptions || {
+        context: VertexAIClient.name,
+        levels: LoggingLevel.NONE,
+      };
     this.vertexAI = new VertexAI({
       project: Config.google.project,
       location: Config.google.location,
@@ -65,12 +69,13 @@ export abstract class VertexAIClient {
         generationConfig: this.generationConfig,
         systemInstruction: this.systemInstruction,
       };
-      const { response } = await this.generativeModel.generateContent(request)
+      const { response } = (await this.generativeModel
+        .generateContent(request)
         .then((resp) => {
           this.logger.log({
             functionName,
             message: 'Content generated successfully',
-            data: { request:{ contents: request.contents, response: resp } },
+            data: { request: { contents: request.contents, response: resp } },
           });
           return resp;
         })
@@ -79,10 +84,10 @@ export abstract class VertexAIClient {
             functionName,
             message: 'Error generating content',
             error: new Error(err as string),
-            data: { retry, request }
+            data: { retry, request },
           });
           throw err;
-        }) as GenerateContentResult;
+        })) as GenerateContentResult;
       const { candidates = [] } = response;
       return candidates[0]?.content || null;
     } catch (error) {
