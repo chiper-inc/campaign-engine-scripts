@@ -1,11 +1,20 @@
+import {
+  LoggingProvider,
+  LoggingLevel,
+} from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { CHANNEL, STORE_STATUS } from '../enums.ts';
 
 export class SlackIntegration {
   private readonly reportUrl;
+  private readonly logger: LoggingProvider;
 
   constructor() {
     this.reportUrl = Config.slack.reportUrl;
+    this.logger = new LoggingProvider({
+      context: SlackIntegration.name,
+      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+    });
   }
 
   public async generateSendoutLocationSegmentReports(
@@ -111,17 +120,34 @@ export class SlackIntegration {
   }
 
   private async publishMessage(message: unknown): Promise<void> {
-    await fetch(this.reportUrl, {
+    const functionName = this.publishMessage.name;
+
+    const request = {
       method: 'POST',
+      url: this.reportUrl,
+      body: message,
+    };
+    await fetch(request.url, {
+      method: request.method,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(message),
+      body: JSON.stringify(request.body),
     })
       .then((response) => {
-        console.error('Slack Response:', response.status, response.statusText);
+        this.logger.log({
+          message: 'Slack message sent successfully',
+          functionName,
+          data: { request, response },
+        });
       })
       .catch((error) => {
+        this.logger.error({
+          message: 'Error sending Slack message',
+          functionName,
+          error,
+          data: { request },
+        });
         console.error('ERROR:', error);
       });
   }

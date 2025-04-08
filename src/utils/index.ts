@@ -3,6 +3,7 @@ import * as path from 'path';
 
 import { BASE_DATE, CITY, CPG } from '../constants.ts';
 import { LOCATION } from '../enums.ts';
+import { Config } from '../config.ts';
 
 export const daysFromBaseDate = (date: Date): number =>
   Math.trunc(((date as unknown as number) - BASE_DATE) / (1000 * 60 * 60 * 24));
@@ -36,12 +37,34 @@ export const formatDDMMYY = (date: Date): string => {
 export const formatYYYYMMDD = (date: Date): string =>
   date.toISOString().slice(0, 10);
 
+export const replaceParams = (
+  template: string,
+  params: (string | number)[],
+): string => {
+  return params.reduce(
+    (acc: string, param, i) => acc.replace(`{{${i}}}`, String(param)),
+    template,
+  );
+};
+
+export const getRandomNumber = (n: number): number =>
+  Math.floor(Math.random() * n);
+
 export const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
 
 export const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
 
 export const removeExtraSpaces = (val: string | number): string | number =>
   typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val;
+
+// Environment utilities
+
+export const isProduction = (): boolean => {
+  return Config.environment.toLowerCase() === 'production';
+};
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 // File Utilities
 

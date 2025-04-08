@@ -4,18 +4,15 @@ import {
   frequencyMap,
   getLocationStatusRangeKey,
   frequencyByLocationAndStatusAndRange,
-} from './parameters/connectly-frequency.ts';
-import {
-  connectlyCampaignMap,
-  getConnectlyCampaignKey,
-} from './parameters/connectly-campaigns.ts';
+} from './parameters/frequencies.ts';
+import { campaignMap, getCampaignKey } from './parameters/campaigns.ts';
 
 export {
   frequencyMap,
   frequencyByLocationAndStatusAndRange,
   getLocationStatusRangeKey,
-  connectlyCampaignMap,
-  getConnectlyCampaignKey,
+  campaignMap,
+  getCampaignKey,
 };
 
 const generateParams = (params: string[], length: number) =>

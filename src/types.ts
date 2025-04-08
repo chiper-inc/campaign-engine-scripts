@@ -1,4 +1,4 @@
-import { LOCATION, STORE_STATUS } from './enums.ts';
+import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
 import { IUtm } from './integrations/interfaces.ts';
 
 export type TypeFrequencyByStatus = {
@@ -7,6 +7,16 @@ export type TypeFrequencyByStatus = {
         [key in LOCATION]?: number;
       }
     | number;
+};
+
+export type TypeStoreParams = {
+  communicationChannel: CHANNEL;
+  locationId: LOCATION;
+  storeStatus: STORE_STATUS;
+  city: string;
+  storeValue: STORE_VALUE | null;
+  from: number | null;
+  to: number | null;
 };
 
 export type TypeCampaignStatus = {
@@ -22,6 +32,7 @@ export type TypeCampaignByStatus = {
 
 export type TypeStore = {
   storeId: number;
+  storeStatus: STORE_STATUS;
   name: string;
   phone: string;
 };
