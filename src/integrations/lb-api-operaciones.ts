@@ -29,7 +29,7 @@ export class LbApiOperacionesIntegration {
     };
     this.logger = new LoggingProvider({
       context: LbApiOperacionesIntegration.name,
-      levels: LoggingLevel.NONE, // LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
     });
     this.logger.log({
       message: 'LbApiOperacionesIntegration initialized',
@@ -136,9 +136,6 @@ export class LbApiOperacionesIntegration {
         functionName,
         data: { batchIdx, batchCount, responses: responses.length },
       });
-      console.log(
-        `batch ${batchIdx} of ${batchCount} for ShorLinks done. ${responses.length} responses.`,
-      );
       // Wait for a random time between 0 and WAITING_TIME/2
       await UTILS.sleep(
         this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),

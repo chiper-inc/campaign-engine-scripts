@@ -9,7 +9,7 @@ export class GenAiProvider {
   constructor() {
     this.logger = new LoggingProvider({
       context: GenAiProvider.name,
-      levels: LoggingLevel.NONE, // LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
     });
   }
 
@@ -39,7 +39,6 @@ export class GenAiProvider {
           message: `batch ${++i} of ${n}, for GenAI done`,
           functionName,
         });
-        console.log(`batch ${i} of ${n}, for GenAI done`);
         promises.length = 0;
       }
       promises.push(
@@ -56,13 +55,11 @@ export class GenAiProvider {
         message: `batch ${++i} of ${n}, for GenAI done`,
         functionName,
       });
-      console.log(`batch ${i} of ${n}, for GenAI done`);
     }
     this.logger.warn({
       message: `End Generating AI Messages`,
       functionName,
     });
-    console.log({ storeSet });
     return Array.from(storeSet);
   }
 }
