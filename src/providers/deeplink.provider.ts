@@ -5,11 +5,14 @@ import {
   IUtm,
 } from '../integrations/interfaces.ts';
 import { IPreEntry, IUtmCallToAction } from '../scripts/interfaces.ts';
+import { LoggingProvider } from './logging.provider.ts';
 
 export class DeeplinkProvider {
   private readonly lbApiOperacionesIntegration: LbApiOperacionesIntegration;
+  private readonly logger: LoggingProvider;
   constructor() {
     this.lbApiOperacionesIntegration = new LbApiOperacionesIntegration();
+    this.logger = new LoggingProvider({ context: DeeplinkProvider.name });
   }
 
   public generateLinks = async (
@@ -88,8 +91,7 @@ export class DeeplinkProvider {
   private async createShortLinks(
     preMap: Map<string, IUtmCallToAction>,
   ): Promise<Map<string, ICallToActionLink>> {
-    const integration = new LbApiOperacionesIntegration();
-    const responses = await integration.createAllShortLink(
+    const responses = await this.lbApiOperacionesIntegration.createAllShortLink(
       Array.from(preMap.entries()).map(([key, value]) => ({
         key,
         value: {
@@ -123,10 +125,16 @@ export class DeeplinkProvider {
       storeId,
     }: { utmCallToAction: IUtmCallToAction; storeId: number },
   ) => {
-    const shortLink = shortLinkMap.get(
-      this.getUtmAndCallToActionKey(utmCallToAction),
-    );
+    const functionName = this.func.name;
+    const key = this.getUtmAndCallToActionKey(utmCallToAction);
+    const shortLink = shortLinkMap.get(key);
     if (this.isEmptyLink(shortLink)) {
+      this.logger.error({
+        message: 'Error creating short link',
+        functionName,
+        error: new Error('Short link is empty'),
+        data: { storeId, key, shortLink, utmCallToAction },
+      });
       storeSet.add(storeId);
     }
     return shortLink as ICallToActionLink;
