@@ -38,7 +38,7 @@ export class CloudTask {
         body: Buffer.from(JSON.stringify(request.body)).toString('base64'),
         headers: request.headers,
       },
-      name: `${this.parent}/tasks/${name ?? CloudTask.name}-${uuid()}`,
+      name: `${this.parent}/tasks/${name || CloudTask.name}-${uuid()}`,
     };
     if (inSeconds) {
       task.scheduleTime = {
@@ -46,12 +46,11 @@ export class CloudTask {
       };
     }
 
-    // console.log('Creating task:', task.httpRequest, request.body);
     const [response] = await this.client.createTask({
       parent: this.parent,
       task,
     });
-    // console.log(`Created task ${response.name}`);
+
     return response;
   }
 }

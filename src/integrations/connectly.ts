@@ -1,3 +1,7 @@
+import {
+  LoggingProvider,
+  LoggingLevel,
+} from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 
 import { IConnectlyEntry } from './interfaces.ts';
@@ -7,6 +11,7 @@ export class ConnectlyIntegration {
   private readonly apiKey: string;
   private readonly batchSize: number;
   private readonly headers: { [key: string]: string };
+  private readonly logger: LoggingProvider;
 
   constructor() {
     this.url = `${Config.connectly.apiUrl}/${Config.connectly.businessId}/send/campaigns`;
@@ -16,6 +21,18 @@ export class ConnectlyIntegration {
       'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
     };
+    this.logger = new LoggingProvider({
+      context: ConnectlyIntegration.name,
+      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+    });
+    this.logger.log({
+      message: 'ConnectlyIntegration initialized',
+      data: {
+        url: this.url,
+        batchSize: this.batchSize,
+        headers: this.headers,
+      },
+    });
   }
 
   public async sendOneEntries(entry: IConnectlyEntry): Promise<{
@@ -42,6 +59,8 @@ export class ConnectlyIntegration {
   }
 
   public async sendAllEntries(data: IConnectlyEntry[]) {
+    const functionName = this.sendAllEntries.name;
+
     const batches = this.splitIntoBatches(data, this.batchSize);
 
     let accepted = 0;
@@ -65,7 +84,7 @@ export class ConnectlyIntegration {
                 rejected += 1;
                 return;
               }
-              // console.log('Rejection Response:', response.data);
+              // console.error('Rejection Response:', response.data);
               const data = response.data as unknown as {
                 acceptedCount: number;
                 rejectedCount: number;
@@ -81,20 +100,33 @@ export class ConnectlyIntegration {
             .catch((error) => {
               rejections.push({ request: payload, response: error.response });
               console.error({ error });
-              console.log('Error:', error.response?.data || error.message);
+              console.error('Error:', error.response?.data || error.message);
               rejected += 1;
             });
         }),
       ).finally(() => {
-        console.log(
-          `batch ${batchIdx} of ${batches.length} done, accepted = ${accepted}, rejected = ${rejected}, statuses = ${JSON.stringify(statuses)}`,
-        );
+        this.logger.warn({
+          functionName,
+          message: `batch ${batchIdx} of ${batches.length} done, accepted = ${accepted}, rejected = ${rejected}, statuses = ${JSON.stringify(statuses)}`,
+          data: {
+            batchIdx,
+            batches: batches.length,
+            accepted,
+            rejected,
+            statuses,
+          },
+        });
       });
       batchIdx += 1;
     }
 
-    rejections.forEach((r, idx) => {
-      console.log(`Rejection ${idx}: ${JSON.stringify(r)}`);
+    rejections.forEach((rejection, idx) => {
+      this.logger.error({
+        functionName,
+        message: `Rejection ${idx}`,
+        error: new Error('Rejection'),
+        data: { rejection },
+      });
     });
   }
 

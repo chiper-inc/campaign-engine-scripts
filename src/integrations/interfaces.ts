@@ -22,6 +22,10 @@ export interface IUtm {
   campaignContent: string;
   campaignTerm: string;
 }
+export interface ICallToActionLink {
+  fullUrl: string;
+  shortenUrl: string;
+}
 
 export interface IShortLinkPayload {
   callToAction: Partial<ICallToAction>;
@@ -31,7 +35,8 @@ export interface IShortLinkPayload {
 export interface IShortLinkPayloadAndKey {
   key: string;
   value: IShortLinkPayload;
-  // campaignService: CampaignService;
+  storeId: number;
+  // campaignService: CampaignProvider;
 }
 export interface IConnectlyEntry {
   client: string;
