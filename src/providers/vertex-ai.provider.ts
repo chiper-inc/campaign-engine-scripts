@@ -59,7 +59,7 @@ export abstract class VertexAIClient {
 
   public async predictContent(
     userInstructions: Content,
-    retry = 1,
+    retry: number = 0,
   ): Promise<Content | null> {
     const functionName = this.predictContent.name;
 

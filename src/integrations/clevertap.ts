@@ -137,10 +137,7 @@ export class ClevertapIntegration {
           functionName,
           data: { BATCH_SIZE: this.BATCH_SIZE, numBatch, totalBatches },
         });
-        await UTILS.sleep(
-          this.WAITING_TIME +
-            Math.floor((Math.random() * this.WAITING_TIME) / 2),
-        );
+        await this.sleep();
         promises.length = 0;
       }
     }
@@ -157,5 +154,11 @@ export class ClevertapIntegration {
       functionName,
       data: { BATCH_SIZE: this.BATCH_SIZE, numBatch, totalBatches },
     });
+  }
+
+  private sleep(): Promise<void> {
+    return UTILS.sleep(
+      this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
+    );
   }
 }

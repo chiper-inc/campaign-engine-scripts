@@ -14,6 +14,7 @@ export class LbApiOperacionesIntegration {
   private readonly batchSize;
   private readonly headers;
   private readonly WAITING_TIME = 750;
+  private readonly maxRetries = 3;
   private readonly logger: LoggingProvider;
 
   constructor() {
@@ -37,7 +38,13 @@ export class LbApiOperacionesIntegration {
     });
   }
 
-  async createOneShortLink(payload: IShortLinkPayload) {
+  async createOneShortLink(payload: IShortLinkPayload, retry: number = 0) {
+    if (retry >= this.maxRetries) return null;
+    if (retry > 0) {
+      console.error('Retrying createOneShortLink', retry);
+      await this.sleep();
+    }
+
     const functionName = this.createOneShortLink.name;
 
     const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
@@ -57,28 +64,28 @@ export class LbApiOperacionesIntegration {
       headers: this.headers,
       body: JSON.stringify(request.body),
     })
-      .then((response) => {
+      .then(async (response): Promise<unknown> => {
         if (response.status !== 200) {
           this.logger.error({
-            message: 'Error creating short link',
+            message: `Error creating short link - Retry ${retry}`,
             functionName,
             error: new Error(
               `Status: ${response.status} - ${response.statusText}`,
             ),
             data: { request, response },
           });
-          return null;
+          return this.createOneShortLink(payload, retry + 1);
         }
         return response.json();
       })
-      .catch((error) => {
+      .catch(async (error): Promise<unknown> => {
         this.logger.error({
-          message: 'Error creating short link',
+          message: `Error creating short link - Retry ${retry}`,
           functionName,
           error: new Error(error as string),
           data: { request },
         });
-        return null;
+        return this.createOneShortLink(payload, retry + 1);
       });
   }
 
@@ -137,9 +144,7 @@ export class LbApiOperacionesIntegration {
         data: { batchIdx, batchCount, responses: responses.length },
       });
       // Wait for a random time between 0 and WAITING_TIME/2
-      await UTILS.sleep(
-        this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
-      );
+      await this.sleep();
     }
     this.logger.warn({
       message: `End Creating ShortLinks`,
@@ -147,5 +152,11 @@ export class LbApiOperacionesIntegration {
       data: { batchIdx, batchCount, responses: responses.length },
     });
     return responses;
+  }
+
+  private sleep(): Promise<void> {
+    return UTILS.sleep(
+      this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
+    );
   }
 }

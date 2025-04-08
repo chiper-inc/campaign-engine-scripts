@@ -357,7 +357,7 @@ const generateCallToActionPaths = (
     }
     pathObj.push({
       storeId,
-      utm,
+      utm: { ...utm, campaignContent: uuid() },
       callToAction,
     });
   }

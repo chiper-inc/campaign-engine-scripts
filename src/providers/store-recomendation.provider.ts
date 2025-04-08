@@ -142,12 +142,6 @@ export class StoreRecomendationProvider {
         campaign.variables.filter((v) => v.startsWith('sku')).length >
         numberOfSkus
       ) {
-        // console.log(
-        //   communicationChannel,
-        //   locationId,
-        //   campaign.variables.filter((v) => v.startsWith('sku')),
-        //   numberOfSkus,
-        // );
         return null;
       }
       return {
@@ -159,12 +153,7 @@ export class StoreRecomendationProvider {
     return null;
   };
 
-  private getUtm = (
-    params: TypeStoreParams,
-    day: number,
-    // name: string,
-    // segment: string | null,
-  ): IUtm => {
+  private getUtm = (params: TypeStoreParams, day: number): IUtm => {
     const channelMap: { [k in CHANNEL]: string } = {
       [CHANNEL.WhatsApp]: 'WA',
       [CHANNEL.PushNotification]: 'PN',
