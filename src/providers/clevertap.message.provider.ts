@@ -37,7 +37,15 @@ export class ClevertapMessageProvider extends MessageProvider {
   public setVariables(vars: TypeCampaignVariables): this {
     // console.log('this:', this, 'vars: ', vars);
 
-    this.varValues = this.generateClevertapExternalTriger(vars);
+    const extenalVars = this.generateClevertapExternalTriger(vars);
+    for (const k in vars) {
+      this.variablesValues[k] = extenalVars[k];
+    }
+    return this;
+  }
+
+  public setPaths(vars: TypeCampaignVariables): this {
+    this.variablesValues.path = vars.path;
     return this;
   }
 
@@ -47,7 +55,7 @@ export class ClevertapMessageProvider extends MessageProvider {
         identity: [this.identity],
       },
       campaign_id: this.campaignId,
-      ExternalTrigger: this.varValues,
+      ExternalTrigger: this.variablesValues,
     };
   }
 
@@ -64,7 +72,7 @@ export class ClevertapMessageProvider extends MessageProvider {
             obj.sku ?? '',
             obj.dsct ?? '',
           ]),
-        path: obj.path,
+        //        path: obj.path,
       };
     }
     return {
@@ -74,7 +82,7 @@ export class ClevertapMessageProvider extends MessageProvider {
         obj.sku ?? '',
         obj.dsct ?? '',
       ]),
-      path: obj.path,
+      // path: obj.path,
     };
   }
 }

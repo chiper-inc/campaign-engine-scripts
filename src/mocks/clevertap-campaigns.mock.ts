@@ -595,9 +595,15 @@ for (let i = 1; i <= maxMessagesPerCampaign; i++) {
     [
       {
         provider: PROVIDER.Clevertap,
-        name: `API_Clevertap.${i}_es_${version}`, variables: 
-        UTILS.NAME.concat(UTILS.generateParams(UTILS.SKU_DSCT, i)),
-        paths: UTILS.generateParams(UTILS.PATH, i),
+        name: `API_Clevertap.${i}_es_${version}`, 
+        variables:
+          UTILS.NAME
+            .concat(UTILS.generateParams(UTILS.SKU_DSCT, i))
+            .sort((a, b) => a.localeCompare(b)),
+        paths: 
+          UTILS
+            .generateParams(UTILS.PATH, i)
+            .sort((a, b) => a.localeCompare(b)),
       }
     ],
   );

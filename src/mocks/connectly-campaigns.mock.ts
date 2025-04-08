@@ -34,8 +34,13 @@ export const connectlyCampaignMap: Map<string, ICampaignParameter[]> =
       variables = campaings[0].variables;
       paths = campaings[0].paths;
     } else {
-      variables = UTILS.NAME_SGMT.concat(UTILS.generateParams(UTILS.SKU_DSCT_IMG, numCards));
-      paths = UTILS.generateParams(UTILS.PATH, numCards);
+      variables =
+        UTILS.NAME_SGMT
+          .concat(UTILS.generateParams(UTILS.SKU_DSCT_IMG, numCards))
+          .sort((a, b) => a.localeCompare(b));
+      paths = 
+        UTILS.generateParams(UTILS.PATH, numCards)
+          .sort((a, b) => a.localeCompare(b));
     }
     const i = campaings ? campaings.length + 1 : 1;
     const name = `API_Carousel.${numCards}_${i}_${lng}_${version}`;

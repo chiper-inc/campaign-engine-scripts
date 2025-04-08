@@ -23,7 +23,19 @@ export class ConnectlyMessageProvider extends MessageProvider {
   }
 
   public setVariables(vars: TypeCampaignVariables): this {
-    this.varValues = this.generateConnectlyCarousel(vars);
+    const newValues = this.generateConnectlyCarousel(vars);
+    for (const key in newValues) {
+      this.variablesValues[key] = newValues[key];
+    }
+    return this;
+  }
+
+  public setPaths(vars: TypeCampaignVariables): this {
+    for (const key in vars) {
+      if (key.startsWith('path')) {
+        this.variablesValues[key] = vars[key];
+      }
+    }
     return this;
   }
 
@@ -31,7 +43,7 @@ export class ConnectlyMessageProvider extends MessageProvider {
     return {
       client: this.client,
       campaignName: this.campaignId,
-      variables: this.varValues,
+      variables: this.variablesValues,
     };
   }
 
@@ -42,7 +54,6 @@ export class ConnectlyMessageProvider extends MessageProvider {
       const vars: TypeCampaignVariables = { greeting: obj.greeting };
       for (const key in obj) {
         if (
-          key.startsWith('path') ||
           key.startsWith('sku') ||
           key.startsWith('img') ||
           key.startsWith('greeting')
