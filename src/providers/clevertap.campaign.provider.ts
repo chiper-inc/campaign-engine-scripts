@@ -108,10 +108,15 @@ export class ClevertapCampaignProvider extends CampaignProvider {
       if (Number.isNaN(i)) continue;
 
       const obj: TypeCampaignVariables = map.get(i) || {};
-      obj[key] = value;
+      if (['img'].includes(key)) {
+        obj[key] = value;
+      }
       map.set(i, obj);
     }
-    return Array.from(map.entries()).map(() => ({ ...common }));
+    return Array.from(map.entries()).map(([, value]) => ({
+      ...common,
+      ...value,
+    }));
   }
 
   public getMessageName(): string {
