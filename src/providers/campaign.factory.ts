@@ -1,8 +1,8 @@
 import { CHANNEL } from '../enums.ts';
 import { IUtm } from '../integrations/interfaces.ts';
-import { ClevertapCampaignService } from './clevertap.campaign.service.ts';
-import { ConnectlyCampaignService } from './connectly.campaign.service.ts';
-import { CampaignService } from './campaign.service.ts';
+import { ClevertapCampaignProvider } from './clevertap.campaign.provider.ts';
+import { ConnectlyCampaignProvider } from './connectly.campaign.provider.ts';
+import { CampaignProvider } from './campaign.provider.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 
 export class CampaignFactory {
@@ -13,10 +13,10 @@ export class CampaignFactory {
     variables: TypeCampaignVariables,
     utm: IUtm,
     lng = 'es',
-  ): CampaignService {
+  ): CampaignProvider {
     switch (channel) {
       case CHANNEL.PushNotification:
-        return new ClevertapCampaignService(
+        return new ClevertapCampaignProvider(
           store,
           campaignName,
           variables,
@@ -24,7 +24,7 @@ export class CampaignFactory {
           lng,
         );
       case CHANNEL.WhatsApp:
-        return new ConnectlyCampaignService(
+        return new ConnectlyCampaignProvider(
           store,
           campaignName,
           variables,

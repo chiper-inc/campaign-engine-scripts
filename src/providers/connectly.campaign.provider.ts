@@ -1,10 +1,10 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm } from '../integrations/interfaces.ts';
-import { CampaignService } from './campaign.service.ts';
-import { ConnectlyMessageService } from './connectly.message.service.ts';
-import { ICallToActionLink } from '../main.ts';
+import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
+import { CampaignProvider } from './campaign.provider.ts';
+import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
+import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
 
-export class ConnectlyCampaignService extends CampaignService {
+export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
     store: TypeStore,
     campaignName: string,
@@ -14,15 +14,31 @@ export class ConnectlyCampaignService extends CampaignService {
   ) {
     super(variables, lng);
     this.messageValues.push(
-      new ConnectlyMessageService(store, campaignName, utm),
+      new ConnectlyMessageProvider(store, campaignName, utm),
     );
   }
 
-  public setMessagesVariables(): this {
+  public async setMessagesVariables(): Promise<this> {
+    const carouselContentGenerator =
+      ConnectlyCarouselNotificationAI.getInstance();
+    const carouselContent = (await carouselContentGenerator.generateContent(
+      this.variableValues,
+    )) as unknown as { greeting: string; products: string[] };
+
+    const products: TypeCampaignVariables = {};
+    for (let i = 0; i < carouselContent.products.length; i++) {
+      products[`sku_${i + 1}`] = carouselContent.products[i];
+    }
+
     this.messageValues.forEach((message) => {
-      message.setVariables(this.variableValues);
+      message.setVariables({
+        ...this.variableValues,
+        ...products,
+        greeting: carouselContent.greeting,
+      });
     });
-    return this;
+
+    return Promise.resolve(this);
   }
 
   public setPathVariables(shortLinks: ICallToActionLink[]): this {
@@ -53,5 +69,9 @@ export class ConnectlyCampaignService extends CampaignService {
       utm.campaignName
     }&utm_term=${utm.campaignTerm || ''}`;
     return `${url.split('/').slice(3)}?${queryParams}`; // remove protocol and hostname
+  }
+
+  public getMessageName(): string {
+    return `${this.messageValues[0]?.messageName ?? ''}`;
   }
 }
