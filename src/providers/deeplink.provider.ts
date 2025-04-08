@@ -61,6 +61,7 @@ export class DeeplinkProvider {
         storeId,
       });
     });
+    console.log({ storeSet });
     return Array.from(storeSet);
   }
 

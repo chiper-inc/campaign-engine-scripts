@@ -85,7 +85,7 @@ export class StoreRecomendationProvider {
   });
 
   private getCampaignRange = (
-    { communicationChannel, locationId }: TypeStoreParams,
+    { communicationChannel /* , locationId */ }: TypeStoreParams,
     day: number,
     numberOfAvailableSkus: number,
   ): TypeCampaignEntry | null => {
@@ -142,12 +142,12 @@ export class StoreRecomendationProvider {
         campaign.variables.filter((v) => v.startsWith('sku')).length >
         numberOfSkus
       ) {
-        console.log(
-          communicationChannel,
-          locationId,
-          campaign.variables.filter((v) => v.startsWith('sku')),
-          numberOfSkus,
-        );
+        // console.log(
+        //   communicationChannel,
+        //   locationId,
+        //   campaign.variables.filter((v) => v.startsWith('sku')),
+        //   numberOfSkus,
+        // );
         return null;
       }
       return {

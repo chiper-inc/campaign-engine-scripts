@@ -6,7 +6,7 @@ import {
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
-import { sleep } from '../utils/index.ts';
+import * as UTILS from '../utils/index.ts';
 
 export class LbApiOperacionesIntegration {
   private readonly url;
@@ -40,9 +40,11 @@ export class LbApiOperacionesIntegration {
   async createOneShortLink(payload: IShortLinkPayload) {
     const functionName = this.createOneShortLink.name;
 
-    const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action${
-      (payload?.callToAction?.storeReferenceId || 1) % 101 === 0 ? '/sss' : ''
-    }`;
+    const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
+
+    // const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action${
+    //   (payload?.callToAction?.storeReferenceId || 1) % 101 === 0 ? '/sss' : ''
+    // }`;
 
     if (payload?.callToAction?.storeReferenceId) {
       payload.callToAction.referenceId = StoreReferenceMap.get(
@@ -130,11 +132,15 @@ export class LbApiOperacionesIntegration {
       );
       responses = responses.concat(batchResponse);
       this.logger.warn({
-        message: `batch ${++batchIdx} of ${batchCount} done. ${responses.length} responses.`,
+        message: `batch ${++batchIdx} of ${batchCount} for ShorLinks done. ${responses.length} responses.`,
         functionName,
         data: { batchIdx, batchCount, responses: responses.length },
       });
-      await sleep(
+      console.log(
+        `batch ${batchIdx} of ${batchCount} for ShorLinks done. ${responses.length} responses.`,
+      );
+      // Wait for a random time between 0 and WAITING_TIME/2
+      await UTILS.sleep(
         this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
       );
     }

@@ -92,10 +92,15 @@ async function main({
     day,
   );
   const preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
-  await new DeeplinkProvider().generateLinks(preEntries, includeShortlinks);
-  await new GenAiProvider().generateCampaignMessages(preEntries);
+  const exceptionStoreIds = await Promise.all([
+    new DeeplinkProvider().generateLinks(preEntries, includeShortlinks),
+    new GenAiProvider().generateCampaignMessages(preEntries),
+  ]);
 
-  const [connectlyEntries, clevertapEntries] = splitPreEntries(preEntries);
+  const [connectlyEntries, clevertapEntries] = splitPreEntries(
+    preEntries,
+    new Set(exceptionStoreIds.flat()),
+  );
   const [connectlyMessages] = await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
       IConnectlyEntry[][]
@@ -222,20 +227,25 @@ const sendCampaingsToIntegrations = async (
   await Promise.all(promises);
 };
 
-const splitPreEntries = (preEntries: IPreEntry[]) => {
-  return preEntries.reduce(
-    (acc, preEntry) => {
-      if (preEntry.campaignService instanceof ConnectlyCampaignProvider) {
-        acc[0].push(preEntry);
-      } else if (
-        preEntry.campaignService instanceof ClevertapCampaignProvider
-      ) {
-        acc[1].push(preEntry);
-      }
-      return acc;
-    },
-    [[], []] as [IPreEntry[], IPreEntry[]],
-  );
+const splitPreEntries = (
+  preEntries: IPreEntry[],
+  exceptionStoreIds: Set<number>,
+) => {
+  return preEntries
+    .filter((preEntry) => !exceptionStoreIds.has(preEntry.storeId))
+    .reduce(
+      (acc, preEntry) => {
+        if (preEntry.campaignService instanceof ConnectlyCampaignProvider) {
+          acc[0].push(preEntry);
+        } else if (
+          preEntry.campaignService instanceof ClevertapCampaignProvider
+        ) {
+          acc[1].push(preEntry);
+        }
+        return acc;
+      },
+      [[], []] as [IPreEntry[], IPreEntry[]],
+    );
 };
 
 const generatePreEntries = (
@@ -489,130 +499,6 @@ const generateCallToAction = (
     // campaignService: CampaignFactory.createCampaignService(channel, 'es', utm),
   };
 };
-
-// const getStore = (row: IStoreSuggestion): TypeStore => ({
-//   storeId: row.storeId,
-//   name: row.name,
-//   phone: row.phone,
-//   storeStatus: row.storeStatus,
-// });
-
-// const getSku = (row: IStoreSuggestion): TypeSku => ({
-//   storeReferenceId: row.storeReferenceId,
-//   reference: row.reference,
-//   discountFormatted: row.discountFormatted,
-//   image: StoreReferenceMap.get(row.storeReferenceId)?.regular ?? '',
-// });
-
-// const getCampaignRange = (
-//   { communicationChannel, locationId }: TypeStoreParams,
-//   day: number,
-//   numberOfAvailableSkus: number,
-// ): TypeCampaignEntry | null => {
-//   const generateArray = (n: number): number[] => {
-//     const arr = [];
-//     for (let i = 1; i <= n; i++) {
-//       arr.push(i);
-//     }
-//     return arr;
-//   };
-
-//   const adjustToMessageConstraint = (channel: CHANNEL, n: number): number => {
-//     const MESSAGE_CONSTRAINT = {
-//       [CHANNEL.WhatsApp]: [2, 4],
-//       [CHANNEL.PushNotification]: generateArray(
-//         CLEVERATAP.maxMessagesPerCampaign,
-//       ),
-//     };
-//     const options = MESSAGE_CONSTRAINT[channel] ?? [];
-//     if (!options.length) return 0;
-
-//     const min = Math.min(...options);
-//     const max = Math.max(...options);
-
-//     if (n < min) return 0; // No hay productos suficientes
-//     if (n > max) return max; // Se toma la cantidad maxima de productos
-
-//     let resp = min;
-//     for (const option of options) {
-//       if (resp < option && option <= n) {
-//         resp = option;
-//       }
-//     }
-//     return resp;
-//   };
-
-//   const numberOfSkus = adjustToMessageConstraint(
-//     communicationChannel,
-//     numberOfAvailableSkus,
-//   );
-//   if (!numberOfSkus) return null;
-
-//   const campaigns = campaignMap.get(
-//     getCampaignKey({
-//       communicationChannel,
-//       numberOfSkus,
-//     }),
-//   );
-//   if (campaigns) {
-//     const campaign = campaigns[day % campaigns.length];
-
-//     if (!campaign) return null;
-//     if (
-//       campaign.variables.filter((v) => v.startsWith('sku')).length >
-//       numberOfSkus
-//     ) {
-//       console.log(
-//         communicationChannel,
-//         locationId,
-//         campaign.variables.filter((v) => v.startsWith('sku')),
-//         numberOfSkus,
-//       );
-//       return null;
-//     }
-//     return {
-//       name: campaign.name,
-//       variables: campaign.variables,
-//       paths: campaign.paths,
-//     };
-//   }
-//   return null;
-// };
-
-// const getUtm = (
-//   params: TypeStoreParams,
-//   day: number,
-//   // name: string,
-//   // segment: string | null,
-// ): IUtm => {
-//   const channelMap: { [k in CHANNEL]: string } = {
-//     [CHANNEL.WhatsApp]: 'WA',
-//     [CHANNEL.PushNotification]: 'PN',
-//   };
-
-//   const segment = getCampaignSegmentName(params);
-//   const { communicationChannel, locationId } = params;
-//   const asset = channelMap[communicationChannel] ?? 'XX';
-//   const payer = '1'; // Fix value
-//   const type = 'ot';
-
-//   const date = new Date(BASE_DATE + day * 24 * 60 * 60 * 1000);
-//   const term = UTILS.formatDDMMYY(date); // DDMMYY
-//   const campaign = `${UTILS.getCityId(locationId)}_${UTILS.getCPG(locationId)}_${
-//     asset
-//   }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}`;
-//   const source =
-//     `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
-//   const content = UUID; // uuid
-//   const medium = '164';
-//   return {
-//     campaignName: campaign,
-//     campaignContent: content,
-//     campaignTerm: term,
-//     campaignSource: source,
-//     campaignMedium: medium,
-//   };
-// };
 
 function getFrequency(
   row: IStoreSuggestion,

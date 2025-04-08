@@ -46,6 +46,11 @@ export class ClevertapCampaignProvider extends CampaignProvider {
 
   public async setMessagesVariables(): Promise<this> {
     const pushNotificationGenerator = ClevertapPushNotificationAI.getInstance();
+
+    // if (this.variables.path_4) {
+    //   throw new Error('Path_4 is not allowed');
+    // }
+
     const pushNotificationContent =
       (await pushNotificationGenerator.generateContent(
         this.variableValues,
