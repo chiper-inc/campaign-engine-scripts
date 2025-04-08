@@ -40,10 +40,7 @@ export class LbApiOperacionesIntegration {
 
   async createOneShortLink(payload: IShortLinkPayload, retry: number = 0) {
     if (retry >= this.maxRetries) return null;
-    if (retry > 0) {
-      console.error('Retrying createOneShortLink', retry);
-      await this.sleep();
-    }
+    if (retry > 0) await this.sleep();
 
     const functionName = this.createOneShortLink.name;
 

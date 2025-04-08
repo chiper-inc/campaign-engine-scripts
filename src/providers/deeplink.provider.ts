@@ -18,12 +18,12 @@ export class DeeplinkProvider {
   ): Promise<number[]> => {
     if (!includeLinks) return Promise.resolve([]);
 
-    const storeIds = await this.generateCallToActionShortLinks(preEntries);
-    this.generatePathVariable(preEntries);
+    const storeIds = await this.updateCallToActionShortLinks(preEntries);
+    this.updatePathVariable(preEntries);
     return storeIds;
   };
 
-  private async generateCallToActionShortLinks(
+  private async updateCallToActionShortLinks(
     preEntries: IPreEntry[],
   ): Promise<number[]> {
     const preEntryMap = preEntries.reduce(
@@ -64,11 +64,10 @@ export class DeeplinkProvider {
     return Array.from(storeSet);
   }
 
-  private generatePathVariable = (preEntries: IPreEntry[]): IPreEntry[] => {
-    return preEntries.map((preEntry) => {
+  private updatePathVariable = (preEntries: IPreEntry[]): void => {
+    preEntries.forEach((preEntry) => {
       const { campaignService, shortLinks = [] } = preEntry;
       campaignService?.setPathVariables(shortLinks);
-      return preEntry;
     });
   };
 
@@ -116,10 +115,6 @@ export class DeeplinkProvider {
     }, new Map());
   }
 
-  private isEmptyLink(link: ICallToActionLink | undefined): boolean {
-    return !link || link.fullUrl === '' || link.shortenUrl === '';
-  }
-
   private func = (
     storeSet: Set<number>,
     shortLinkMap: Map<string, ICallToActionLink>,
@@ -136,4 +131,8 @@ export class DeeplinkProvider {
     }
     return shortLink as ICallToActionLink;
   };
+
+  private isEmptyLink(link: ICallToActionLink | undefined): boolean {
+    return !link || link.fullUrl === '' || link.shortenUrl === '';
+  }
 }

@@ -92,10 +92,18 @@ async function main({
     day,
   );
   const preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
-  const exceptionStoreIds = await Promise.all([
-    new DeeplinkProvider().generateLinks(preEntries, includeShortlinks),
-    new GenAiProvider().generateCampaignMessages(preEntries),
-  ]);
+  const exceptionStoreIds: number[][] = [];
+  exceptionStoreIds.push(
+    await new DeeplinkProvider().generateLinks(preEntries, includeShortlinks),
+  );
+  exceptionStoreIds.push(
+    await new GenAiProvider().generateCampaignMessages(preEntries),
+  );
+
+  // await Promise.all([
+  //   new DeeplinkProvider().generateLinks(preEntries, includeShortlinks),
+  //   new GenAiProvider().generateCampaignMessages(preEntries),
+  // ]);
 
   const [connectlyEntries, clevertapEntries] = splitPreEntries(
     preEntries,
