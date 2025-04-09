@@ -1,5 +1,5 @@
 import { BigQuery } from '@google-cloud/bigquery';
-import { IStoreSuggestion } from './interfaces.ts';
+import { IStoreSuggestion, OFFER_TYPE } from './interfaces.ts';
 import { IFrequencyParameter } from '../mocks/interfaces.ts';
 import { CHANNEL, LOCATION, STORE_STATUS } from '../enums.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
@@ -33,9 +33,10 @@ export class BigQueryRepository {
       MG.city,
       MG.cityId,
       MG.locationId,
-      MG.storeReferenceId,
+      IF(MG.storeReferenceId mod 10 = 0, '${OFFER_TYPE.referencePromotion}', '${OFFER_TYPE.storeReference}') as recomendationType,
+      IF(MG.storeReferenceId mod 10 = 0, MG.storeReferenceId, MG.storeReferenceId + 1000000) as recomendationId,
       MG.name,
-      MG.reference,
+      IF(MG.storeReferenceId mod 10 = 0, MG.reference, CONCAT('PROMO:', MG.reference)) as reference,
       MG.discountFormatted,
       MG.phone,
       MG.ranking,

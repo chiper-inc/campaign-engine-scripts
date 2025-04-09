@@ -80,7 +80,7 @@ export class DeeplinkProvider {
   }): string {
     return `${utm.campaignName}|${callToAction.actionTypeId ?? ''}|${
       callToAction.storeReferenceId ?? ''
-    }|${(callToAction.storeReferenceIds || []).sort((a, b) => a - b).join(',')}|${
+    }|${(callToAction.storeReferences || []).sort((a, b) => a.localeCompare(b)).join(',')}|${
       callToAction.macroId ?? ''
     }|${callToAction.brandId ?? ''}`;
   }

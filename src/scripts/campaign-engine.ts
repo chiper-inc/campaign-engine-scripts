@@ -30,7 +30,7 @@ import {
   TypeStoreParams,
 } from '../types.ts';
 import { BigQueryRepository } from '../repositories/big-query.ts';
-import { IStoreSuggestion } from '../repositories/interfaces.ts';
+import { IStoreSuggestion, OFFER_TYPE } from '../repositories/interfaces.ts';
 import { SlackIntegration } from '../integrations/slack.ts';
 import { CampaignFactory } from '../providers/campaign.factory.ts';
 import { CampaignProvider } from '../providers/campaign.provider.ts';
@@ -44,14 +44,20 @@ import { Logger } from 'logging-chiper';
 import { GenAiProvider } from '../providers/gen-ai.provider.ts';
 import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
 import { IPreEntry, IUtmCallToAction } from './interfaces.ts';
-import { StoreRecomendationProvider } from '../providers/store-recomendation.provider.ts';
+import { StoreRecommendationProvider } from '../providers/store-recomendation.provider.ts';
 
-export interface IStoreRecomendation {
+export interface IStoreRecommendation {
   store: TypeStore;
   params: TypeStoreParams;
   campaign: TypeCampaignEntry;
   skus: TypeSku[];
   utm: IUtm;
+}
+
+export interface IOffer {
+  type: OFFER_TYPE;
+  storeReferenceId?: number;
+  referencePromotionId?: number;
 }
 
 // Process Gobal Variables
@@ -80,7 +86,7 @@ async function main({
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
-  const storeReferenceProvider = new StoreRecomendationProvider(
+  const storeReferenceProvider = new StoreRecommendationProvider(
     BASE_DATE,
     UUID,
   );
@@ -263,7 +269,7 @@ const splitPreEntries = (
 };
 
 const generatePreEntries = (
-  storesMap: Map<number, IStoreRecomendation>,
+  storesMap: Map<number, IStoreRecommendation>,
 ): IPreEntry[] => {
   const entries: IPreEntry[] = [];
   for (const data of Array.from(storesMap.values())) {
@@ -277,19 +283,19 @@ const generatePreEntries = (
 
     const {
       variables,
-      storeReferenceIds,
+      offers,
     }: {
       variables?: TypeCampaignVariables;
-      storeReferenceIds?: number[];
-    } = generateVariablesAndStoreReferenceIds(campaign.variables, {
+      offers?: IOffer[];
+    } = generateVariablesAndRecommendations(campaign.variables, {
       store,
       skus,
     }) ?? {
       variables: undefined,
-      storeReferenceIds: undefined,
+      offers: undefined,
     };
 
-    if (!variables || !storeReferenceIds) continue;
+    if (!variables || !offers) continue;
 
     campaign.paths.forEach((path) => {
       variables[path] = path;
@@ -308,7 +314,7 @@ const generatePreEntries = (
       campaignService.messages,
       campaign.paths,
       store.storeId,
-      storeReferenceIds,
+      offers,
     );
 
     if (!utmCallToActions) continue;
@@ -318,7 +324,7 @@ const generatePreEntries = (
     const utmCallToAction = generateCallToAction(
       coreUtm,
       store.storeId,
-      storeReferenceIds,
+      offers,
     );
 
     entries.push({
@@ -335,51 +341,7 @@ const generatePreEntries = (
   return entries;
 };
 
-const generateCallToActionPaths = (
-  messageServices: MessageProvider[],
-  paths: string[],
-  storeId: number,
-  storeReferenceIds: number[],
-): IUtmCallToAction[] | null => {
-  const pathObj = [];
-  for (const path of paths.filter((e) => e.startsWith('path'))) {
-    const [, index]: string[] = path.split('_');
-    if (!path) return null;
-    let callToAction: Partial<ICallToAction> = {};
-    let utm: IUtm | undefined = undefined;
-    if (index && index !== 'dsct') {
-      if (isNaN(Number(index))) {
-        // path_n
-        callToAction = {
-          actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-          storeReferenceIds: storeReferenceIds,
-        };
-        utm = messageServices[0]?.utm;
-      } else {
-        const i = Number(index) - 1;
-        callToAction = {
-          actionTypeId: Config.lbApiOperaciones.callToAction.reference,
-          storeReferenceId: storeReferenceIds[i],
-        };
-        utm = messageServices[i]?.utm ?? messageServices[0]?.utm;
-      }
-    } else {
-      callToAction = {
-        actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-      };
-      utm = messageServices[0]?.utm;
-    }
-    pathObj.push({
-      storeId,
-      utm: { ...utm, campaignContent: uuid() },
-      callToAction,
-    });
-  }
-
-  return pathObj.length ? pathObj : null;
-};
-
-const generateVariablesAndStoreReferenceIds = (
+const generateVariablesAndRecommendations = (
   variablesList: string[],
   obj: {
     store: TypeStore;
@@ -387,7 +349,7 @@ const generateVariablesAndStoreReferenceIds = (
   },
 ): {
   variables: TypeCampaignVariables;
-  storeReferenceIds: number[];
+  recomendations: IOffer[];
 } | null => {
   const typeMap: { [k: string]: string } = {
     name: 'store',
@@ -404,7 +366,7 @@ const generateVariablesAndStoreReferenceIds = (
     dsct: 'discountFormatted',
     img: 'image',
   };
-  const storeReferenceIds = [];
+  const recomendations = [];
   let variables: TypeCampaignVariables = {};
   for (const variable of variablesList) {
     const [varName, varIndex] = variable.split('_');
@@ -426,7 +388,7 @@ const generateVariablesAndStoreReferenceIds = (
 
       variables = { ...variables, ...resp.variable };
       if (varName.startsWith('sku')) {
-        storeReferenceIds.push(resp.storeReferenceId ?? 0);
+        recomendations.push(resp.recomendation ?? 0);
       }
     } else {
       const resp = getVariableFromStore(
@@ -440,7 +402,7 @@ const generateVariablesAndStoreReferenceIds = (
       variables = { ...variables, ...resp };
     }
   }
-  return { variables, storeReferenceIds };
+  return { variables, recomendations };
 };
 
 const getVariableFromStore = (
@@ -462,7 +424,7 @@ const getVariableFromSku = (
   varName: string = '_',
 ): {
   variable: TypeCampaignVariables;
-  storeReferenceId: number;
+  recomendation: IOffer;
 } | null => {
   if (isNaN(index) || index < 0) return null;
 
@@ -474,37 +436,74 @@ const getVariableFromSku = (
   const value =
     (sku as { [k: string]: string | number })[varName] ?? `Sku[${variable}]`;
 
+  const recomendation = {
+    type: sku.skuType,
+    storeReferenceId:
+      sku.storeReferenceId === null ? undefined : sku.storeReferenceId,
+    referencePromotionId:
+      sku.referencePromotionId === null ? undefined : sku.referencePromotionId,
+  };
+
   return {
     variable: {
       [variable]: UTILS.removeExtraSpaces(value),
     },
-    storeReferenceId: sku.storeReferenceId,
+    recomendation,
   };
+};
+
+const generateCallToActionPaths = (
+  messageServices: MessageProvider[],
+  paths: string[],
+  storeId: number,
+  offers: IOffer[],
+): IUtmCallToAction[] | null => {
+  const pathObj = [];
+  for (const path of paths.filter((e) => e.startsWith('path'))) {
+    const [, index]: string[] = path.split('_');
+    if (!path) return null;
+    let callToAction: Partial<ICallToAction> = {};
+    let utm: IUtm | undefined = undefined;
+    if (index && index !== 'dsct') {
+      if (isNaN(Number(index))) {
+        // path_n
+        callToAction = generateCallToActionToOfferList(offers);
+        utm = messageServices[0]?.utm;
+      } else {
+        const i = Number(index) - 1;
+        callToAction = generateCallToActionToOfferDetail(offers[i]);
+        utm = messageServices[i]?.utm ?? messageServices[0]?.utm;
+      }
+    } else {
+      callToAction = {
+        actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
+      };
+      utm = messageServices[0]?.utm;
+    }
+    pathObj.push({
+      storeId,
+      utm: { ...utm, campaignContent: uuid() },
+      callToAction,
+    });
+  }
+
+  return pathObj.length ? pathObj : null;
 };
 
 const generateCallToAction = (
   utm: IUtm,
   storeId: number,
-  storeReferenceIds: number[],
+  recomendations: IOffer[],
 ): IUtmCallToAction => {
   let callToAction: Partial<ICallToAction> = {};
-  if (storeReferenceIds.length === 1) {
-    callToAction = {
-      actionTypeId: Config.lbApiOperaciones.callToAction.reference,
-      storeReferenceId: storeReferenceIds[0],
-    };
-  } else if (storeReferenceIds.length > 1) {
+  if (recomendations.length === 1) {
+    callToAction = generateCallToActionToOfferDetail(recomendations[0]);
+  } else if (recomendations.length > 1) {
     // 2 or more skus then C2A_OFFER_LIST
-    callToAction = {
-      actionTypeId: Config.lbApiOperaciones.callToAction.offerList, // TO DO: When new section is created
-      storeReferenceIds: undefined,
-      // storeReferenceIds: storeReferenceIds,
-    };
+    callToAction = generateCallToActionToOfferList(recomendations);
   } else {
     // NO Sku included
-    callToAction = {
-      actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-    };
+    callToAction = generateCallToActionToDiscountList();
   }
   return {
     callToAction,
@@ -513,6 +512,32 @@ const generateCallToAction = (
     // campaignService: CampaignFactory.createCampaignService(channel, 'es', utm),
   };
 };
+
+const generateCallToActionToOfferList = (offers: IOffer[]) => ({
+  actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
+  storeReferences: offers.map(
+    ({ type, storeReferenceId, referencePromotionId }) =>
+      type === OFFER_TYPE.storeReference
+        ? String(storeReferenceId)
+        : `C-${referencePromotionId}`,
+  ),
+});
+
+const generateCallToActionToOfferDetail = (
+  offer: IOffer,
+): Partial<ICallToAction> => {
+  const { type, storeReferenceId, referencePromotionId } = offer;
+  const { reference, referencePromotion } =
+    Config.lbApiOperaciones.callToAction;
+  return type === OFFER_TYPE.storeReference
+    ? { actionTypeId: reference, storeReferenceId }
+    : { actionTypeId: referencePromotion, referencePromotionId };
+};
+
+const generateCallToActionToDiscountList = () => ({
+  actionTypeId: Config.lbApiOperaciones.callToAction.discountList, // TO DO: When new section is created
+  storeReferenceIds: undefined,
+});
 
 function getFrequency(
   row: IStoreSuggestion,

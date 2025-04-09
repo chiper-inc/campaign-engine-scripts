@@ -9,8 +9,9 @@ export interface IStoreReferenceData {
 export interface ICallToAction {
   actionTypeId: number;
   storeReferenceId: number;
+  referencePromotionId: number;
   referenceId: number;
-  storeReferenceIds: number[];
+  storeReferences: string[];
   brandId: number;
   macroId: number;
 }

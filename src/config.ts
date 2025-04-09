@@ -18,9 +18,11 @@ export const Config = {
   lbApiOperaciones: {
     callToAction: {
       reference: CONST.C2A_REFERENCE,
+      referencePromotion: CONST.C2A_REFERENCE_PROMOTION,
+      offerList: CONST.C2A_OFFER_LIST,
       macro: CONST.C2A_MACRO,
       brand: CONST.C2A_BRAND,
-      offerList: CONST.C2A_OFFER_LIST,
+      discountList: CONST.C2A_DISCOUNT_LIST,
     },
     apiUrl: process.env.LB_API_OPERACIONES_URL ?? '',
     apiKey: process.env.LB_API_OPERACIONES_KEY ?? null,
