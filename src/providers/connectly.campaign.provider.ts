@@ -59,6 +59,10 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
       });
       this.variableValues[path] = shortLink;
     });
+
+    this.messageValues.forEach((message) =>
+      message.setPaths(this.variableValues),
+    );
     return this;
   }
 

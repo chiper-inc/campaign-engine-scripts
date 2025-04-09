@@ -43,9 +43,18 @@ export class GenAiProvider {
       }
       promises.push(
         preEntry.campaignService
-          ? preEntry.campaignService
-              .setMessagesVariables()
-              .catch(() => storeSet.add(preEntry.storeId))
+          ? preEntry.campaignService.setMessagesVariables().catch((error) => {
+              this.logger.error({
+                message: 'Error Generating AI messages',
+                functionName,
+                error: error as Error,
+                data: {
+                  storeId: preEntry.storeId,
+                  variables: preEntry.campaignService?.variables,
+                },
+              });
+              storeSet.add(preEntry.storeId);
+            })
           : Promise.resolve(),
       );
     }

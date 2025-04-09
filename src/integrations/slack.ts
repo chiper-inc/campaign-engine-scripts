@@ -148,7 +148,6 @@ export class SlackIntegration {
           error,
           data: { request },
         });
-        console.error('ERROR:', error);
       });
   }
 

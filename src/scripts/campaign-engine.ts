@@ -96,11 +96,25 @@ async function main({
     new DeeplinkProvider().generateLinks(preEntries, includeShortlinks),
     new GenAiProvider().generateCampaignMessages(preEntries),
   ]);
-
   const [connectlyEntries, clevertapEntries] = splitPreEntries(
     preEntries,
     new Set(exceptionStoreIds.flat()),
   );
+
+  // clevertapEntries.slice(0, 10).forEach((entry) => {
+  //   console.error({
+  //     var: entry.campaignService?.variables,
+  //     vars: entry.campaignService?.messages.map((m) => m.variables),
+  //   });
+  // });
+
+  // connectlyEntries.slice(0, 10).forEach((entry) => {
+  //   console.error({
+  //     var: entry.campaignService?.variables,
+  //     vars: entry.campaignService?.messages.map((m) => m.variables),
+  //   });
+  // });
+
   const [connectlyMessages] = await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
       IConnectlyEntry[][]
@@ -357,7 +371,7 @@ const generateCallToActionPaths = (
     }
     pathObj.push({
       storeId,
-      utm,
+      utm: { ...utm, campaignContent: uuid() },
       callToAction,
     });
   }

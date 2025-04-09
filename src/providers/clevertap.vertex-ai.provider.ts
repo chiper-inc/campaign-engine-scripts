@@ -15,7 +15,7 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
     );
     this.userInstructions = PROMPTS.userInstructionsClevertapPushNotification;
     this.logger.log({
-      message: 'ClevertapPushNotificationAI initialized',
+      message: `${ClevertapPushNotificationAI.name} initialized`,
       data: { userInstructions: this.userInstructions },
     });
   }

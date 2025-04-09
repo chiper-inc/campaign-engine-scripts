@@ -35,6 +35,7 @@ export class ClevertapCampaignProvider extends CampaignProvider {
         shortLinks[i].fullUrl ?? `https://tienda.chiper.co/shortlink_${i + 1}`,
       );
       this.variableValues[path] = shortLink;
+      this.messageValues[i].setPaths({ path: this.variableValues[path] });
     });
 
     return this;
@@ -107,12 +108,15 @@ export class ClevertapCampaignProvider extends CampaignProvider {
       if (Number.isNaN(i)) continue;
 
       const obj: TypeCampaignVariables = map.get(i) || {};
-      obj[key] = value;
+      if (['img'].includes(key)) {
+        obj[key] = value;
+      }
       map.set(i, obj);
     }
-    return Array.from(map.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([, value]) => ({ ...common, ...value }));
+    return Array.from(map.entries()).map(([, value]) => ({
+      ...common,
+      ...value,
+    }));
   }
 
   public getMessageName(): string {

@@ -63,7 +63,7 @@ export const isProduction = (): boolean => {
   return Config.environment.toLowerCase() === 'production';
 };
 
-export const sleep = (ms: number) =>
+export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 // File Utilities

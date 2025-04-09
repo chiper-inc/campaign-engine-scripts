@@ -5,11 +5,14 @@ import {
   IUtm,
 } from '../integrations/interfaces.ts';
 import { IPreEntry, IUtmCallToAction } from '../scripts/interfaces.ts';
+import { LoggingProvider } from './logging.provider.ts';
 
 export class DeeplinkProvider {
   private readonly lbApiOperacionesIntegration: LbApiOperacionesIntegration;
+  private readonly logger: LoggingProvider;
   constructor() {
     this.lbApiOperacionesIntegration = new LbApiOperacionesIntegration();
+    this.logger = new LoggingProvider({ context: DeeplinkProvider.name });
   }
 
   public generateLinks = async (
@@ -18,12 +21,12 @@ export class DeeplinkProvider {
   ): Promise<number[]> => {
     if (!includeLinks) return Promise.resolve([]);
 
-    const storeIds = await this.generateCallToActionShortLinks(preEntries);
-    this.generatePathVariable(preEntries);
+    const storeIds = await this.updateCallToActionShortLinks(preEntries);
+    this.updatePathVariable(preEntries);
     return storeIds;
   };
 
-  private async generateCallToActionShortLinks(
+  private async updateCallToActionShortLinks(
     preEntries: IPreEntry[],
   ): Promise<number[]> {
     const preEntryMap = preEntries.reduce(
@@ -64,11 +67,10 @@ export class DeeplinkProvider {
     return Array.from(storeSet);
   }
 
-  private generatePathVariable = (preEntries: IPreEntry[]): IPreEntry[] => {
-    return preEntries.map((preEntry) => {
+  private updatePathVariable = (preEntries: IPreEntry[]): void => {
+    preEntries.forEach((preEntry) => {
       const { campaignService, shortLinks = [] } = preEntry;
       campaignService?.setPathVariables(shortLinks);
-      return preEntry;
     });
   };
 
@@ -89,8 +91,7 @@ export class DeeplinkProvider {
   private async createShortLinks(
     preMap: Map<string, IUtmCallToAction>,
   ): Promise<Map<string, ICallToActionLink>> {
-    const integration = new LbApiOperacionesIntegration();
-    const responses = await integration.createAllShortLink(
+    const responses = await this.lbApiOperacionesIntegration.createAllShortLink(
       Array.from(preMap.entries()).map(([key, value]) => ({
         key,
         value: {
@@ -116,10 +117,6 @@ export class DeeplinkProvider {
     }, new Map());
   }
 
-  private isEmptyLink(link: ICallToActionLink | undefined): boolean {
-    return !link || link.fullUrl === '' || link.shortenUrl === '';
-  }
-
   private func = (
     storeSet: Set<number>,
     shortLinkMap: Map<string, ICallToActionLink>,
@@ -128,12 +125,22 @@ export class DeeplinkProvider {
       storeId,
     }: { utmCallToAction: IUtmCallToAction; storeId: number },
   ) => {
-    const shortLink = shortLinkMap.get(
-      this.getUtmAndCallToActionKey(utmCallToAction),
-    );
+    const functionName = this.func.name;
+    const key = this.getUtmAndCallToActionKey(utmCallToAction);
+    const shortLink = shortLinkMap.get(key);
     if (this.isEmptyLink(shortLink)) {
+      this.logger.error({
+        message: 'Error creating short link',
+        functionName,
+        error: new Error('Short link is empty'),
+        data: { storeId, key, shortLink, utmCallToAction },
+      });
       storeSet.add(storeId);
     }
     return shortLink as ICallToActionLink;
   };
+
+  private isEmptyLink(link: ICallToActionLink | undefined): boolean {
+    return !link || link.fullUrl === '' || link.shortenUrl === '';
+  }
 }

@@ -3,7 +3,7 @@ import { TypeCampaignVariables } from '../types.ts';
 
 export abstract class MessageProvider {
   protected utmValue: IUtm;
-  protected varValues: TypeCampaignVariables;
+  protected readonly variablesValues: TypeCampaignVariables;
   protected readonly lng: string;
   protected readonly message: string;
   protected readonly campaignId: string;
@@ -16,7 +16,7 @@ export abstract class MessageProvider {
   ) {
     this.lng = lng;
     this.utmValue = { ...utm };
-    this.varValues = {};
+    this.variablesValues = {};
     this.campaignId = campaignId;
     this.message = messageName;
   }
@@ -33,7 +33,13 @@ export abstract class MessageProvider {
     return this.message;
   }
 
+  public get variables(): TypeCampaignVariables {
+    return this.variablesValues;
+  }
+
   public abstract setVariables(vars: TypeCampaignVariables): this;
+
+  public abstract setPaths(vars: TypeCampaignVariables): this;
 
   public abstract get integrationBody(): unknown;
 }

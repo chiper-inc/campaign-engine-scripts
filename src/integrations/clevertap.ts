@@ -16,6 +16,7 @@ export class ClevertapIntegration {
   private readonly backoffSecondsStep: number;
   private readonly BATCH_SIZE: number = Config.clevertap.batchSize;
   private readonly WAITING_TIME: number = 750;
+  private readonly maxRetries: number = 3;
 
   private logger: LoggingProvider;
 
@@ -46,12 +47,14 @@ export class ClevertapIntegration {
     });
   }
 
-  public async sendOneCampaign({
-    message,
-    inSeconds,
-    timeoutSeconds,
-  }: IClevertapCampaign): Promise<void> {
-    const functionName = this.sendOneCampaign.name;
+  public async sendOneMessage(
+    { message, inSeconds, timeoutSeconds }: IClevertapCampaign,
+    retry = 0,
+  ): Promise<unknown> {
+    if (retry >= this.maxRetries) return null;
+    if (retry > 0) await this.sleep();
+
+    const functionName = this.sendOneMessage.name;
 
     const method: 'POST' | 'GET' | 'PUT' | 'DELETE' = 'POST';
     const request = {
@@ -62,7 +65,7 @@ export class ClevertapIntegration {
     };
     const cloudTask = new CloudTask(this.queueName);
     const name = `Clevertap-Campaign-${message.campaign_id}`;
-    await cloudTask
+    return cloudTask
       .createOneTask({
         name,
         request,
@@ -82,11 +85,15 @@ export class ClevertapIntegration {
       })
       .catch((error) => {
         this.logger.error({
-          message: 'Error creating cloud task',
+          message: `Error creating cloud task - Retry ${retry}`,
           functionName,
           error,
           data: { request: { name, request, inSeconds, timeoutSeconds } },
         });
+        return this.sendOneMessage(
+          { message, inSeconds, timeoutSeconds },
+          retry + 1,
+        );
       });
     // console.log(`Created task ${response.name}`);
   }
@@ -99,7 +106,7 @@ export class ClevertapIntegration {
       inSeconds += Math.floor(Math.pow(2, k)) * this.backoffSecondsStep;
       k++;
       promises.push(
-        this.sendOneCampaign({ message: message, inSeconds: inSeconds }),
+        this.sendOneMessage({ message: message, inSeconds: inSeconds }),
       );
     }
     await Promise.all(promises);
@@ -137,10 +144,7 @@ export class ClevertapIntegration {
           functionName,
           data: { BATCH_SIZE: this.BATCH_SIZE, numBatch, totalBatches },
         });
-        await UTILS.sleep(
-          this.WAITING_TIME +
-            Math.floor((Math.random() * this.WAITING_TIME) / 2),
-        );
+        await this.sleep();
         promises.length = 0;
       }
     }
@@ -157,5 +161,11 @@ export class ClevertapIntegration {
       functionName,
       data: { BATCH_SIZE: this.BATCH_SIZE, numBatch, totalBatches },
     });
+  }
+
+  private sleep(): Promise<void> {
+    return UTILS.sleep(
+      this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
+    );
   }
 }

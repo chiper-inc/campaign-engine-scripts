@@ -90,9 +90,10 @@ export class BigQueryRepository {
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
+        AND QRY.storeReferenceId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 750
-      -- OFFSET 10000
+      LIMIT 750
+      OFFSET 7250
     `;
 
     this.logger.log({
