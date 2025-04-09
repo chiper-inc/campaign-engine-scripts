@@ -108,12 +108,12 @@ async function main({
   //   });
   // });
 
-  connectlyEntries.slice(0, 10).forEach((entry) => {
-    console.error({
-      var: entry.campaignService?.variables,
-      vars: entry.campaignService?.messages.map((m) => m.variables),
-    });
-  });
+  // connectlyEntries.slice(0, 10).forEach((entry) => {
+  //   console.error({
+  //     var: entry.campaignService?.variables,
+  //     vars: entry.campaignService?.messages.map((m) => m.variables),
+  //   });
+  // });
 
   const [connectlyMessages] = await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
