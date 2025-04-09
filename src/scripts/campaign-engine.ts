@@ -319,8 +319,6 @@ const generatePreEntries = (
 
     if (!utmCallToActions) continue;
 
-    // console.error(callToActions)
-
     const utmCallToAction = generateCallToAction(
       coreUtm,
       store.storeId,
@@ -483,9 +481,7 @@ const generateCallToActionPaths = (
         utm = messageServices[i]?.utm ?? messageServices[0]?.utm;
       }
     } else {
-      callToAction = {
-        actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-      };
+      callToAction = generateCallToActionToDiscountList();
       utm = messageServices[0]?.utm;
     }
     pathObj.push({
@@ -501,14 +497,14 @@ const generateCallToActionPaths = (
 const generateCallToAction = (
   utm: IUtm,
   storeId: number,
-  recomendations: IOffer[],
+  offers: IOffer[],
 ): IUtmCallToAction => {
   let callToAction: Partial<ICallToAction> = {};
-  if (recomendations.length === 1) {
-    callToAction = generateCallToActionToOfferDetail(recomendations[0]);
-  } else if (recomendations.length > 1) {
+  if (offers.length === 1) {
+    callToAction = generateCallToActionToOfferDetail(offers[0]);
+  } else if (offers.length > 1) {
     // 2 or more skus then C2A_OFFER_LIST
-    callToAction = generateCallToActionToOfferList(recomendations);
+    callToAction = generateCallToActionToOfferList(offers);
   } else {
     // NO Sku included
     callToAction = generateCallToActionToDiscountList();
@@ -537,6 +533,7 @@ const generateCallToActionToOfferDetail = (
   const { type, storeReferenceId, referencePromotionId } = offer;
   const { reference, referencePromotion } =
     Config.lbApiOperaciones.callToAction;
+
   return type === OFFER_TYPE.storeReference
     ? { actionTypeId: reference, storeReferenceId }
     : { actionTypeId: referencePromotion, referencePromotionId };

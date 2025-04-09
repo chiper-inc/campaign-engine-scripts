@@ -41,6 +41,7 @@ export class DeeplinkProvider {
       },
       new Map() as Map<string, IUtmCallToAction>,
     );
+
     const shortLinkMap = new Map<string, ICallToActionLink>();
     for (const [key, value] of (
       await this.createShortLinks(preEntryMap)
@@ -79,7 +80,7 @@ export class DeeplinkProvider {
     callToAction: Partial<ICallToAction>;
   }): string {
     return `${utm.campaignName}|${callToAction.actionTypeId ?? ''}|${
-      callToAction.storeReferenceId ?? ''
+      callToAction.storeReferenceId ?? callToAction.referencePromotionId ?? ''
     }|${(callToAction.storeReferences || []).sort((a, b) => a.localeCompare(b)).join(',')}|${
       callToAction.macroId ?? ''
     }|${callToAction.brandId ?? ''}`;
