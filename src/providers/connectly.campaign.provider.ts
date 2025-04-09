@@ -32,7 +32,7 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
       products[index] =
         this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
           ? carouselContent.products[i]
-          : this.variableValues[index];
+          : this.getPromotionMessage(String(this.variableValues[index]));
     }
 
     this.messageValues.forEach((message) => {

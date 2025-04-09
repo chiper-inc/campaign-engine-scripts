@@ -107,7 +107,6 @@ export class BigQueryRepository {
         churnRanges,
       },
     });
-    console.error(query);
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
   }
 

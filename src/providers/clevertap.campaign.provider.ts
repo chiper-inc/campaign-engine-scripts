@@ -4,6 +4,7 @@ import { CampaignProvider } from './campaign.provider.ts';
 import { ClevertapMessageProvider } from './clevertap.message.provider.ts';
 import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
+import { OFFER_TYPE } from '../repositories/interfaces.ts';
 
 export class ClevertapCampaignProvider extends CampaignProvider {
   constructor(
@@ -81,14 +82,14 @@ export class ClevertapCampaignProvider extends CampaignProvider {
     const getProductMessage = (products: string[], i: number): string =>
       products[i % products.length];
 
-    // const getProductMessage = (products: string[], i: number): string => {
-    //   const offset = Math.ceil(products.length / 2);
-    //   return `${products[i % products.length]}\n${products[(i + offset) % products.length]}`;
-    // };
-
     variables.forEach((variable, i) => {
       variable.title = getTitle(titles, i);
-      variable.message = getProductMessage(products, i);
+      variable.message =
+        this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
+          ? getProductMessage(products, i)
+          : this.getPromotionMessage(
+              String(this.variableValues[`sku_${i + 1}`]),
+            );
     });
   }
 
