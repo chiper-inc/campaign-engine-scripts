@@ -1,5 +1,5 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
+import { IUtm, ICallToActionLink } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';

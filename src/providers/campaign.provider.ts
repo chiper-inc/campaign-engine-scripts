@@ -1,4 +1,4 @@
-import { ICallToActionLink } from '../integrations/interfaces.ts';
+import { ICallToActionLink } from './interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 import { MessageProvider } from './message.provider.ts';
 

@@ -1,11 +1,8 @@
 import { LbApiOperacionesIntegration } from '../integrations/lb-api-operaciones.ts';
-import {
-  ICallToAction,
-  ICallToActionLink,
-  IUtm,
-} from '../integrations/interfaces.ts';
+import { ICallToAction, IUtm } from '../integrations/interfaces.ts';
 import { IPreEntry, IUtmCallToAction } from '../scripts/interfaces.ts';
 import { LoggingProvider } from './logging.provider.ts';
+import { ICallToActionLink } from './interfaces.ts';
 
 export class DeeplinkProvider {
   private readonly lbApiOperacionesIntegration: LbApiOperacionesIntegration;

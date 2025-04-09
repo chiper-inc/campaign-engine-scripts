@@ -1,9 +1,11 @@
 import {
   ICallToAction,
   ICallToActionLink,
+  IUtm,
+} from '../providers/interfaces.ts';
+import {
   IClevertapMessage,
   IConnectlyEntry,
-  IUtm,
 } from '../integrations/interfaces.ts';
 import { CampaignProvider } from '../providers/campaign.provider.ts';
 
