@@ -79,16 +79,16 @@ export class StoreRecommendationProvider {
 
   private getSku = (row: IStoreSuggestion): TypeSku => {
     const storeReferenceId =
-      row.recomendationType === OFFER_TYPE.storeReference
-        ? row.recomendationId
+      row.recommendationType === OFFER_TYPE.storeReference
+        ? row.recommendationId
         : null;
     const referencePromotionId =
-      row.recomendationType === OFFER_TYPE.referencePromotion
-        ? row.recomendationId
+      row.recommendationType === OFFER_TYPE.referencePromotion
+        ? row.recommendationId
         : null;
     const image = StoreReferenceMap.get(storeReferenceId)?.regular ?? '';
     return {
-      skuType: row.recomendationType,
+      skuType: row.recommendationType,
       storeReferenceId,
       referencePromotionId,
       reference: row.reference,

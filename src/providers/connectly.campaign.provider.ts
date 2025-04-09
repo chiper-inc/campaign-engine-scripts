@@ -3,6 +3,7 @@ import { IUtm, ICallToActionLink } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
+import { OFFER_TYPE } from '../repositories/interfaces.ts';
 
 export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
@@ -27,7 +28,11 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
 
     const products: TypeCampaignVariables = {};
     for (let i = 0; i < carouselContent.products.length; i++) {
-      products[`sku_${i + 1}`] = carouselContent.products[i];
+      const index = `sku_${i + 1}`;
+      products[index] =
+        this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
+          ? carouselContent.products[i]
+          : this.variableValues[index];
     }
 
     this.messageValues.forEach((message) => {

@@ -11,8 +11,8 @@ export interface IStoreSuggestion {
   storeId: number;
   city: string;
   locationId: LOCATION;
-  recomendationType: OFFER_TYPE;
-  recomendationId: number;
+  recommendationType: OFFER_TYPE;
+  recommendationId: number;
   name: string;
   reference: string;
   discountFormatted: string;

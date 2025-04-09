@@ -349,7 +349,7 @@ const generateVariablesAndRecommendations = (
   },
 ): {
   variables: TypeCampaignVariables;
-  recomendations: IOffer[];
+  offers: IOffer[];
 } | null => {
   const typeMap: { [k: string]: string } = {
     name: 'store',
@@ -366,7 +366,7 @@ const generateVariablesAndRecommendations = (
     dsct: 'discountFormatted',
     img: 'image',
   };
-  const recomendations = [];
+  const offers = [];
   let variables: TypeCampaignVariables = {};
   for (const variable of variablesList) {
     const [varName, varIndex] = variable.split('_');
@@ -387,8 +387,8 @@ const generateVariablesAndRecommendations = (
       if (!resp) return null;
 
       variables = { ...variables, ...resp.variable };
-      if (varName.startsWith('sku')) {
-        recomendations.push(resp.recomendation ?? 0);
+      if (resp.offer) {
+        offers.push(resp.offer ?? 0);
       }
     } else {
       const resp = getVariableFromStore(
@@ -402,7 +402,7 @@ const generateVariablesAndRecommendations = (
       variables = { ...variables, ...resp };
     }
   }
-  return { variables, recomendations };
+  return { variables, offers };
 };
 
 const getVariableFromStore = (
@@ -424,7 +424,7 @@ const getVariableFromSku = (
   varName: string = '_',
 ): {
   variable: TypeCampaignVariables;
-  recomendation: IOffer;
+  offer?: IOffer;
 } | null => {
   if (isNaN(index) || index < 0) return null;
 
@@ -436,19 +436,27 @@ const getVariableFromSku = (
   const value =
     (sku as { [k: string]: string | number })[varName] ?? `Sku[${variable}]`;
 
-  const recomendation = {
+  if (!variable.startsWith('sku')) {
+    return {
+      variable: {
+        [variable]: UTILS.removeExtraSpaces(value),
+      },
+    };
+  }
+
+  const offer = {
     type: sku.skuType,
     storeReferenceId:
       sku.storeReferenceId === null ? undefined : sku.storeReferenceId,
     referencePromotionId:
       sku.referencePromotionId === null ? undefined : sku.referencePromotionId,
   };
-
   return {
     variable: {
       [variable]: UTILS.removeExtraSpaces(value),
+      [`type_${index + 1}`]: offer.type,
     },
-    recomendation,
+    offer,
   };
 };
 
