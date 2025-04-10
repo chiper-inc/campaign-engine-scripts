@@ -195,7 +195,9 @@ export class CommunicationProvider {
       callToAction = this.generateCallToActionToOfferDetail(offers[0]);
     } else if (offers.length > 1) {
       // 2 or more skus then C2A_OFFER_LIST
+
       callToAction = this.generateCallToActionToOfferList(offers);
+      console.error({ callToAction });
     } else {
       // NO Sku included
       callToAction = this.generateCallToActionToDiscountList();
@@ -204,19 +206,20 @@ export class CommunicationProvider {
       callToAction,
       storeId,
       utm,
-      // campaignService: CampaignFactory.createCampaignService(channel, 'es', utm),
     };
   }
 
   private generateCallToActionToOfferList(offers: IOffer[]) {
     return {
       actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-      storeReferences: offers.map(
+      storeReferenceIds: offers.map(
         ({ type, storeReferenceId, referencePromotionId }) =>
           type === OFFER_TYPE.storeReference
             ? String(storeReferenceId)
             : `C-${referencePromotionId}`,
       ),
+      imageUrl: this.generateCustomOfferImage(),
+      title: this.generateCustomOfferTitle(),
     };
   }
 
@@ -239,19 +242,19 @@ export class CommunicationProvider {
     };
   }
 
-  getVariableFromStore = (
+  private getVariableFromStore(
     variable: string,
     store: TypeStore,
     varName: string = '-',
-  ): TypeCampaignVariables => {
+  ): TypeCampaignVariables {
     const value =
       (store as TypeCampaignVariables)[varName || '-'] ?? `Store[${variable}]`;
     return {
       [variable]: UTILS.removeExtraSpaces(value) || 'Visitante',
     };
-  };
+  }
 
-  getVariableFromSku = (
+  private getVariableFromSku(
     variable: string,
     skus: TypeSku[],
     index: number,
@@ -259,7 +262,7 @@ export class CommunicationProvider {
   ): {
     variable: TypeCampaignVariables;
     offer?: IOffer;
-  } | null => {
+  } | null {
     if (isNaN(index) || index < 0) return null;
 
     if (!Array.isArray(skus)) return null;
@@ -294,5 +297,17 @@ export class CommunicationProvider {
       },
       offer,
     };
-  };
+  }
+
+  private generateCustomOfferTitle(): string {
+    return UTILS.choose(
+      Config.lbApiOperaciones.callToAction.customOffer.titles,
+    );
+  }
+
+  private generateCustomOfferImage(): string {
+    return UTILS.choose(
+      Config.lbApiOperaciones.callToAction.customOffer.imageUrls,
+    );
+  }
 }

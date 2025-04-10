@@ -67,8 +67,8 @@ export abstract class CampaignProvider {
       '🛎️',
       '🛒',
     ];
-    const i = UTILS.getRandomNumber(emojis.length);
-    const j = UTILS.getRandomNumber(emojis.length);
-    return String(emojis[i] + ` ${description} ` + emojis[j]);
+    const prefix = UTILS.choose(emojis);
+    const sufix = UTILS.choose(emojis);
+    return String(prefix + ` ${description} ` + sufix);
   }
 }

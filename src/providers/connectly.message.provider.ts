@@ -17,7 +17,7 @@ export class ConnectlyMessageProvider extends MessageProvider {
 
     super(campaignId, `${messageClass}_${messageNumber}`, utm);
 
-    this.greetingTemplate = greetings[UTILS.getRandomNumber(greetings.length)];
+    this.greetingTemplate = UTILS.choose(greetings);
     this.client = `+${store.phone}`;
     this.utm.campaignName = `${this.utm.campaignName}_${campaignName.replace(/_/g, '-')}`;
   }

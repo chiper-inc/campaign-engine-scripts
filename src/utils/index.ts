@@ -50,6 +50,11 @@ export const replaceParams = (
 export const getRandomNumber = (n: number): number =>
   Math.floor(Math.random() * n);
 
+export const choose = <T>(arr: T[]): T => {
+  const randomIndex = getRandomNumber(arr.length);
+  return arr[randomIndex];
+};
+
 export const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
 
 export const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;

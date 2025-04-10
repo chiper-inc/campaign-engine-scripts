@@ -23,6 +23,13 @@ export const Config = {
       macro: CONST.C2A_MACRO,
       brand: CONST.C2A_BRAND,
       discountList: CONST.C2A_DISCOUNT_LIST,
+      customOffer: {
+        titles: ['custom.Offer.0', 'custom.Offer.1', 'custom.Offer.2'],
+        imageUrls: [
+          'https://chiper-old-imgs.imgix.net/app/7707244560255-manzana-1000ml-sellos-photoroom-ByAdwH6c0-R.png',
+          // 'https://chiper-old-imgs.imgix.net/app/no-image-ryahXCwGV-R.jpg',
+        ],
+      },
     },
     apiUrl: process.env.LB_API_OPERACIONES_URL ?? '',
     apiKey: process.env.LB_API_OPERACIONES_KEY ?? null,
