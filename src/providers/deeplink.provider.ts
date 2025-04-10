@@ -1,6 +1,6 @@
 import { LbApiOperacionesIntegration } from '../integrations/lb-api-operaciones.ts';
 import { ICallToAction, IUtm } from '../integrations/interfaces.ts';
-import { IPreEntry, IUtmCallToAction } from '../scripts/interfaces.ts';
+import { ICommunication, IUtmCallToAction } from './interfaces.ts';
 import { LoggingProvider } from './logging.provider.ts';
 import { ICallToActionLink } from './interfaces.ts';
 
@@ -13,29 +13,29 @@ export class DeeplinkProvider {
   }
 
   public generateLinks = async (
-    preEntries: IPreEntry[],
+    communications: ICommunication[],
     includeLinks: boolean,
   ): Promise<number[]> => {
     if (!includeLinks) return Promise.resolve([]);
 
-    const storeIds = await this.updateCallToActionShortLinks(preEntries);
-    this.updatePathVariable(preEntries);
+    const storeIds = await this.updateCallToActionShortLinks(communications);
+    this.updatePathVariable(communications);
     return storeIds;
   };
 
   private async updateCallToActionShortLinks(
-    preEntries: IPreEntry[],
+    communications: ICommunication[],
   ): Promise<number[]> {
-    const preEntryMap = preEntries.reduce(
-      (acc, preEntry) => {
-        const { utmCallToActions } = preEntry;
+    const communicationMap = communications.reduce(
+      (acc, communication) => {
+        const { utmCallToActions } = communication;
         for (const utmCallToAction of utmCallToActions) {
           const key = this.getUtmAndCallToActionKey(utmCallToAction);
           acc.set(key, utmCallToAction);
         }
         acc.set(
-          this.getUtmAndCallToActionKey(preEntry.utmCallToAction),
-          preEntry.utmCallToAction,
+          this.getUtmAndCallToActionKey(communication.utmCallToAction),
+          communication.utmCallToAction,
         );
         return acc;
       },
@@ -44,20 +44,20 @@ export class DeeplinkProvider {
 
     const shortLinkMap = new Map<string, ICallToActionLink>();
     for (const [key, value] of (
-      await this.createShortLinks(preEntryMap)
+      await this.createShortLinks(communicationMap)
     ).entries()) {
       shortLinkMap.set(key, value);
     }
 
     const storeSet = new Set<number>();
 
-    preEntries.forEach((preEntry) => {
-      const { utmCallToActions, utmCallToAction, storeId } = preEntry;
-      preEntry.shortLinks = utmCallToActions.map((utmCallToAction) =>
+    communications.forEach((communication) => {
+      const { utmCallToActions, utmCallToAction, storeId } = communication;
+      communication.shortLinks = utmCallToActions.map((utmCallToAction) =>
         this.func(storeSet, shortLinkMap, { utmCallToAction, storeId }),
       );
 
-      preEntry.shortLink = this.func(storeSet, shortLinkMap, {
+      communication.shortLink = this.func(storeSet, shortLinkMap, {
         utmCallToAction,
         storeId,
       });
@@ -65,9 +65,9 @@ export class DeeplinkProvider {
     return Array.from(storeSet);
   }
 
-  private updatePathVariable = (preEntries: IPreEntry[]): void => {
-    preEntries.forEach((preEntry) => {
-      const { campaignService, shortLinks = [] } = preEntry;
+  private updatePathVariable = (communications: ICommunication[]): void => {
+    communications.forEach((communication) => {
+      const { campaignService, shortLinks = [] } = communication;
       campaignService?.setPathVariables(shortLinks);
     });
   };

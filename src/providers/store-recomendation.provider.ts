@@ -1,6 +1,6 @@
 import { CHANNEL } from '../enums.ts';
 import { IStoreSuggestion, OFFER_TYPE } from '../repositories/interfaces.ts';
-import { IStoreRecommendation } from '../scripts/campaign-engine.ts';
+import { IStoreRecommendation } from './interfaces.ts';
 import {
   TypeCampaignEntry,
   TypeSku,

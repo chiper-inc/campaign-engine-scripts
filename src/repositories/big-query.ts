@@ -93,8 +93,8 @@ export class BigQueryRepository {
         AND QRY.storeStatus = LSR.storeStatus
         AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 750
-      -- OFFSET 7250
+      LIMIT 750
+      OFFSET 7250
     `;
 
     this.logger.log({

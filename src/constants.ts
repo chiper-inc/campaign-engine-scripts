@@ -3,7 +3,7 @@ export const C2A_MACRO = 4;
 export const C2A_BRAND = 2;
 export const C2A_DISCOUNT_LIST = 17;
 export const C2A_REFERENCE_PROMOTION = 6;
-export const C2A_OFFER_LIST = 30;
+export const C2A_OFFER_LIST = 17; // 30;
 
 export const BASE_DATE = new Date('2025/03/05').setHours(
   0,

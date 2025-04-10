@@ -1,4 +1,4 @@
-import { IPreEntry } from '../scripts/interfaces.ts';
+import { ICommunication } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { CHANNEL } from '../enums.ts';
 import { SlackIntegration } from '../integrations/slack.ts';
@@ -9,12 +9,12 @@ export class SlackProvider {
 
   public async reportMessagesToSlack(
     channel: CHANNEL,
-    preEntries: IPreEntry[],
+    communications: ICommunication[],
   ): Promise<void> {
-    const summaryMap = preEntries
+    const summaryMap = communications
       .map(
-        (preEntry) =>
-          [preEntry.utm.campaignName, preEntry.campaignService] as [
+        (communication) =>
+          [communication.utm.campaignName, communication.campaignService] as [
             string,
             CampaignProvider,
           ],
