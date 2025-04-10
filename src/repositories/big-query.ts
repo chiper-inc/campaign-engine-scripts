@@ -29,7 +29,7 @@ export class BigQueryRepository {
     SELECT DISTINCT
       MG.country,
       MG.storeStatus,
-      MG.storeId,
+      MG.customerId AS storeId,
       MG.city,
       MG.cityId,
       MG.locationId,
@@ -40,9 +40,9 @@ export class BigQueryRepository {
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
-      ${this.storeValueSegment} as lastValueSegmentation,
+      ${this.storeValueSegment} AS lastValueSegmentation,
       MG.communicationChannel,
-      IFNULL(MG.daysSinceLastOrderDelivered, 0) as daysSinceLastOrderDelivered,
+      IFNULL(MG.daysSinceLastOrderDelivered, 0) AS daysSinceLastOrderDelivered,
       MG.warehouseId
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
     WHERE MG.phone IS NOT NULL
@@ -80,9 +80,9 @@ export class BigQueryRepository {
         IF(QRY.storeStatus IN ('${storeStatus.join("','")}')
           , REPLACE(QRY.lastValueSegmentation, '-', '')
           , NULL
-        ) as storeValue,
-        LSR.fromDays as \`from\`,
-        LSR.toDays as \`to\`,
+        ) AS storeValue,
+        LSR.fromDays AS \`from\`,
+        LSR.toDays AS \`to\`,
         LSR.rangeName
       FROM QRY
       INNER JOIN LSR
@@ -157,7 +157,7 @@ export class BigQueryRepository {
       const name = from || to ? `'${from ?? 'Any'}to${to ?? 'Any'}'` : 'NULL';
       return `SELECT ${locationId} AS locationId, '${
         storeStatus
-      }' as storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${
+      }' AS storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${
         name
       } AS rangeName`;
     };
