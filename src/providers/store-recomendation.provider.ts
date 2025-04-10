@@ -112,7 +112,7 @@ export class StoreRecommendationProvider {
 
     const adjustToMessageConstraint = (channel: CHANNEL, n: number): number => {
       const MESSAGE_CONSTRAINT = {
-        [CHANNEL.WhatsApp]: [2, 4],
+        [CHANNEL.WhatsApp]: [2, 3, 4],
         [CHANNEL.PushNotification]: generateArray(
           CLEVERATAP.maxMessagesPerCampaign,
         ),
