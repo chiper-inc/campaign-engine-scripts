@@ -5,6 +5,7 @@ import {
 import { Config } from '../config.ts';
 
 import { IConnectlyEntry } from './interfaces.ts';
+import * as UTILS from '../utils/index.ts';
 
 export class ConnectlyIntegration {
   private readonly url: string;
@@ -12,6 +13,7 @@ export class ConnectlyIntegration {
   private readonly batchSize: number;
   private readonly headers: { [key: string]: string };
   private readonly logger: LoggingProvider;
+  private readonly WAITING_TIME: number = 1250;
 
   constructor() {
     this.url = `${Config.connectly.apiUrl}/${Config.connectly.businessId}/send/campaigns`;
@@ -104,7 +106,7 @@ export class ConnectlyIntegration {
               rejected += 1;
             });
         }),
-      ).finally(() => {
+      ).finally(async () => {
         this.logger.warn({
           functionName,
           message: `batch ${batchIdx} of ${batches.length} done, accepted = ${accepted}, rejected = ${rejected}, statuses = ${JSON.stringify(statuses)}`,
@@ -116,6 +118,7 @@ export class ConnectlyIntegration {
             statuses,
           },
         });
+        await this.sleep();
       });
       batchIdx += 1;
     }
@@ -140,5 +143,11 @@ export class ConnectlyIntegration {
       }
       return acc;
     }, [] as IConnectlyEntry[][]);
+  }
+
+  private sleep(): Promise<void> {
+    return UTILS.sleep(
+      this.WAITING_TIME + Math.floor((Math.random() * this.WAITING_TIME) / 2),
+    );
   }
 }
