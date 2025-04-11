@@ -3,7 +3,6 @@ import { ICallToAction, IUtm } from '../integrations/interfaces.ts';
 import { ICommunication, IUtmCallToAction } from './interfaces.ts';
 import { LoggingProvider } from './logging.provider.ts';
 import { ICallToActionLink } from './interfaces.ts';
-import { IShortLinkResponse } from '../integrations/interfaces.ts';
 
 export class DeeplinkProvider {
   private readonly lbApiOperacionesIntegration: LbApiOperacionesIntegration;
@@ -82,7 +81,7 @@ export class DeeplinkProvider {
   }): string {
     return `${utm.campaignName}|${callToAction.actionTypeId ?? ''}|${
       callToAction.storeReferenceId ?? callToAction.referencePromotionId ?? ''
-    }|${(callToAction.storeReferences || []).sort((a, b) => a.localeCompare(b)).join(',')}|${
+    }|${(callToAction.storeReferenceIds || []).sort((a, b) => a.localeCompare(b)).join(',')}|${
       callToAction.macroId ?? ''
     }|${callToAction.brandId ?? ''}`;
   }

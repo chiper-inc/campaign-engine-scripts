@@ -11,7 +11,7 @@ export interface ICallToAction {
   storeReferenceId: number;
   referencePromotionId: number;
   referenceId: number;
-  storeReferences: string[];
+  storeReferenceIds: string[];
   brandId: number;
   macroId: number;
 }
