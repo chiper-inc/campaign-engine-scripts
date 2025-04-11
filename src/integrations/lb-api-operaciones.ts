@@ -95,7 +95,7 @@ export class LbApiOperacionesIntegration {
       });
   }
 
-  splitIntoBatches(
+  private splitIntoBatches(
     arr: IShortLinkResponseAndKey[],
     batchSize: number,
   ): IShortLinkResponseAndKey[][] {

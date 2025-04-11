@@ -29,9 +29,10 @@ export interface IShortLinkRequest {
 }
 
 export interface IShortLinkResponse {
-  data: {
-    shortLink: string;
+  utm: {
+    shortenURL: string;
     websiteURL: string;
+    campaignContent: string;
   };
 }
 

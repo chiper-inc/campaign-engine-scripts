@@ -3,6 +3,7 @@ import { ICallToAction, IUtm } from '../integrations/interfaces.ts';
 import { ICommunication, IUtmCallToAction } from './interfaces.ts';
 import { LoggingProvider } from './logging.provider.ts';
 import { ICallToActionLink } from './interfaces.ts';
+import { IShortLinkResponse } from '../integrations/interfaces.ts';
 
 export class DeeplinkProvider {
   private readonly lbApiOperacionesIntegration: LbApiOperacionesIntegration;
@@ -100,16 +101,16 @@ export class DeeplinkProvider {
       })),
     );
     return responses.reduce((acc, obj) => {
-      const { key, response } = obj as {
-        key: string;
-        response: { data?: { shortLink?: string } };
+      const { key, response } = obj;
+
+      const data = response?.data ?? {
+        utm: { websiteURL: null, shortenURL: null, campaignContent: null },
       };
-      const data = (response?.data ?? { utm: {} }) as {
-        utm: { websiteURL?: string; shortenURL?: string };
-      }; // TODO include the interface for LB-API response
+
       acc.set(key, {
         fullUrl: data.utm.websiteURL ?? '',
         shortenUrl: data.utm.shortenURL ?? '',
+        campaignContent: data.utm.campaignContent ?? '',
       });
       return acc;
     }, new Map());

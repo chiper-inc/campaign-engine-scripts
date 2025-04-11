@@ -71,6 +71,15 @@ export const isProduction = (): boolean => {
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+// URL
+
+export const addQueryParams = (url: string, query: string): string => {
+  const [baseUrl, baseQuery] = (url ?? '').split('?');
+  return baseUrl
+    ? `${baseUrl}?${baseQuery ? `${baseQuery}&` : ''}${query}`
+    : '';
+};
+
 // File Utilities
 
 const filePath = (filename: string): string => {

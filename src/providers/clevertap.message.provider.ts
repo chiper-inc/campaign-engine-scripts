@@ -5,6 +5,8 @@ import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import * as UTILS from '../utils/index.ts';
 
 export class ClevertapMessageProvider extends MessageProvider {
+  private static imageQueryParams = 'w=800&h=400&fit=fill&bg=white';
+
   private readonly titleTemplate: string;
   private readonly offerTemplate: string;
   private readonly identity: string;
@@ -61,6 +63,10 @@ export class ClevertapMessageProvider extends MessageProvider {
     obj: TypeCampaignVariables,
   ): TypeCampaignVariables {
     if (MOCKS.version === 'v2') {
+      const image = UTILS.addQueryParams(
+        obj.img as string,
+        ClevertapMessageProvider.imageQueryParams,
+      );
       return {
         name: obj.name,
         title: obj.title ?? UTILS.replaceParams(this.titleTemplate, []),
@@ -70,7 +76,7 @@ export class ClevertapMessageProvider extends MessageProvider {
             obj.sku ?? '',
             obj.dsct ?? '',
           ]),
-        ...(obj.img ? { image: obj.img } : {}),
+        ...(image !== '' ? { image } : {}),
       };
     }
     return {

@@ -47,4 +47,5 @@ export interface IOffer {
 export interface ICallToActionLink {
   fullUrl: string;
   shortenUrl: string;
+  campaignContent: string;
 }

@@ -6,6 +6,8 @@ import * as UTILS from '../utils/index.ts';
 import { STORE_STATUS } from '../enums.ts';
 
 export class ConnectlyMessageProvider extends MessageProvider {
+  private static imageQueryParams = 'w=800&h=400&fit=fill&bg=white';
+
   private readonly client: string;
   private readonly greetingTemplate: string;
   constructor(store: TypeStore, campaignName: string, utm: IUtm) {
@@ -53,12 +55,13 @@ export class ConnectlyMessageProvider extends MessageProvider {
     if (MOCKS.version === 'v2') {
       const vars: TypeCampaignVariables = { greeting: obj.greeting };
       for (const key in obj) {
-        if (
-          key.startsWith('sku') ||
-          key.startsWith('img') ||
-          key.startsWith('greeting')
-        ) {
+        if (key.startsWith('sku') || key.startsWith('greeting')) {
           vars[key] = obj[key];
+        } else if (key.startsWith('img')) {
+          vars[key] = UTILS.addQueryParams(
+            obj[key] as string,
+            ConnectlyMessageProvider.imageQueryParams,
+          );
         }
       }
       return vars;
