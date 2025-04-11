@@ -15,8 +15,13 @@ import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 import * as CAMPAING from '../parameters/campaigns.ts';
 import { v4 as uuid } from 'uuid';
+import { Config } from '../config.ts';
 
 export class StoreRecommendationProvider {
+  private static oldHostName = Config.catalogue.oldImageUrl;
+  private static newHostName = Config.catalogue.newImageUrl;
+  private static storeReferenceMap = StoreReferenceMap;
+
   private readonly baseDate: number;
   private readonly uuid: string;
 
@@ -86,16 +91,35 @@ export class StoreRecommendationProvider {
       row.recommendationType === OFFER_TYPE.referencePromotion
         ? row.recommendationId
         : null;
-    const image =
-      row.imageUrl ?? StoreReferenceMap.get(storeReferenceId)?.regular ?? '';
     return {
       skuType: row.recommendationType,
       storeReferenceId,
       referencePromotionId,
       reference: row.reference,
       discountFormatted: row.discountFormatted,
-      image,
+      image: this.getImageUrl(row),
     };
+  };
+
+  private getImageUrl = ({
+    recommendationId,
+    recommendationType,
+    imageUrl,
+  }: IStoreSuggestion): string => {
+    if (imageUrl) {
+      return imageUrl.replace(
+        StoreRecommendationProvider.oldHostName,
+        StoreRecommendationProvider.newHostName,
+      );
+    }
+    if (recommendationType === OFFER_TYPE.storeReference) {
+      const storeReference =
+        StoreRecommendationProvider.storeReferenceMap.get(recommendationId);
+      return storeReference?.regular
+        ? storeReference.regular
+        : (StoreRecommendationProvider.storeReferenceMap.get(0)?.regular ?? '');
+    }
+    return StoreRecommendationProvider.storeReferenceMap.get(0)?.regular ?? '';
   };
 
   private getCampaignRange = (
