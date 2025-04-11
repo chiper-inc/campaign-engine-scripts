@@ -4,12 +4,6 @@ import { IFrequencyParameter } from '../mocks/interfaces.ts';
 import { CHANNEL, LOCATION, STORE_STATUS } from '../enums.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
 
-export interface ILocationRange {
-  locationId: number;
-  from?: number;
-  to?: number;
-}
-
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
   private readonly defaultOptions: object;
@@ -33,10 +27,11 @@ export class BigQueryRepository {
       MG.city,
       MG.cityId,
       MG.locationId,
-      IF(MOD(MG.storeReferenceId, 10) = 0, '${OFFER_TYPE.referencePromotion}', '${OFFER_TYPE.storeReference}') as recommendationType,
-      IF(MOD(MG.storeReferenceId, 10) = 0, MG.storeReferenceId + 1000000, MG.storeReferenceId) as recommendationId,
+      IF(MG.referencePromotionId IS NOT NULL, '${OFFER_TYPE.referencePromotion}', '${OFFER_TYPE.storeReference}') as recommendationType,
+      IFNULL(MG.referencePromotionId, MG.storeReferenceId) as recommendationId,
       MG.name,
-      IF(MOD(MG.storeReferenceId, 10) = 0, CONCAT('PROMO: ', MG.reference), MG.reference) as reference,
+      IF(MG.referencePromotionId IS NOT NULL, CONCAT('PROMO: ', MG.campaignDescription), MG.reference) as reference,
+      IFNULL(MG.bannerUrl, MG.referenceImageUrl) as imageUrl,
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
@@ -91,7 +86,7 @@ export class BigQueryRepository {
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
-        AND QRY.recommendationId IS NOT NULL
+        -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
       LIMIT 750
       OFFSET 7250

@@ -197,7 +197,6 @@ export class CommunicationProvider {
       // 2 or more skus then C2A_OFFER_LIST
 
       callToAction = this.generateCallToActionToOfferList(offers);
-      console.error({ callToAction });
     } else {
       // NO Sku included
       callToAction = this.generateCallToActionToDiscountList();

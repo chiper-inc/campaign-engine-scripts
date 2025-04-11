@@ -86,7 +86,8 @@ export class StoreRecommendationProvider {
       row.recommendationType === OFFER_TYPE.referencePromotion
         ? row.recommendationId
         : null;
-    const image = StoreReferenceMap.get(storeReferenceId)?.regular ?? '';
+    const image =
+      row.imageUrl ?? StoreReferenceMap.get(storeReferenceId)?.regular ?? '';
     return {
       skuType: row.recommendationType,
       storeReferenceId,

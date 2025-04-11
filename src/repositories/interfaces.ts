@@ -15,6 +15,7 @@ export interface IStoreSuggestion {
   recommendationId: number;
   name: string;
   reference: string;
+  imageUrl: string;
   discountFormatted: string;
   phone: string;
   ranking: number;
