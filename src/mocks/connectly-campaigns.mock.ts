@@ -22,6 +22,9 @@ const versions: [number, string][] = [
    [5, "v1" ], // 17
 ];
 
+export const minMessagesPerCampaign = 2
+export const maxMessagesPerCampaign = 5;
+
 const getConnectlyCampaignKey = (num: number, lng = 'es') => (`${PROVIDER.Connectly}|${num}|${lng}`);
 
 export const connectlyCampaignMap: Map<string, ICampaignParameter[]> = 

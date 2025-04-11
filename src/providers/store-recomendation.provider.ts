@@ -13,7 +13,7 @@ import { CHANNEL_PROVIDER } from '../constants.ts';
 import { campaignMap, getCampaignKey } from '../parameters.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
-import * as CLEVERATAP from '../mocks/clevertap-campaigns.mock.ts';
+import * as CAMPAING from '../parameters/campaigns.ts';
 import { v4 as uuid } from 'uuid';
 
 export class StoreRecommendationProvider {
@@ -102,9 +102,9 @@ export class StoreRecommendationProvider {
     day: number,
     numberOfAvailableSkus: number,
   ): TypeCampaignEntry | null => {
-    const generateArray = (n: number): number[] => {
+    const generateArray = (from: number, to: number): number[] => {
       const arr = [];
-      for (let i = 1; i <= n; i++) {
+      for (let i = from; i <= to; i++) {
         arr.push(i);
       }
       return arr;
@@ -112,9 +112,13 @@ export class StoreRecommendationProvider {
 
     const adjustToMessageConstraint = (channel: CHANNEL, n: number): number => {
       const MESSAGE_CONSTRAINT = {
-        [CHANNEL.WhatsApp]: [2, 3, 4],
+        [CHANNEL.WhatsApp]: generateArray(
+          CAMPAING.messagesPerCampaign[CHANNEL.WhatsApp].min,
+          CAMPAING.messagesPerCampaign[CHANNEL.WhatsApp].max,
+        ),
         [CHANNEL.PushNotification]: generateArray(
-          CLEVERATAP.maxMessagesPerCampaign,
+          CAMPAING.messagesPerCampaign[CHANNEL.PushNotification].min,
+          CAMPAING.messagesPerCampaign[CHANNEL.PushNotification].max,
         ),
       };
       const options = MESSAGE_CONSTRAINT[channel] ?? [];
