@@ -26,8 +26,8 @@ export const Config = {
       customOffer: {
         titles: ['custom.Offer.0', 'custom.Offer.1', 'custom.Offer.2'],
         imageUrls: [
-          'https://chiper-old-imgs.imgix.net/app/7707244560255-manzana-1000ml-sellos-photoroom-ByAdwH6c0-R.png',
-          // 'https://chiper-old-imgs.imgix.net/app/no-image-ryahXCwGV-R.jpg',
+          // 'https://chiper-old-imgs.imgix.net/app/7707244560255-manzana-1000ml-sellos-photoroom-ByAdwH6c0-R.png',
+          'https://chiper-old-imgs.imgix.net/app/no-image-ryahXCwGV-R.jpg',
         ],
       },
     },

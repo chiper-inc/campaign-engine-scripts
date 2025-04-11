@@ -117,9 +117,12 @@ export class StoreRecommendationProvider {
         StoreRecommendationProvider.storeReferenceMap.get(recommendationId);
       return storeReference?.regular
         ? storeReference.regular
-        : (StoreRecommendationProvider.storeReferenceMap.get(0)?.regular ?? '');
+        : (StoreRecommendationProvider.storeReferenceMap.get(null)?.regular ??
+            '');
     }
-    return StoreRecommendationProvider.storeReferenceMap.get(0)?.regular ?? '';
+    return (
+      StoreRecommendationProvider.storeReferenceMap.get(null)?.regular ?? ''
+    );
   };
 
   private getCampaignRange = (
