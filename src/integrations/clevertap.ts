@@ -29,7 +29,7 @@ export class ClevertapIntegration {
       'Content-Type': 'application/json',
     };
     this.backoffSecondsStep = UTILS.isProduction()
-      ? 3600 /* 60m */
+      ? 1800 /* 30m */
       : 15 /* 15s */;
     this.logger = new LoggingProvider({
       context: ClevertapIntegration.name,
