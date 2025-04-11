@@ -33,11 +33,6 @@ import { CommunicationProvider } from '../providers/comunication.provider.ts';
 
 const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
 const UUID = uuid();
-Logger.init({
-  projectId: 'Campaign Engine',
-  service: 'Script: Campaign Engine',
-});
-
 // Main Function
 
 async function main({
@@ -275,17 +270,34 @@ const args = process.argv.slice(2);
 const includeParam = (args: string[], param: string) =>
   args.some((arg) => arg.toLowerCase().startsWith(param.toLowerCase()));
 
-main({
-  day: UTILS.daysFromBaseDate(today),
-  includeShortlinks: includeParam(args, 'link'),
-  sendToClevertap: includeParam(args, 'clevertap'),
-  sendToConnectly: includeParam(args, 'connectly'),
-})
-  .then()
+(async () => {
+  Logger.init({
+    projectId: 'Campaign Engine',
+    service: 'Script: Campaign Engine',
+  });
+  Logger.getInstance().log({
+    stt: 'scripting',
+    message: 'Engine Script started',
+  });
+  await main({
+    day: UTILS.daysFromBaseDate(today),
+    includeShortlinks: includeParam(args, 'link'),
+    sendToClevertap: includeParam(args, 'clevertap'),
+    sendToConnectly: includeParam(args, 'connectly'),
+  });
+})()
+  .then(() => {
+    Logger.getInstance().log({
+      stt: 'scripting',
+      message: 'Engine Script finished',
+    });
+    process.exit(0);
+  })
   .catch((err) => {
     Logger.getInstance().error({
-      stt: 'script',
-      message: err.message,
+      stt: 'scripting',
+      message: 'Engine Script error',
       error: err,
     });
+    process.exit(1);
   });
