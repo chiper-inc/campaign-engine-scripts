@@ -18,20 +18,23 @@ interface ErrorInput {
   readonly data?: unknown;
 }
 
-export enum LoggingLevel {
+enum LoggingLevel {
   NONE = 0,
   LOG = 4,
   WARN = 2,
   ERROR = 1,
-  FULL = 7,
 }
-
 export class LoggingProvider {
-  private readonly loggerBaseData: Partial<LogInput>;
-  private readonly level: LoggingLevel = Config.logging
-    .level as unknown as LoggingLevel;
+  public static NONE = LoggingLevel.NONE;
+  public static LOG = LoggingLevel.LOG;
+  public static WARN = LoggingLevel.WARN;
+  public static ERROR = LoggingLevel.ERROR;
+  public static FULL = this.LOG | this.WARN | this.ERROR;
 
-  constructor(loggingOptions?: { context?: string; levels?: LoggingLevel }) {
+  private readonly loggerBaseData: Partial<LogInput>;
+  private readonly level: number = Config.logging.level as unknown as number;
+
+  constructor(loggingOptions?: { context?: string; levels?: number }) {
     const { context = LoggingProvider.name, levels = LoggingLevel.NONE } =
       loggingOptions || {};
     this.level = levels !== LoggingLevel.NONE ? levels : this.level;
@@ -42,7 +45,7 @@ export class LoggingProvider {
   }
 
   public log(input: Partial<LogInput>) {
-    if (this.level & LoggingLevel.LOG) {
+    if (this.level & LoggingProvider.LOG) {
       Logger.getInstance().log({
         ...this.loggerBaseData,
         ...input,
@@ -51,7 +54,7 @@ export class LoggingProvider {
   }
 
   public error(input: Partial<ErrorInput>) {
-    if (this.level & LoggingLevel.ERROR) {
+    if (this.level & LoggingProvider.ERROR) {
       Logger.getInstance().error({
         ...this.loggerBaseData,
         ...input,
@@ -60,7 +63,7 @@ export class LoggingProvider {
   }
 
   public warn(input: Partial<LogInput>) {
-    if (this.level & LoggingLevel.WARN) {
+    if (this.level & LoggingProvider.WARN) {
       Logger.getInstance().warn({
         ...this.loggerBaseData,
         ...input,

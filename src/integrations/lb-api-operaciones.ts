@@ -1,8 +1,5 @@
 // import { CampaignProvider } from '../services/campaign.service.ts';
-import {
-  LoggingProvider,
-  LoggingLevel,
-} from '../providers/logging.provider.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import {
@@ -34,7 +31,7 @@ export class LbApiOperacionesIntegration {
     };
     this.logger = new LoggingProvider({
       context: LbApiOperacionesIntegration.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'LbApiOperacionesIntegration initialized',

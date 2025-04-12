@@ -35,7 +35,7 @@ const script = async (filename: string): Promise<void> => {
   })
   .catch((err) => {
     Logger.getInstance().error({
-      stt: 'script',
+      stt: 'scripting',
       message: 'Send Clevertap Script error',
       error: err,
     });

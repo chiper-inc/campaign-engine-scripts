@@ -1,6 +1,6 @@
 import { Config } from '../config.ts';
 import { ICommunication } from './interfaces.ts';
-import { LoggingProvider, LoggingLevel } from './logging.provider.ts';
+import { LoggingProvider } from './logging.provider.ts';
 
 export class GenAiProvider {
   private readonly logger: LoggingProvider;
@@ -9,7 +9,7 @@ export class GenAiProvider {
   constructor() {
     this.logger = new LoggingProvider({
       context: GenAiProvider.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
   }
 

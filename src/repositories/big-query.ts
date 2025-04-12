@@ -30,7 +30,7 @@ export class BigQueryRepository {
       IF(MG.referencePromotionId IS NOT NULL, '${OFFER_TYPE.referencePromotion}', '${OFFER_TYPE.storeReference}') as recommendationType,
       IFNULL(MG.referencePromotionId, MG.storeReferenceId) as recommendationId,
       MG.name,
-      IF(MG.referencePromotionId IS NOT NULL, CONCAT('PROMO: ', MG.campaignDescription), MG.reference) as reference,
+      IF(MG.referencePromotionId IS NOT NULL, MG.campaignDescription, MG.reference) as reference,
       IFNULL(MG.bannerUrl, MG.referenceImageUrl) as imageUrl,
       MG.discountFormatted,
       MG.phone,
@@ -41,7 +41,7 @@ export class BigQueryRepository {
       MG.warehouseId
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
     WHERE MG.phone IS NOT NULL
-      -- AND MG.ranking <= 10
+      AND MG.ranking <= 5
       AND MG.phone NOT LIKE '5_9613739%'
       AND MG.phone NOT LIKE '5_9223372%'
   `;
@@ -51,7 +51,10 @@ export class BigQueryRepository {
     this.defaultOptions = {
       location: 'US',
     };
-    this.logger = new LoggingProvider({ context: BigQueryRepository.name });
+    this.logger = new LoggingProvider({
+      context: BigQueryRepository.name,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+    });
   }
 
   public selectStoreSuggestions(
@@ -88,7 +91,7 @@ export class BigQueryRepository {
         AND QRY.storeStatus = LSR.storeStatus
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 1000
+      -- LIMIT 1000
       -- OFFSET 7250
     `;
 
