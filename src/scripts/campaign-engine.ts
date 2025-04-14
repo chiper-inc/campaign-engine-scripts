@@ -1,68 +1,38 @@
 import { v4 as uuid } from 'uuid';
-
-// Constants
-
 import * as UTILS from '../utils/index.ts';
-// import * as CLEVERATAP from '../mocks/clevertap-campaigns.mock.ts';
-import { Config } from '../config.ts';
+import { BASE_DATE, CHANNEL_PROVIDER, CITY_NAME } from '../constants.ts';
+
 import {
-  // campaignsBySatatus,
   getLocationStatusRangeKey,
   frequencyMap,
   frequencyByLocationAndStatusAndRange,
-  // campaignMap,
-  // getCampaignKey,
 } from '../parameters.ts';
-import { BASE_DATE, CHANNEL_PROVIDER, CITY_NAME } from '../constants.ts';
-// import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
+
 import {
-  ICallToAction,
   IConnectlyEntry,
   IClevertapMessage,
-  IUtm,
 } from '../integrations/interfaces.ts';
-import { CHANNEL } from '../enums.ts';
-import {
-  TypeCampaignEntry,
-  TypeSku,
-  TypeStore,
-  TypeCampaignVariables,
-  TypeStoreParams,
-} from '../types.ts';
-import { BigQueryRepository } from '../repositories/big-query.ts';
 import { IStoreSuggestion } from '../repositories/interfaces.ts';
+import { ICommunication } from '../providers/interfaces.ts';
+
+import { CHANNEL } from '../enums.ts';
+import { BigQueryRepository } from '../repositories/big-query.ts';
 import { SlackIntegration } from '../integrations/slack.ts';
-import { CampaignFactory } from '../providers/campaign.factory.ts';
 import { CampaignProvider } from '../providers/campaign.provider.ts';
-import { MessageProvider } from '../providers/message.provider.ts';
 import { ConnectlyCampaignProvider } from '../providers/connectly.campaign.provider.ts';
 import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provider.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
-// import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 import { Logger } from 'logging-chiper';
 import { GenAiProvider } from '../providers/gen-ai.provider.ts';
 import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
-import { IPreEntry, IUtmCallToAction } from './interfaces.ts';
-import { StoreRecomendationProvider } from '../providers/store-recomendation.provider.ts';
-
-export interface IStoreRecomendation {
-  store: TypeStore;
-  params: TypeStoreParams;
-  campaign: TypeCampaignEntry;
-  skus: TypeSku[];
-  utm: IUtm;
-}
+import { StoreRecommendationProvider } from '../providers/store-recomendation.provider.ts';
+import { CommunicationProvider } from '../providers/comunication.provider.ts';
 
 // Process Gobal Variables
 
 const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
 const UUID = uuid();
-Logger.init({
-  projectId: 'Campaign Engine',
-  service: 'Script: Campaign Engine',
-});
-
 // Main Function
 
 async function main({
@@ -80,7 +50,7 @@ async function main({
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
-  const storeReferenceProvider = new StoreRecomendationProvider(
+  const storeReferenceProvider = new StoreRecommendationProvider(
     BASE_DATE,
     UUID,
   );
@@ -91,16 +61,32 @@ async function main({
     ),
     day,
   );
-  const preEntries = generatePreEntries(storeMap).slice(offset, offset + limit);
+  const communications = new CommunicationProvider()
+    .generateEntries(storeMap)
+    .slice(offset, offset + limit);
   const exceptionStoreIds = await Promise.all([
-    new DeeplinkProvider().generateLinks(preEntries, includeShortlinks),
-    new GenAiProvider().generateCampaignMessages(preEntries),
+    new DeeplinkProvider().generateLinks(communications, includeShortlinks),
+    new GenAiProvider().generateCampaignMessages(communications),
   ]);
-
-  const [connectlyEntries, clevertapEntries] = splitPreEntries(
-    preEntries,
+  const [connectlyEntries, clevertapEntries] = splitcommunications(
+    communications,
     new Set(exceptionStoreIds.flat()),
   );
+
+  // clevertapEntries.slice(0, 10).forEach((entry) => {
+  //   console.error({
+  //     var: entry.campaignService?.variables,
+  //     vars: entry.campaignService?.messages.map((m) => m.variables),
+  //   });
+  // });
+
+  // connectlyEntries.slice(0, 10).forEach((entry) => {
+  //   console.error({
+  //     var: entry.campaignService?.variables,
+  //     vars: entry.campaignService?.messages.map((m) => m.variables),
+  //   });
+  // });
+
   const [connectlyMessages] = await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
       IConnectlyEntry[][]
@@ -129,12 +115,12 @@ async function main({
 
 const reportMessagesToSlack = async (
   channel: CHANNEL,
-  preEntries: IPreEntry[],
+  communications: ICommunication[],
 ): Promise<void> => {
-  const summaryMap = preEntries
+  const summaryMap = communications
     .map(
-      (preEntry) =>
-        [preEntry.utm.campaignName, preEntry.campaignService] as [
+      (communication) =>
+        [communication.utm.campaignName, communication.campaignService] as [
           string,
           CampaignProvider,
         ],
@@ -186,11 +172,11 @@ const reportMessagesToSlack = async (
 
 const outputIntegrationMessages = async (
   channel: CHANNEL,
-  preEntries: IPreEntry[],
+  communications: ICommunication[],
 ) => {
-  const entries: (IConnectlyEntry | IClevertapMessage)[][] = preEntries.map(
-    (preEntry) =>
-      preEntry.campaignService?.integrationBody as (
+  const entries: (IConnectlyEntry | IClevertapMessage)[][] = communications.map(
+    (communication) =>
+      communication.campaignService?.integrationBody as (
         | IConnectlyEntry
         | IClevertapMessage
       )[],
@@ -227,277 +213,27 @@ const sendCampaingsToIntegrations = async (
   await Promise.all(promises);
 };
 
-const splitPreEntries = (
-  preEntries: IPreEntry[],
+const splitcommunications = (
+  communications: ICommunication[],
   exceptionStoreIds: Set<number>,
 ) => {
-  return preEntries
-    .filter((preEntry) => !exceptionStoreIds.has(preEntry.storeId))
+  return communications
+    .filter((communication) => !exceptionStoreIds.has(communication.storeId))
     .reduce(
-      (acc, preEntry) => {
-        if (preEntry.campaignService instanceof ConnectlyCampaignProvider) {
-          acc[0].push(preEntry);
-        } else if (
-          preEntry.campaignService instanceof ClevertapCampaignProvider
+      (acc, communication) => {
+        if (
+          communication.campaignService instanceof ConnectlyCampaignProvider
         ) {
-          acc[1].push(preEntry);
+          acc[0].push(communication);
+        } else if (
+          communication.campaignService instanceof ClevertapCampaignProvider
+        ) {
+          acc[1].push(communication);
         }
         return acc;
       },
-      [[], []] as [IPreEntry[], IPreEntry[]],
+      [[], []] as [ICommunication[], ICommunication[]],
     );
-};
-
-const generatePreEntries = (
-  storesMap: Map<number, IStoreRecomendation>,
-): IPreEntry[] => {
-  const entries: IPreEntry[] = [];
-  for (const data of Array.from(storesMap.values())) {
-    const {
-      store,
-      campaign,
-      skus,
-      utm: coreUtm,
-      params: { communicationChannel: channel },
-    } = data;
-
-    const {
-      variables,
-      storeReferenceIds,
-    }: {
-      variables?: TypeCampaignVariables;
-      storeReferenceIds?: number[];
-    } = generateVariablesAndStoreReferenceIds(campaign.variables, {
-      store,
-      skus,
-    }) ?? {
-      variables: undefined,
-      storeReferenceIds: undefined,
-    };
-
-    if (!variables || !storeReferenceIds) continue;
-
-    campaign.paths.forEach((path) => {
-      variables[path] = path;
-    });
-
-    const campaignService = CampaignFactory.createCampaignService(
-      channel,
-      store,
-      campaign.name,
-      variables,
-      coreUtm,
-      'es',
-    );
-
-    const utmCallToActions = generateCallToActionPaths(
-      campaignService.messages,
-      campaign.paths,
-      store.storeId,
-      storeReferenceIds,
-    );
-
-    if (!utmCallToActions) continue;
-
-    // console.error(callToActions)
-
-    const utmCallToAction = generateCallToAction(
-      coreUtm,
-      store.storeId,
-      storeReferenceIds,
-    );
-
-    entries.push({
-      storeId: store.storeId,
-      campaignService,
-      connectlyEntry: undefined,
-      clevertapEntry: undefined,
-      utm: coreUtm,
-      utmCallToAction,
-      utmCallToActions,
-    });
-  }
-  // console.error(JSON.stringify(entries, null, 2));
-  return entries;
-};
-
-const generateCallToActionPaths = (
-  messageServices: MessageProvider[],
-  paths: string[],
-  storeId: number,
-  storeReferenceIds: number[],
-): IUtmCallToAction[] | null => {
-  const pathObj = [];
-  for (const path of paths.filter((e) => e.startsWith('path'))) {
-    const [, index]: string[] = path.split('_');
-    if (!path) return null;
-    let callToAction: Partial<ICallToAction> = {};
-    let utm: IUtm | undefined = undefined;
-    if (index && index !== 'dsct') {
-      if (isNaN(Number(index))) {
-        // path_n
-        callToAction = {
-          actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-          storeReferenceIds: storeReferenceIds,
-        };
-        utm = messageServices[0]?.utm;
-      } else {
-        const i = Number(index) - 1;
-        callToAction = {
-          actionTypeId: Config.lbApiOperaciones.callToAction.reference,
-          storeReferenceId: storeReferenceIds[i],
-        };
-        utm = messageServices[i]?.utm ?? messageServices[0]?.utm;
-      }
-    } else {
-      callToAction = {
-        actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-      };
-      utm = messageServices[0]?.utm;
-    }
-    pathObj.push({
-      storeId,
-      utm,
-      callToAction,
-    });
-  }
-
-  return pathObj.length ? pathObj : null;
-};
-
-const generateVariablesAndStoreReferenceIds = (
-  variablesList: string[],
-  obj: {
-    store: TypeStore;
-    skus: TypeSku[];
-  },
-): {
-  variables: TypeCampaignVariables;
-  storeReferenceIds: number[];
-} | null => {
-  const typeMap: { [k: string]: string } = {
-    name: 'store',
-    sgmt: 'store',
-    sku: 'skus',
-    dsct: 'skus',
-    img: 'skus',
-    // prc: 'skus',
-  };
-  const subTypeMap: { [k: string]: string } = {
-    name: 'name',
-    sgmt: 'storeStatus',
-    sku: 'reference',
-    dsct: 'discountFormatted',
-    img: 'image',
-  };
-  const storeReferenceIds = [];
-  let variables: TypeCampaignVariables = {};
-  for (const variable of variablesList) {
-    const [varName, varIndex] = variable.split('_');
-    const property = (obj as { [k: string]: TypeStore | TypeSku[] })[
-      typeMap[varName]
-    ];
-
-    if (!property) {
-      variables = { ...variables, [variable]: `Variable[${variable}]` };
-    } else if (varIndex) {
-      const resp = getVariableFromSku(
-        variable,
-        property as TypeSku[],
-        Number(varIndex) - 1,
-        subTypeMap[varName],
-      );
-
-      if (!resp) return null;
-
-      variables = { ...variables, ...resp.variable };
-      if (varName.startsWith('sku')) {
-        storeReferenceIds.push(resp.storeReferenceId ?? 0);
-      }
-    } else {
-      const resp = getVariableFromStore(
-        variable,
-        property as TypeStore,
-        subTypeMap[varName],
-      );
-
-      if (!resp) return null;
-
-      variables = { ...variables, ...resp };
-    }
-  }
-  return { variables, storeReferenceIds };
-};
-
-const getVariableFromStore = (
-  variable: string,
-  store: TypeStore,
-  varName: string = '-',
-): TypeCampaignVariables => {
-  const value =
-    (store as TypeCampaignVariables)[varName || '-'] ?? `Store[${variable}]`;
-  return {
-    [variable]: UTILS.removeExtraSpaces(value) || 'Visitante',
-  };
-};
-
-const getVariableFromSku = (
-  variable: string,
-  skus: TypeSku[],
-  index: number,
-  varName: string = '_',
-): {
-  variable: TypeCampaignVariables;
-  storeReferenceId: number;
-} | null => {
-  if (isNaN(index) || index < 0) return null;
-
-  if (!Array.isArray(skus)) return null;
-
-  if (index >= skus.length) return null;
-
-  const sku = skus[index];
-  const value =
-    (sku as { [k: string]: string | number })[varName] ?? `Sku[${variable}]`;
-
-  return {
-    variable: {
-      [variable]: UTILS.removeExtraSpaces(value),
-    },
-    storeReferenceId: sku.storeReferenceId,
-  };
-};
-
-const generateCallToAction = (
-  utm: IUtm,
-  storeId: number,
-  storeReferenceIds: number[],
-): IUtmCallToAction => {
-  let callToAction: Partial<ICallToAction> = {};
-  if (storeReferenceIds.length === 1) {
-    callToAction = {
-      actionTypeId: Config.lbApiOperaciones.callToAction.reference,
-      storeReferenceId: storeReferenceIds[0],
-    };
-  } else if (storeReferenceIds.length > 1) {
-    // 2 or more skus then C2A_OFFER_LIST
-    callToAction = {
-      actionTypeId: Config.lbApiOperaciones.callToAction.offerList, // TO DO: When new section is created
-      storeReferenceIds: undefined,
-      // storeReferenceIds: storeReferenceIds,
-    };
-  } else {
-    // NO Sku included
-    callToAction = {
-      actionTypeId: Config.lbApiOperaciones.callToAction.offerList,
-    };
-  }
-  return {
-    callToAction,
-    storeId,
-    utm,
-    // campaignService: CampaignFactory.createCampaignService(channel, 'es', utm),
-  };
 };
 
 function getFrequency(
@@ -534,17 +270,34 @@ const args = process.argv.slice(2);
 const includeParam = (args: string[], param: string) =>
   args.some((arg) => arg.toLowerCase().startsWith(param.toLowerCase()));
 
-main({
-  day: UTILS.daysFromBaseDate(today),
-  includeShortlinks: includeParam(args, 'link'),
-  sendToClevertap: includeParam(args, 'clevertap'),
-  sendToConnectly: includeParam(args, 'connectly'),
-})
-  .then()
+(async () => {
+  Logger.init({
+    projectId: 'Campaign Engine',
+    service: 'Script: Campaign Engine',
+  });
+  Logger.getInstance().log({
+    stt: 'scripting',
+    message: 'Engine Script started',
+  });
+  await main({
+    day: UTILS.daysFromBaseDate(today),
+    includeShortlinks: includeParam(args, 'link'),
+    sendToClevertap: includeParam(args, 'clevertap'),
+    sendToConnectly: includeParam(args, 'connectly'),
+  });
+})()
+  .then(() => {
+    Logger.getInstance().log({
+      stt: 'scripting',
+      message: 'Engine Script finished',
+    });
+    process.exit(0);
+  })
   .catch((err) => {
     Logger.getInstance().error({
-      stt: 'script',
-      message: err.message,
+      stt: 'scripting',
+      message: 'Engine Script error',
       error: err,
     });
+    process.exit(1);
   });

@@ -50,6 +50,11 @@ export const replaceParams = (
 export const getRandomNumber = (n: number): number =>
   Math.floor(Math.random() * n);
 
+export const choose = <T>(arr: T[]): T => {
+  const randomIndex = getRandomNumber(arr.length);
+  return arr[randomIndex];
+};
+
 export const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
 
 export const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
@@ -63,8 +68,17 @@ export const isProduction = (): boolean => {
   return Config.environment.toLowerCase() === 'production';
 };
 
-export const sleep = (ms: number) =>
+export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+// URL
+
+export const addQueryParams = (url: string, query: string): string => {
+  const [baseUrl, baseQuery] = (url ?? '').split('?');
+  return baseUrl
+    ? `${baseUrl}?${baseQuery ? `${baseQuery}&` : ''}${query}`
+    : '';
+};
 
 // File Utilities
 

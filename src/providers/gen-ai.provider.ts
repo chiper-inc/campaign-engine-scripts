@@ -1,6 +1,6 @@
 import { Config } from '../config.ts';
-import { IPreEntry } from '../scripts/interfaces.ts';
-import { LoggingProvider, LoggingLevel } from './logging.provider.ts';
+import { ICommunication } from './interfaces.ts';
+import { LoggingProvider } from './logging.provider.ts';
 
 export class GenAiProvider {
   private readonly logger: LoggingProvider;
@@ -9,30 +9,30 @@ export class GenAiProvider {
   constructor() {
     this.logger = new LoggingProvider({
       context: GenAiProvider.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
   }
 
   public async generateCampaignMessages(
-    preEntries: IPreEntry[],
+    communications: ICommunication[],
   ): Promise<number[]> {
     const functionName = this.generateCampaignMessages.name;
 
     let i = 0;
-    const n = Math.ceil(preEntries.length / this.BATCH_SIZE);
+    const n = Math.ceil(communications.length / this.BATCH_SIZE);
     const promises: Promise<unknown>[] = [];
     this.logger.warn({
-      message: `Start Generating AI Messages ${preEntries.length} in ${n} batches of ${this.BATCH_SIZE}`,
+      message: `Start Generating AI Messages ${communications.length} in ${n} batches of ${this.BATCH_SIZE}`,
       functionName,
       data: {
         batchSize: this.BATCH_SIZE,
         n,
-        preEntriesLength: preEntries.length,
+        communicationsLength: communications.length,
       },
     });
 
     const storeSet = new Set<number>();
-    for (const preEntry of preEntries) {
+    for (const communication of communications) {
       if (promises.length >= this.BATCH_SIZE) {
         await Promise.all(promises);
         this.logger.warn({
@@ -42,10 +42,21 @@ export class GenAiProvider {
         promises.length = 0;
       }
       promises.push(
-        preEntry.campaignService
-          ? preEntry.campaignService
+        communication.campaignService
+          ? communication.campaignService
               .setMessagesVariables()
-              .catch(() => storeSet.add(preEntry.storeId))
+              .catch((error) => {
+                this.logger.error({
+                  message: 'Error Generating AI messages',
+                  functionName,
+                  error: error as Error,
+                  data: {
+                    storeId: communication.storeId,
+                    variables: communication.campaignService?.variables,
+                  },
+                });
+                storeSet.add(communication.storeId);
+              })
           : Promise.resolve(),
       );
     }

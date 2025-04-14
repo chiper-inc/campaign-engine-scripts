@@ -1,7 +1,8 @@
 import { IStoreReferenceData } from '../integrations/interfaces.ts';
 
 const queryImageParams = 'w=800&h=400&fit=fill&bg=white';
-const storeRerenceArray: [number, [number, string]][] = [
+const storeRerenceArray: [number | null, [number, string]][] = [
+  [null, [-1, 'https://chiper-old-imgs.imgix.net/app/no-image-ryahXCwGV-R.jpg']],
   [88859,[542,'https://chiper-old-imgs.imgix.net/app/al-fnsse-nat-con-musli-vaso-170g-rymiixbRM-R.jpg']],
   [88853,[535,'https://chiper-old-imgs.imgix.net/app/yox-fre-bot-100g-B1mv6eZ0z-R.jpg']],
   [88869,[574,'https://chiper-old-imgs.imgix.net/app/yogo-baby-manzana-x-113-gr-merkeyacom-Hy9FbeGCM-R.jpg']],
@@ -36085,12 +36086,12 @@ const storeRerenceArray: [number, [number, string]][] = [
   [450912,[39413,'https://chiper-old-imgs.imgix.net/app/20240911859012945-photoroom-HkK_PpToJx-R.png']]
 ];
 
-export const StoreReferenceMap: Map<number, IStoreReferenceData> = new Map(
+export const StoreReferenceMap: Map<number | null, IStoreReferenceData> = new Map(
   storeRerenceArray.map(([storeReferenceId, [referenceId, regular]]) => [
     storeReferenceId,
     {
       referenceId,
-      storeReferenceId,
+      storeReferenceId: storeReferenceId as unknown as number,
       regular: `${regular}?${queryImageParams}`,
     },
   ]),

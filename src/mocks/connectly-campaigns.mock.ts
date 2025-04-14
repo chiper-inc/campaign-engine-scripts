@@ -9,9 +9,9 @@ const versions: [number, string][] = [
    [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], [ 2, "v1" ], // 4
    [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], [ 2, "v1" ], // 5
    [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], [ 2, "v1" ], // 6
-   [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], [ 2, "v1" ], // 7
-   [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], // 8
-   [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], // 9
+   [5, "v1" ], [ 4, "v0" ], [ 3, "v1" ], [ 2, "v1" ], // 7
+   [5, "v1" ], [ 4, "v0" ], [ 3, "v1" ], // 8
+   [5, "v1" ], [ 4, "v0" ], [ 3, "v1" ], // 9
    [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], // 10
    [5, "v1" ], [ 4, "v1" ], [ 3, "v1" ], // 11
    [5, "v1" ], [ 4, "v1" ], // 12
@@ -21,6 +21,9 @@ const versions: [number, string][] = [
    [5, "v1" ], // 16
    [5, "v1" ], // 17
 ];
+
+export const minMessagesPerCampaign = 2
+export const maxMessagesPerCampaign = 5;
 
 const getConnectlyCampaignKey = (num: number, lng = 'es') => (`${PROVIDER.Connectly}|${num}|${lng}`);
 
@@ -34,8 +37,13 @@ export const connectlyCampaignMap: Map<string, ICampaignParameter[]> =
       variables = campaings[0].variables;
       paths = campaings[0].paths;
     } else {
-      variables = UTILS.NAME_SGMT.concat(UTILS.generateParams(UTILS.SKU_DSCT_IMG, numCards));
-      paths = UTILS.generateParams(UTILS.PATH, numCards);
+      variables =
+        UTILS.NAME_SGMT
+          .concat(UTILS.generateParams(UTILS.SKU_DSCT_IMG, numCards))
+          .sort((a, b) => a.localeCompare(b));
+      paths = 
+        UTILS.generateParams(UTILS.PATH, numCards)
+          .sort((a, b) => a.localeCompare(b));
     }
     const i = campaings ? campaings.length + 1 : 1;
     const name = `API_Carousel.${numCards}_${i}_${lng}_${version}`;

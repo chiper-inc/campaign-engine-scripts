@@ -60,8 +60,7 @@ export class ConnectlyCarouselNotificationAI extends VertexAIClient {
       const greetings =
         MOCKS.GREETINGS[variables.sgmt as STORE_STATUS] ||
         MOCKS.GREETINGS[STORE_STATUS._default];
-      const greetingTemplate =
-        greetings[UTILS.getRandomNumber(greetings.length)];
+      const greetingTemplate = UTILS.choose(greetings);
 
       const greeting = UTILS.replaceParams(greetingTemplate, [variables.name]);
 

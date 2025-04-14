@@ -5,6 +5,8 @@ import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import * as UTILS from '../utils/index.ts';
 
 export class ClevertapMessageProvider extends MessageProvider {
+  private static imageQueryParams = 'w=800&h=400&fit=fill&bg=white';
+
   private readonly titleTemplate: string;
   private readonly offerTemplate: string;
   private readonly identity: string;
@@ -35,9 +37,15 @@ export class ClevertapMessageProvider extends MessageProvider {
   }
 
   public setVariables(vars: TypeCampaignVariables): this {
-    // console.log('this:', this, 'vars: ', vars);
+    const extenalTriggerVars = this.generateClevertapExternalTriger(vars);
+    for (const k in extenalTriggerVars) {
+      this.variablesValues[k] = extenalTriggerVars[k];
+    }
+    return this;
+  }
 
-    this.varValues = this.generateClevertapExternalTriger(vars);
+  public setPaths(vars: TypeCampaignVariables): this {
+    this.variablesValues.path = vars.path;
     return this;
   }
 
@@ -47,7 +55,7 @@ export class ClevertapMessageProvider extends MessageProvider {
         identity: [this.identity],
       },
       campaign_id: this.campaignId,
-      ExternalTrigger: this.varValues,
+      ExternalTrigger: this.variablesValues,
     };
   }
 
@@ -55,6 +63,10 @@ export class ClevertapMessageProvider extends MessageProvider {
     obj: TypeCampaignVariables,
   ): TypeCampaignVariables {
     if (MOCKS.version === 'v2') {
+      const image = UTILS.addQueryParams(
+        obj.img as string,
+        ClevertapMessageProvider.imageQueryParams,
+      );
       return {
         name: obj.name,
         title: obj.title ?? UTILS.replaceParams(this.titleTemplate, []),
@@ -64,7 +76,7 @@ export class ClevertapMessageProvider extends MessageProvider {
             obj.sku ?? '',
             obj.dsct ?? '',
           ]),
-        path: obj.path,
+        ...(image !== '' ? { image } : {}),
       };
     }
     return {
@@ -74,7 +86,7 @@ export class ClevertapMessageProvider extends MessageProvider {
         obj.sku ?? '',
         obj.dsct ?? '',
       ]),
-      path: obj.path,
+      // path: obj.path,
     };
   }
 }

@@ -8,14 +8,11 @@
       "type": "node",
       "request": "launch",
       "name": "Campaign Engine",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/src/scripts/campaign-engine.ts",
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ],
+      "args": ["link"],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "preLaunchTask": "tsc: build - tsconfig.json"
-    },
+    }
   ]
 }

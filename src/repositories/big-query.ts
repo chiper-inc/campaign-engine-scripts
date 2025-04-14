@@ -1,14 +1,8 @@
 import { BigQuery } from '@google-cloud/bigquery';
-import { IStoreSuggestion } from './interfaces.ts';
+import { IStoreSuggestion, OFFER_TYPE } from './interfaces.ts';
 import { IFrequencyParameter } from '../mocks/interfaces.ts';
 import { CHANNEL, LOCATION, STORE_STATUS } from '../enums.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
-
-export interface ILocationRange {
-  locationId: number;
-  from?: number;
-  to?: number;
-}
 
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
@@ -29,23 +23,25 @@ export class BigQueryRepository {
     SELECT DISTINCT
       MG.country,
       MG.storeStatus,
-      MG.storeId,
+      MG.customerId AS storeId,
       MG.city,
       MG.cityId,
       MG.locationId,
-      MG.storeReferenceId,
+      IF(MG.referencePromotionId IS NOT NULL, '${OFFER_TYPE.referencePromotion}', '${OFFER_TYPE.storeReference}') as recommendationType,
+      IFNULL(MG.referencePromotionId, MG.storeReferenceId) as recommendationId,
       MG.name,
-      MG.reference,
+      IF(MG.referencePromotionId IS NOT NULL, MG.campaignDescription, MG.reference) as reference,
+      IFNULL(MG.bannerUrl, MG.referenceImageUrl) as imageUrl,
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
-      ${this.storeValueSegment} as lastValueSegmentation,
+      ${this.storeValueSegment} AS lastValueSegmentation,
       MG.communicationChannel,
-      IFNULL(MG.daysSinceLastOrderDelivered, 0) as daysSinceLastOrderDelivered,
+      IFNULL(MG.daysSinceLastOrderDelivered, 0) AS daysSinceLastOrderDelivered,
       MG.warehouseId
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
     WHERE MG.phone IS NOT NULL
-      -- AND MG.ranking <= 10
+      AND MG.ranking <= 5
       AND MG.phone NOT LIKE '5_9613739%'
       AND MG.phone NOT LIKE '5_9223372%'
   `;
@@ -55,7 +51,10 @@ export class BigQueryRepository {
     this.defaultOptions = {
       location: 'US',
     };
-    this.logger = new LoggingProvider({ context: BigQueryRepository.name });
+    this.logger = new LoggingProvider({
+      context: BigQueryRepository.name,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+    });
   }
 
   public selectStoreSuggestions(
@@ -79,9 +78,9 @@ export class BigQueryRepository {
         IF(QRY.storeStatus IN ('${storeStatus.join("','")}')
           , REPLACE(QRY.lastValueSegmentation, '-', '')
           , NULL
-        ) as storeValue,
-        LSR.fromDays as \`from\`,
-        LSR.toDays as \`to\`,
+        ) AS storeValue,
+        LSR.fromDays AS \`from\`,
+        LSR.toDays AS \`to\`,
         LSR.rangeName
       FROM QRY
       INNER JOIN LSR
@@ -90,9 +89,10 @@ export class BigQueryRepository {
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
+        -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 750
-      -- OFFSET 10000
+      -- LIMIT 1000
+      -- OFFSET 7250
     `;
 
     this.logger.log({
@@ -155,7 +155,7 @@ export class BigQueryRepository {
       const name = from || to ? `'${from ?? 'Any'}to${to ?? 'Any'}'` : 'NULL';
       return `SELECT ${locationId} AS locationId, '${
         storeStatus
-      }' as storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${
+      }' AS storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${
         name
       } AS rangeName`;
     };
