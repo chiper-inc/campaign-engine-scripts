@@ -8,7 +8,7 @@ import {
   GenerateContentResult,
 } from '@google-cloud/vertexai';
 import { Config } from '../config.ts';
-import { LoggingProvider, LoggingLevel } from './logging.provider.ts';
+import { LoggingProvider } from './logging.provider.ts';
 
 export abstract class VertexAIClient {
   protected readonly maxRetries = 3;
@@ -21,12 +21,12 @@ export abstract class VertexAIClient {
   constructor(
     systemInstruction: Content,
     generationConfig?: Partial<GenerationConfig>,
-    loggingOptions?: { context?: string; levels?: LoggingLevel },
+    loggingOptions?: { context?: string; levels?: number },
   ) {
-    const { context = VertexAIClient.name, levels = LoggingLevel.NONE } =
+    const { context = VertexAIClient.name, levels = LoggingProvider.NONE } =
       loggingOptions || {
         context: VertexAIClient.name,
-        levels: LoggingLevel.NONE,
+        levels: LoggingProvider.NONE,
       };
     this.vertexAI = new VertexAI({
       project: Config.google.project,

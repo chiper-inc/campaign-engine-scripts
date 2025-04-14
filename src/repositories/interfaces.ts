@@ -1,5 +1,9 @@
 import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from '../enums.ts';
 
+export enum OFFER_TYPE {
+  storeReference = 'storeReferenceId',
+  referencePromotion = 'referencePromotionId',
+}
 export interface IStoreSuggestion {
   country: string;
   storeStatus: STORE_STATUS;
@@ -7,9 +11,11 @@ export interface IStoreSuggestion {
   storeId: number;
   city: string;
   locationId: LOCATION;
-  storeReferenceId: number;
+  recommendationType: OFFER_TYPE;
+  recommendationId: number;
   name: string;
   reference: string;
+  imageUrl: string;
   discountFormatted: string;
   phone: string;
   ranking: number;

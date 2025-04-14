@@ -1,11 +1,12 @@
 // import { CampaignProvider } from '../services/campaign.service.ts';
-import {
-  LoggingProvider,
-  LoggingLevel,
-} from '../providers/logging.provider.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
-import { IShortLinkPayload, IShortLinkPayloadAndKey } from './interfaces.ts';
+import {
+  IShortLinkRequest,
+  IShortLinkResponse,
+  IShortLinkResponseAndKey,
+} from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
 
 export class LbApiOperacionesIntegration {
@@ -30,7 +31,7 @@ export class LbApiOperacionesIntegration {
     };
     this.logger = new LoggingProvider({
       context: LbApiOperacionesIntegration.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'LbApiOperacionesIntegration initialized',
@@ -38,7 +39,10 @@ export class LbApiOperacionesIntegration {
     });
   }
 
-  async createOneShortLink(payload: IShortLinkPayload, retry: number = 0) {
+  public async createOneShortLink(
+    payload: IShortLinkRequest,
+    retry: number = 0,
+  ): Promise<{ data?: IShortLinkResponse } | null> {
     if (retry >= this.maxRetries) return null;
     if (retry > 0) await this.sleep();
 
@@ -61,7 +65,7 @@ export class LbApiOperacionesIntegration {
       headers: this.headers,
       body: JSON.stringify(request.body),
     })
-      .then(async (response): Promise<unknown> => {
+      .then(async (response): Promise<{ data?: IShortLinkResponse } | null> => {
         if (response.status !== 200) {
           this.logger.error({
             message: `Error creating short link - Retry ${retry}`,
@@ -73,9 +77,11 @@ export class LbApiOperacionesIntegration {
           });
           return this.createOneShortLink(payload, retry + 1);
         }
-        return response.json();
+        return Promise.resolve(
+          response.json() as unknown as { data?: IShortLinkResponse },
+        );
       })
-      .catch(async (error): Promise<unknown> => {
+      .catch(async (error): Promise<{ data?: IShortLinkResponse } | null> => {
         this.logger.error({
           message: `Error creating short link - Retry ${retry}`,
           functionName,
@@ -86,24 +92,29 @@ export class LbApiOperacionesIntegration {
       });
   }
 
-  splitIntoBatches(
-    arr: IShortLinkPayloadAndKey[],
+  private splitIntoBatches(
+    arr: IShortLinkResponseAndKey[],
     batchSize: number,
-  ): IShortLinkPayloadAndKey[][] {
+  ): IShortLinkResponseAndKey[][] {
     return arr.reduce((acc, _, i) => {
       if (i % batchSize === 0) {
         acc.push(arr.slice(i, i + batchSize));
       }
       return acc;
-    }, [] as IShortLinkPayloadAndKey[][]);
+    }, [] as IShortLinkResponseAndKey[][]);
   }
 
-  async createAllShortLink(
-    payloadsAndKeys: IShortLinkPayloadAndKey[],
-  ): Promise<{ key: string; response: unknown }[]> {
+  public async createAllShortLink(
+    payloadsAndKeys: IShortLinkResponseAndKey[],
+  ): Promise<
+    { key: string; response: { data?: IShortLinkResponse } | null }[]
+  > {
     const functionName = this.createAllShortLink.name;
 
-    let responses: { key: string; response: unknown }[] = [];
+    let responses: {
+      key: string;
+      response: { data?: IShortLinkResponse } | null;
+    }[] = [];
     const batches = this.splitIntoBatches(payloadsAndKeys, this.batchSize);
     const batchCount = batches.length;
     let batchIdx = 0;
@@ -114,7 +125,7 @@ export class LbApiOperacionesIntegration {
     for (const batch of batches) {
       const batchResponse: {
         key: string;
-        response: unknown;
+        response: { data?: IShortLinkResponse } | null;
       }[] = await Promise.all(
         batch.map(async ({ key, value }) => {
           return new Promise((resolve, reject) => {

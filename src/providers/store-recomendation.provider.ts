@@ -1,6 +1,6 @@
 import { CHANNEL } from '../enums.ts';
-import { IStoreSuggestion } from '../repositories/interfaces.ts';
-import { IStoreRecomendation } from '../scripts/campaign-engine.ts';
+import { IStoreSuggestion, OFFER_TYPE } from '../repositories/interfaces.ts';
+import { IStoreRecommendation } from './interfaces.ts';
 import {
   TypeCampaignEntry,
   TypeSku,
@@ -15,8 +15,13 @@ import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 import * as CAMPAING from '../parameters/campaigns.ts';
 import { v4 as uuid } from 'uuid';
+import { Config } from '../config.ts';
 
-export class StoreRecomendationProvider {
+export class StoreRecommendationProvider {
+  private static oldHostName = Config.catalogue.oldImageUrl;
+  private static newHostName = Config.catalogue.newImageUrl;
+  private static storeReferenceMap = StoreReferenceMap;
+
   private readonly baseDate: number;
   private readonly uuid: string;
 
@@ -27,7 +32,7 @@ export class StoreRecomendationProvider {
 
   public generateMap(
     filteredData: IStoreSuggestion[],
-  ): Map<number, IStoreRecomendation> {
+  ): Map<number, IStoreRecommendation> {
     return filteredData.reduce((acc, row) => {
       const params: TypeStoreParams = {
         locationId: row.locationId,
@@ -50,19 +55,19 @@ export class StoreRecomendationProvider {
   }
 
   public assignCampaignAndUtm(
-    storeMap: Map<number, IStoreRecomendation>,
+    storeMap: Map<number, IStoreRecommendation>,
     day: number,
-  ): Map<number, IStoreRecomendation> {
+  ): Map<number, IStoreRecommendation> {
     const newStoreMap = new Map();
-    for (const [storeId, storeRecomendation] of storeMap.entries()) {
-      const { params, skus } = storeRecomendation;
+    for (const [storeId, storeRecommendation] of storeMap.entries()) {
+      const { params, skus } = storeRecommendation;
       const campaign = this.getCampaignRange(params, day, skus.length);
 
       if (!campaign) continue;
 
       const utm = this.getUtm(params, day);
       newStoreMap.set(storeId, {
-        ...storeRecomendation,
+        ...storeRecommendation,
         campaign,
         utm,
       });
@@ -77,12 +82,48 @@ export class StoreRecomendationProvider {
     storeStatus: row.storeStatus,
   });
 
-  private getSku = (row: IStoreSuggestion): TypeSku => ({
-    storeReferenceId: row.storeReferenceId,
-    reference: row.reference,
-    discountFormatted: row.discountFormatted,
-    image: StoreReferenceMap.get(row.storeReferenceId)?.regular ?? '',
-  });
+  private getSku = (row: IStoreSuggestion): TypeSku => {
+    const storeReferenceId =
+      row.recommendationType === OFFER_TYPE.storeReference
+        ? row.recommendationId
+        : null;
+    const referencePromotionId =
+      row.recommendationType === OFFER_TYPE.referencePromotion
+        ? row.recommendationId
+        : null;
+    return {
+      skuType: row.recommendationType,
+      storeReferenceId,
+      referencePromotionId,
+      reference: row.reference,
+      discountFormatted: row.discountFormatted,
+      image: this.getImageUrl(row),
+    };
+  };
+
+  private getImageUrl = ({
+    recommendationId,
+    recommendationType,
+    imageUrl,
+  }: IStoreSuggestion): string => {
+    if (imageUrl) {
+      return imageUrl.replace(
+        StoreRecommendationProvider.oldHostName,
+        StoreRecommendationProvider.newHostName,
+      );
+    }
+    if (recommendationType === OFFER_TYPE.storeReference) {
+      const storeReference =
+        StoreRecommendationProvider.storeReferenceMap.get(recommendationId);
+      return storeReference?.regular
+        ? storeReference.regular
+        : (StoreRecommendationProvider.storeReferenceMap.get(null)?.regular ??
+            '');
+    }
+    return (
+      StoreRecommendationProvider.storeReferenceMap.get(null)?.regular ?? ''
+    );
+  };
 
   private getCampaignRange = (
     { communicationChannel /* , locationId */ }: TypeStoreParams,

@@ -1,5 +1,6 @@
 import { CHANNEL, LOCATION, STORE_STATUS, STORE_VALUE } from './enums.ts';
 import { IUtm } from './integrations/interfaces.ts';
+import { OFFER_TYPE } from './repositories/interfaces.ts';
 
 export type TypeFrequencyByStatus = {
   [key in STORE_STATUS]:
@@ -38,8 +39,10 @@ export type TypeStore = {
 };
 
 export type TypeSku = {
-  storeReferenceId: number;
+  storeReferenceId: number | null;
   reference: string;
+  referencePromotionId: number | null;
+  skuType: OFFER_TYPE;
   discountFormatted: string;
   image: string;
 };

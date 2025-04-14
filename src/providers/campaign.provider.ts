@@ -1,4 +1,5 @@
-import { ICallToActionLink } from '../integrations/interfaces.ts';
+import * as UTILS from '../utils/index.ts';
+import { ICallToActionLink } from './interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 import { MessageProvider } from './message.provider.ts';
 
@@ -50,5 +51,24 @@ export abstract class CampaignProvider {
       if (i === n) obj[key] = value;
     }
     return { ...common, ...obj };
+  }
+
+  protected getPromotionMessage(description: string): string {
+    const emojis = [
+      '🛍️',
+      '🔥',
+      '📣',
+      '🚨',
+      '💥',
+      '🔔',
+      '💰',
+      '🤑',
+      '💲',
+      '🛎️',
+      '🛒',
+    ];
+    const prefix = UTILS.choose(emojis);
+    const sufix = UTILS.choose(emojis);
+    return String(prefix + ` ${description} ` + sufix);
   }
 }

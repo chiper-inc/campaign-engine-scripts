@@ -1,8 +1,9 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm, ICallToActionLink } from '../integrations/interfaces.ts';
+import { IUtm, ICallToActionLink } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
+import { OFFER_TYPE } from '../repositories/interfaces.ts';
 
 export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
@@ -27,7 +28,11 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
 
     const products: TypeCampaignVariables = {};
     for (let i = 0; i < carouselContent.products.length; i++) {
-      products[`sku_${i + 1}`] = carouselContent.products[i];
+      const index = `sku_${i + 1}`;
+      products[index] =
+        this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
+          ? carouselContent.products[i]
+          : this.getPromotionMessage(String(this.variableValues[index]));
     }
 
     this.messageValues.forEach((message) => {
@@ -55,7 +60,7 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
       const shortLink = this.getPathVariable({
         url:
           shortLinks[i].shortenUrl ?? `https://sl.chiper.co/shortlink_${i + 1}`,
-        utm,
+        utm: { ...utm, campaignContent: shortLinks[i].campaignContent },
       });
       this.variableValues[path] = shortLink;
     });
@@ -67,12 +72,12 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
   }
 
   private getPathVariable({ utm, url }: { utm: IUtm; url: string }) {
-    const queryParams = `utm_source=${utm.campaignSource || ''}&utm_medium=${
-      utm.campaignMedium || ''
-    }&utm_content=${utm.campaignContent || ''}&utm_campaign=${
+    const queryParams = `utm_content=${utm.campaignContent || ''}&utm_campaign=${
       utm.campaignName
+    }&utm_source=${utm.campaignSource || ''}&utm_medium=${
+      utm.campaignMedium || ''
     }&utm_term=${utm.campaignTerm || ''}`;
-    return `${url.split('/').slice(3)}?${queryParams}`; // remove protocol and hostname
+    return `${url.split('/').slice(3)}?${queryParams}`; // remove protocol and hostname which is included in the WA Template
   }
 
   public getMessageName(): string {

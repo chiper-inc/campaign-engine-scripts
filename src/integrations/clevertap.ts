@@ -2,10 +2,7 @@ import { CloudTask } from './cloud-task.ts';
 
 import { Config } from '../config.ts';
 import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
-import {
-  LoggingProvider,
-  LoggingLevel,
-} from '../providers/logging.provider.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
 
 export class ClevertapIntegration {
@@ -29,11 +26,11 @@ export class ClevertapIntegration {
       'Content-Type': 'application/json',
     };
     this.backoffSecondsStep = UTILS.isProduction()
-      ? 3600 /* 60m */
+      ? 1800 /* 30m */
       : 15 /* 15s */;
     this.logger = new LoggingProvider({
       context: ClevertapIntegration.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'ClevertapIntegration initialized',

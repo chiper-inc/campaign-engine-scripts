@@ -1,7 +1,4 @@
-import {
-  LoggingProvider,
-  LoggingLevel,
-} from '../providers/logging.provider.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { CHANNEL, STORE_STATUS } from '../enums.ts';
 
@@ -13,7 +10,7 @@ export class SlackIntegration {
     this.reportUrl = Config.slack.reportUrl;
     this.logger = new LoggingProvider({
       context: SlackIntegration.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
   }
 

@@ -1,7 +1,4 @@
-import {
-  LoggingProvider,
-  LoggingLevel,
-} from '../providers/logging.provider.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 
 import { IConnectlyEntry } from './interfaces.ts';
@@ -25,7 +22,7 @@ export class ConnectlyIntegration {
     };
     this.logger = new LoggingProvider({
       context: ConnectlyIntegration.name,
-      levels: LoggingLevel.WARN | LoggingLevel.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'ConnectlyIntegration initialized',
