@@ -13,7 +13,7 @@ export const Config = {
     apiKey: process.env.CONNECTLY_API_KEY ?? '',
     apiUrl: process.env.CONNECTLY_API_URL ?? '',
     businessId: process.env.CONNECTLY_BUSINESS_ID ?? '',
-    batchSize: 64,
+    batchSize: 32,
   },
   lbApiOperaciones: {
     callToAction: {
