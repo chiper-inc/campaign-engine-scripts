@@ -183,7 +183,7 @@ const outputIntegrationMessages = async (
   );
   // .flat();
   await UTILS.writeJsonToFile(
-    `tmp/${(
+    `${(
       CHANNEL_PROVIDER[channel] ?? 'Unknown'
     ).toLowerCase()}.${UTILS.formatYYYYMMDD(new Date())}.json`,
     entries,
