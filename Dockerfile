@@ -25,4 +25,4 @@ RUN npm install
 
 COPY --from=development /app/dist ./dist
 
-CMD ["node", "dist/scripts/campaign-engine.js", "link"]
+CMD ["node", "dist/scripts/campaign-engine.js"]
