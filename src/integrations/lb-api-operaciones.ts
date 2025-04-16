@@ -43,10 +43,18 @@ export class LbApiOperacionesIntegration {
     payload: IShortLinkRequest,
     retry: number = 0,
   ): Promise<{ data?: IShortLinkResponse } | null> {
-    if (retry >= this.maxRetries) return null;
-    if (retry > 0) await this.sleep();
-
     const functionName = this.createOneShortLink.name;
+
+    if (retry >= this.maxRetries) {
+      this.logger.error({
+        message: `Max retries (${this.maxRetries}), reached for creating short link`,
+        functionName,
+        error: new Error('Max retries reached'),
+        data: { payload },
+      });
+      return null;
+    }
+    if (retry > 0) await this.sleep();
 
     const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
 
