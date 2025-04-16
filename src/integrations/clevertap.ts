@@ -48,10 +48,18 @@ export class ClevertapIntegration {
     { message, inSeconds, timeoutSeconds }: IClevertapCampaign,
     retry = 0,
   ): Promise<unknown> {
-    if (retry >= this.maxRetries) return null;
-    if (retry > 0) await this.sleep();
-
     const functionName = this.sendOneMessage.name;
+
+    if (retry >= this.maxRetries) {
+      this.logger.error({
+        message: `Max retries (${this.maxRetries}), reached for sending Clevertap Campaign`,
+        functionName,
+        error: new Error('Max retries reached'),
+        data: { message, inSeconds, timeoutSeconds },
+      });
+      return null;
+    }
+    if (retry > 0) await this.sleep();
 
     const method: 'POST' | 'GET' | 'PUT' | 'DELETE' = 'POST';
     const request = {
