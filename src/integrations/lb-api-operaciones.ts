@@ -68,7 +68,12 @@ export class LbApiOperacionesIntegration {
     //   )?.referenceId as number;
     // }
 
-    const request = { url, method: 'POST', body: payload };
+    const request = {
+      url,
+      method: 'POST',
+      body: payload,
+      headers: this.headers,
+    };
     return fetch(request.url, {
       method: request.method,
       headers: this.headers,
