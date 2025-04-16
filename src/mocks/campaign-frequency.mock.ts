@@ -31,11 +31,11 @@ export const frequencyByLocationAndStatusAndRange: IFrequencyParameter[] = [
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Resurrected, frequency: 2 },
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Retained, frequency: 2 },
 
-  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX,storeStatus: STORE_STATUS.Hibernating, frequency: 3 },
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Hibernating, frequency: 3 },
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Lead, frequency: 0 },
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.New, frequency: 7 },
-  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Resurrected, frequency: 7 },
-  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Retained, frequency: 7 },
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Resurrected, frequency: 3 },
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Retained, frequency: 2 },
 
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 3},
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Hibernating, frequency: 3},
@@ -95,7 +95,7 @@ export const frequencyByLocationAndStatusAndRange: IFrequencyParameter[] = [
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Resurrected, frequency: 2 },
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.CLO, storeStatus: STORE_STATUS.Retained, frequency: 2 },
 
-  { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.CMX,storeStatus: STORE_STATUS.Hibernating, frequency: 2 },
+  { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Hibernating, frequency: 2 },
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Lead, frequency: 2 },
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.New, frequency: 2 },
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.CMX, storeStatus: STORE_STATUS.Resurrected, frequency: 2 },
