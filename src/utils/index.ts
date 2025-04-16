@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 import { BASE_DATE, CITY, CPG } from '../constants.ts';
@@ -82,16 +83,16 @@ export const addQueryParams = (url: string, query: string): string => {
 
 // File Utilities
 
-const filePath = (filename: string): string => {
+const filePath = (filename: string, dirname?: string): string => {
   // const __filename = fileURLToPath(import.meta.url);
   // const __dirname = path.dirname(__filename);
-  const __dirname = process.cwd();
-  return path.join(__dirname, filename);
+  dirname = dirname ?? os.tmpdir();
+  return path.join(dirname, filename);
 };
 
 export const readFileToJson = (filename: string): Promise<unknown[]> => {
   return new Promise((resolve, reject) => {
-    fs.readFile(filePath(filename), 'utf8', (err, data) => {
+    fs.readFile(filePath(filename, process.cwd()), 'utf8', (err, data) => {
       if (err) {
         reject(err);
       } else {

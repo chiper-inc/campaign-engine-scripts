@@ -41,7 +41,8 @@ export class BigQueryRepository {
       MG.warehouseId
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
     WHERE MG.phone IS NOT NULL
-      AND MG.ranking <= 5
+      -- AND MG.ranking <= 5
+      AND ((MG.discountFormatted <> '0%' and MG.storeReferenceId IS NOT NULL) OR (MG.referencePromotionId IS NOT NULL))
       AND MG.phone NOT LIKE '5_9613739%'
       AND MG.phone NOT LIKE '5_9223372%'
   `;
