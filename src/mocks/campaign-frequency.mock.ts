@@ -44,6 +44,12 @@ export const frequencyByLocationAndStatusAndRange: IFrequencyParameter[] = [
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Resurrected, frequency: 3 },
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Retained, frequency: 3 },
 
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Retained, frequency: 2 },
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Resurrected, frequency: 2 },
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.New, frequency: 2 },
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Lead, frequency: 2 },
+  { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Hibernating, frequency: 2 },
+
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 2 },
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Churn, from: 120, to: 149, frequency: 2 },
   { communicationChannel: CHANNEL.WhatsApp, locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Retained, frequency: 2 },
@@ -107,6 +113,12 @@ export const frequencyByLocationAndStatusAndRange: IFrequencyParameter[] = [
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.MDE, storeStatus: STORE_STATUS.New, frequency: 2 },
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Resurrected, frequency: 2 },
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.MDE, storeStatus: STORE_STATUS.Retained, frequency: 2 },
+
+  { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Retained, frequency: 2 },
+  { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Resurrected, frequency: 2 },
+  { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.New, frequency: 2 },
+  { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Lead, frequency: 2 },
+  { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.BGA, storeStatus: STORE_STATUS.Hibernating, frequency: 2 },
 
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Churn, from: 90, to: 119, frequency: 2 },
   { communicationChannel: CHANNEL.PushNotification, locationId: LOCATION.VLN, storeStatus: STORE_STATUS.Churn, from: 120, to: 149, frequency: 2 },

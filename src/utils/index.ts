@@ -1,10 +1,12 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { Storage } from '@google-cloud/storage';
 
 import { BASE_DATE, CITY, CPG } from '../constants.ts';
 import { LOCATION } from '../enums.ts';
 import { Config } from '../config.ts';
+import { Logger } from 'logging-chiper';
 
 export const daysFromBaseDate = (date: Date): number =>
   Math.trunc(((date as unknown as number) - BASE_DATE) / (1000 * 60 * 60 * 24));
@@ -123,6 +125,49 @@ export const writeJsonToFile = (
           resolve();
         }
       },
+    );
+  });
+};
+
+export const uploadJsonToGoogleCloudStorage = (
+  blobname: string,
+  data: unknown[],
+): Promise<void> => {
+  const functionName = uploadJsonToGoogleCloudStorage.name;
+  const stt = 'campaign-engine';
+  const context = 'UTILS';
+  return new Promise((resolve) => {
+    const { bucketName, projectId } = Config.google.cloudStorage;
+
+    const prefix = isProduction() ? '' : 'non-production/';
+    const storege = new Storage({ projectId });
+    const bucket = storege.bucket(`${bucketName}`);
+    const blobFile = bucket.file(`${prefix}${blobname}`);
+
+    resolve(
+      blobFile
+        .save(JSON.stringify(data, null, 2), {
+          contentType: 'application/json',
+        })
+        .then((response: unknown) => {
+          Logger.getInstance().warn({
+            stt: 'campaign-engine',
+            context: 'UTILS',
+            functionName,
+            message: `File uploaded to GCS gs://${bucketName}/${prefix}${blobname}`,
+            data: { response },
+          });
+        })
+        .catch((error: Error) => {
+          Logger.getInstance().error({
+            stt,
+            context,
+            functionName,
+            error,
+            message: `Error uploading file to GCS (gs://${bucketName}/${prefix}${blobname})`,
+            data: { error },
+          });
+        }),
     );
   });
 };

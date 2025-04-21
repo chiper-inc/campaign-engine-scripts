@@ -24,6 +24,12 @@ enum LoggingLevel {
   WARN = 2,
   ERROR = 1,
 }
+
+const loggingMap: { [key: string]: LoggingLevel } = {
+  error: LoggingLevel.ERROR,
+  warn: LoggingLevel.WARN,
+  log: LoggingLevel.LOG,
+};
 export class LoggingProvider {
   public static NONE = LoggingLevel.NONE;
   public static LOG = LoggingLevel.LOG;
@@ -32,12 +38,16 @@ export class LoggingProvider {
   public static FULL = this.LOG | this.WARN | this.ERROR;
 
   private readonly loggerBaseData: Partial<LogInput>;
-  private readonly level: number = Config.logging.level as unknown as number;
+  private readonly level: number;
 
   constructor(loggingOptions?: { context?: string; levels?: number }) {
     const { context = LoggingProvider.name, levels = LoggingLevel.NONE } =
       loggingOptions || {};
-    this.level = levels !== LoggingLevel.NONE ? levels : this.level;
+    let defaultLevels = LoggingLevel.NONE;
+    for (const level of Config.logging.levels) {
+      defaultLevels |= loggingMap[level];
+    }
+    this.level = levels | defaultLevels;
     this.loggerBaseData = {
       stt: 'campaign-engine',
       context,
