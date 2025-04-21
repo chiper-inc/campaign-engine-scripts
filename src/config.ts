@@ -10,8 +10,8 @@ const configSchema = Joi.object({
     .valid('development', 'production', 'test')
     .required(),
   logging: Joi.object({
-    level: Joi.array()
-      .items(Joi.string().valid('error', 'warning', 'log'))
+    levels: Joi.array()
+      .items(Joi.string().valid('error', 'warn', 'log'))
       .required(),
   }).required(),
   connectly: Joi.object({
@@ -74,7 +74,11 @@ const configSchema = Joi.object({
 export const Config = {
   environment: env.ENVIRONMENT ?? 'development',
   logging: {
-    level: ['error'],
+    levels: process.env.LOGGING_LEVELS
+      ? process.env.LOGGING_LEVELS.split(',').map((level) =>
+          level.trim().toLowerCase(),
+        )
+      : [],
   },
   connectly: {
     apiKey: process.env.CONNECTLY_API_KEY ?? '',
