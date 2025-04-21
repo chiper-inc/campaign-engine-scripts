@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import dotenv from 'dotenv';
-import { env } from 'process';
+import * as CUSTOM_OFFER from './mocks/custom-offer.mock.ts';
+// import { env } from 'process';
 
 dotenv.config();
 
@@ -72,7 +73,7 @@ const configSchema = Joi.object({
 // Define the configuration object
 
 export const Config = {
-  environment: env.ENVIRONMENT ?? 'development',
+  environment: process.env.ENVIRONMENT ?? 'development',
   logging: {
     levels: process.env.LOGGING_LEVELS
       ? process.env.LOGGING_LEVELS.split(',').map((level) =>
@@ -95,11 +96,8 @@ export const Config = {
       brand: 2, // CONST.C2A_BRAND,
       discountList: 17, // CONST.C2A_DISCOUNT_LIST,
       customOffer: {
-        titles: ['custom.Offer.0', 'custom.Offer.1', 'custom.Offer.2'],
-        imageUrls: [
-          // 'https://chiper-old-imgs.imgix.net/app/7707244560255-manzana-1000ml-sellos-photoroom-ByAdwH6c0-R.png',
-          'https://chiper-old-imgs.imgix.net/app/no-image-ryahXCwGV-R.jpg',
-        ],
+        titles: CUSTOM_OFFER.titles, // ['Title.1', 'Title.2', 'Title.3'],
+        imageUrls: CUSTOM_OFFER.imageUrls, // ['https://example.com/image1.jpg', 'https://example.com/image2.jpg', 'https://example.com/image3.jpg'],
       },
     },
     apiUrl: process.env.LB_API_OPERACIONES_URL ?? '',
