@@ -31,7 +31,7 @@ import { CommunicationProvider } from '../providers/comunication.provider.ts';
 
 // Process Gobal Variables
 
-const today = new Date().setHours(0, 0, 0, 0) as unknown as Date;
+const TODAY = new Date(new Date().setHours(0, 0, 0, 0) as unknown as Date);
 const UUID = uuid();
 // Main Function
 
@@ -181,11 +181,12 @@ const outputIntegrationMessages = async (
         | IClevertapMessage
       )[],
   );
-  // .flat();
-  await UTILS.writeJsonToFile(
-    `${(
+
+  const formattedToday = UTILS.formatYYYYMMDD(TODAY);
+  await UTILS.uploadJsonToGoogleCloudStorage(
+    `sender/${formattedToday.slice(0, 7)}/${(
       CHANNEL_PROVIDER[channel] ?? 'Unknown'
-    ).toLowerCase()}.${UTILS.formatYYYYMMDD(new Date())}.json`,
+    ).toLowerCase()}/${channel}.${formattedToday}.${UUID}.json`,
     entries,
   );
   // console.log(JSON.stringify(entries, null, 2));
@@ -280,7 +281,7 @@ const includeParam = (args: string[], param: string) =>
     message: 'Engine Script started',
   });
   await main({
-    day: UTILS.daysFromBaseDate(today),
+    day: UTILS.daysFromBaseDate(TODAY),
     includeShortlinks: includeParam(args, 'link'),
     sendToClevertap: includeParam(args, 'clevertap'),
     sendToConnectly: includeParam(args, 'connectly'),
