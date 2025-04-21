@@ -54,6 +54,10 @@ export const Config = {
       model: 'gemini-2.0-flash-001',
       bacthSize: 64,
     },
+    cloudStorage: {
+      projectId: 'dataflow-chiper',
+      bucketName: 'campaign-engine',
+    },
   },
   clevertap: {
     apiUrl: process.env.CLEVERTAP_API_URL ?? '',
