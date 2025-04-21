@@ -1,8 +1,75 @@
+import Joi from 'joi';
 import dotenv from 'dotenv';
-import * as CONST from './constants.ts';
 import { env } from 'process';
 
 dotenv.config();
+
+// Define the Joi schema for validation
+const configSchema = Joi.object({
+  environment: Joi.string()
+    .valid('development', 'production', 'test')
+    .required(),
+  logging: Joi.object({
+    level: Joi.array()
+      .items(Joi.string().valid('error', 'warning', 'log'))
+      .required(),
+  }).required(),
+  connectly: Joi.object({
+    apiKey: Joi.string().required(),
+    apiUrl: Joi.string().uri().required(),
+    businessId: Joi.string().uuid().required(),
+    batchSize: Joi.number().integer().min(1).max(128).required(),
+  }).required(),
+  lbApiOperaciones: Joi.object({
+    callToAction: Joi.object({
+      reference: Joi.number().integer().required(),
+      referencePromotion: Joi.number().integer().required(),
+      offerList: Joi.number().integer().required(),
+      macro: Joi.number().integer().required(),
+      brand: Joi.number().integer().required(),
+      discountList: Joi.number().integer().required(),
+      customOffer: Joi.object({
+        titles: Joi.array().items(Joi.string()).required(),
+        imageUrls: Joi.array().items(Joi.string().uri()).required(),
+      }).required(),
+    }).required(),
+    apiUrl: Joi.string().uri().required(),
+    apiKey: Joi.string().allow(null),
+    apiToken: Joi.string().allow(null),
+    batchSize: Joi.number().integer().min(1).max(32).required(),
+  }).required(),
+  slack: Joi.object({
+    reportUrl: Joi.string().uri().required(),
+  }).required(),
+  catalogue: Joi.object({
+    apiUrl: Joi.string().uri().required(),
+    oldImageUrl: Joi.string().uri().required(),
+    newImageUrl: Joi.string().uri().required(),
+  }).required(),
+  google: Joi.object({
+    project: Joi.string().required(),
+    location: Joi.string().required(),
+    cloudTask: Joi.object({
+      queue: Joi.string().required(),
+    }).required(),
+    vertexAI: Joi.object({
+      model: Joi.string().required(),
+      bacthSize: Joi.number().integer().min(1).max(64).required(),
+    }).required(),
+    cloudStorage: Joi.object({
+      projectId: Joi.string().required(),
+      bucketName: Joi.string().required(),
+    }).required(),
+  }).required(),
+  clevertap: Joi.object({
+    apiUrl: Joi.string().uri().required(),
+    accountId: Joi.string().required(),
+    passcode: Joi.string().required(),
+    batchSize: Joi.number().integer().min(1).max(64).required(),
+  }).required(),
+});
+
+// Define the configuration object
 
 export const Config = {
   environment: env.ENVIRONMENT ?? 'development',
@@ -17,12 +84,12 @@ export const Config = {
   },
   lbApiOperaciones: {
     callToAction: {
-      reference: CONST.C2A_REFERENCE,
-      referencePromotion: CONST.C2A_REFERENCE_PROMOTION,
-      offerList: CONST.C2A_OFFER_LIST,
-      macro: CONST.C2A_MACRO,
-      brand: CONST.C2A_BRAND,
-      discountList: CONST.C2A_DISCOUNT_LIST,
+      reference: 3, // CONST.C2A_REFERENCE,
+      referencePromotion: 6, // CONST.C2A_REFERENCE_PROMOTION,
+      offerList: 30, // CONST.C2A_OFFER_LIST,
+      macro: 4, // CONST.C2A_MACRO,
+      brand: 2, // CONST.C2A_BRAND,
+      discountList: 17, // CONST.C2A_DISCOUNT_LIST,
       customOffer: {
         titles: ['custom.Offer.0', 'custom.Offer.1', 'custom.Offer.2'],
         imageUrls: [
@@ -32,8 +99,8 @@ export const Config = {
       },
     },
     apiUrl: process.env.LB_API_OPERACIONES_URL ?? '',
-    apiKey: process.env.LB_API_OPERACIONES_KEY ?? null,
-    apiToken: process.env.LB_API_OPERACIONES_TOKEN ?? '',
+    apiKey: process.env.LB_API_OPERACIONES_KEY || null,
+    apiToken: process.env.LB_API_OPERACIONES_TOKEN || null,
     batchSize: 16,
   },
   slack: {
@@ -66,3 +133,11 @@ export const Config = {
     batchSize: 16,
   },
 };
+
+// Validate the configuration object against the schema
+
+const { error } = configSchema.validate(Config, { abortEarly: false });
+if (error) {
+  console.error('Configuration validation error:', error.message);
+  process.exit(1);
+}
