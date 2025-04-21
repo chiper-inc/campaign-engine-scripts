@@ -90,17 +90,20 @@ export class ConnectlyIntegration {
                 error: string | null;
               }[];
               accepted += data[0].acceptedCount;
-              rejected += data[0].rejectedCount;
               if (data[0].error) {
                 rejections.push({ request: payload, response: data });
-                // console.error(response.data);
+                rejected += 1;
               }
             })
             .catch((error) => {
               rejections.push({ request: payload, response: error.response });
-              console.error({ error });
-              console.error('Error:', error.response?.data || error.message);
               rejected += 1;
+              this.logger.error({
+                functionName,
+                message: 'Error Sending Connectly Entries',
+                error,
+                data: { payload, error },
+              });
             });
         }),
       ).finally(async () => {
