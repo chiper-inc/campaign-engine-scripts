@@ -218,10 +218,30 @@ const splitcommunications = (
   communications: ICommunication[],
   exceptionStoreIds: Set<number>,
 ) => {
+  console.error(
+    'date,medium,cityId,segement,storeId,recommendation1,recommendation2,recommendation3,recomendation4,recomendation5',
+  );
   return communications
     .filter((communication) => !exceptionStoreIds.has(communication.storeId))
     .reduce(
       (acc, communication) => {
+        // console.log(communication);
+        const { storeId, utm } = communication;
+        const { cityId, term, asset, segment } = UTILS.campaignFromString(
+          utm.campaignName,
+        );
+        // console.log('=====');
+        const products = communication.utmCallToActions.map((item) => {
+          const {
+            callToAction: { storeReferenceId, referencePromotionId },
+          } = item;
+          return storeReferenceId
+            ? String(storeReferenceId)
+            : `C-${referencePromotionId}`;
+        });
+        console.error(
+          `${term},${asset},${cityId},${segment},${storeId},${products.join(',')}`,
+        );
         if (
           communication.campaignService instanceof ConnectlyCampaignProvider
         ) {
