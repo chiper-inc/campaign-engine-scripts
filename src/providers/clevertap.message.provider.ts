@@ -12,7 +12,9 @@ export class ClevertapMessageProvider extends MessageProvider {
   private readonly identity: string;
 
   constructor(store: TypeStore, _: string, utm: IUtm) {
-    const campaignName = utm.campaignName.split('_').slice(-1)[0] ?? '';
+    const { segment: campaignName } =
+      UTILS.campaignFromString(utm.campaignName) ?? '';
+    // const campaignName = utm.campaignName.split('_').slice(-1)[0] ?? '';
     const mainCampaign = `API_${campaignName.split('.')[0] ?? 'XYZ'}`;
 
     super(
@@ -29,7 +31,11 @@ export class ClevertapMessageProvider extends MessageProvider {
       MOCKS.version === 'v1' ? String(messageNumber) : 'GenAI'
     }_${this.lng}_${MOCKS.version}`;
 
-    this.utm.campaignName = `${utm.campaignName}_${messageName.replace(/_/g, '-')}`;
+    //    this.utm.campaignName = `${utm.campaignName}_${messageName.replace(/_/g, '-')}`;
+    this.utm.campaignName = UTILS.putMessageToCampaignString(
+      this.utm.campaignName,
+      messageName,
+    );
     this.titleTemplate = MOCKS.titles[mainCampaign][iTitle];
     this.offerTemplate = MOCKS.offers[mainCampaign][iOffer];
     this.identity = `uuId-${store.storeId}-uuId`;

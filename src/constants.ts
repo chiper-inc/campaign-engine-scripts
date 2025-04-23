@@ -45,6 +45,18 @@ export const CITY_NAME: { [k: number | string]: string } = {
   [CITY[LOCATION.VLN]]: 'Valencia',
 };
 
+export const CITY_LOCATION: { [k: number]: LOCATION } = {
+  [CITY[LOCATION.BOG]]: LOCATION.BOG,
+  [CITY[LOCATION.MDE]]: LOCATION.MDE,
+  [CITY[LOCATION.CLO]]: LOCATION.CLO,
+  [CITY[LOCATION.BAQ]]: LOCATION.BAQ,
+  [CITY[LOCATION.BGA]]: LOCATION.BGA,
+  [CITY[LOCATION.CMX]]: LOCATION.CMX,
+  [CITY[LOCATION.SCL]]: LOCATION.SCL,
+  [CITY[LOCATION.SAO]]: LOCATION.SAO,
+  [CITY[LOCATION.VLN]]: LOCATION.VLN,
+};
+
 const moneyFormatter = {
   CO: new Intl.NumberFormat('es-CO', {
     style: 'currency',

@@ -212,9 +212,18 @@ export class StoreRecommendationProvider {
 
     const date = new Date(this.baseDate + day * 24 * 60 * 60 * 1000);
     const term = UTILS.formatDDMMYY(date); // DDMMYY
-    const campaign = `${UTILS.getCityId(locationId)}_${UTILS.getCPG(locationId)}_${
-      asset
-    }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}`;
+    const campaign = UTILS.campaignToString({
+      cityId: UTILS.getCityId(locationId),
+      cpgId: UTILS.getCPG(locationId),
+      asset,
+      payer,
+      term,
+      type,
+      segment,
+    });
+    // const campaign = `${UTILS.getCityId(locationId)}_${UTILS.getCPG(locationId)}_${
+    //   asset
+    // }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}`;
     const source =
       `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
     const content = uuid();

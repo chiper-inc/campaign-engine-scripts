@@ -3,6 +3,7 @@ import { CampaignProvider } from './campaign.provider.ts';
 import { CHANNEL } from '../enums.ts';
 import { SlackIntegration } from '../integrations/slack.ts';
 import { CITY_NAME } from '../constants.ts';
+import { campaignFromString } from '../utils/campign-name.ts';
 
 export class SlackProvider {
   private static instance: SlackProvider | null = null;
@@ -21,10 +22,10 @@ export class SlackProvider {
       )
       .reduce(
         (acc, [name, campaignService]) => {
-          const [cityId, , , , , , status] = name.split('_');
+          const { cityId, segment } = campaignFromString(name);
 
           const message = campaignService.getMessageName();
-          const keyLocation = `${CITY_NAME[cityId]}|${status}|${message}`;
+          const keyLocation = `${CITY_NAME[cityId]}|${segment}|${message}`;
           let value = acc.locationSegmentMessageMap.get(keyLocation) || 0;
           acc.locationSegmentMessageMap.set(keyLocation, value + 1);
 
