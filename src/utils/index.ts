@@ -140,9 +140,9 @@ export const uploadJsonToGoogleCloudStorage = (
     const { bucketName, projectId } = Config.google.cloudStorage;
 
     const prefix = isProduction() ? '' : 'non-production/';
-    const storege = new Storage({ projectId });
-    const bucket = storege.bucket(`${bucketName}`);
-    const blobFile = bucket.file(`${prefix}${blobname}`);
+    const blobFile = new Storage({ projectId })
+      .bucket(bucketName)
+      .file(`${prefix}${blobname}`);
 
     resolve(
       blobFile
