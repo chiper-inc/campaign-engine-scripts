@@ -5,12 +5,15 @@ import { SlackIntegration } from '../integrations/slack.ts';
 import { CITY_NAME } from '../constants.ts';
 import * as UTILS from '../utils/index.ts';
 import { IReportSkuSummary } from '../integrations/interfaces.ts';
+import { LoggingProvider } from './logging.provider.ts';
 
 export class SlackProvider {
   private readonly date: Date;
+  private readonly logger: LoggingProvider;
 
   constructor(date: Date) {
     this.date = date;
+    this.logger = new LoggingProvider({ context: SlackProvider.name });
   }
 
   reportMessagesToSlack = async (
@@ -18,6 +21,8 @@ export class SlackProvider {
     communications: ICommunication[],
     storeMap: Map<number, IStoreRecommendation>,
   ): Promise<void> => {
+    const functionName = this.reportMessagesToSlack.name;
+
     const summaryMap = communications
       .map(
         (communication) =>
@@ -86,8 +91,6 @@ export class SlackProvider {
         },
       );
 
-    // console.log(summaryMap.locationSegmentSkuMap);
-
     const summarySku = Array.from(summaryMap.locationSegmentSkuMap.values())
       .sort((a, b) => a.city.localeCompare(b.city) || b.value - a.value)
       .reduce((acc, curr) => {
@@ -119,18 +122,62 @@ export class SlackProvider {
       });
 
     const slackIntegration = new SlackIntegration(this.date);
-    await slackIntegration.generateSendoutTopSkuReports(
-      channel,
-      Array.from(summarySku.entries()),
-    );
-    await slackIntegration.generateSendoutLocationSegmentReports(
-      channel,
-      summaryLocationSegmentMessage,
-    );
-    await slackIntegration.generateSendoutMessageReports(
-      channel,
-      summaryMessage,
-    );
+    await slackIntegration
+      .generateSendoutTopSkuReports(channel, Array.from(summarySku.entries()))
+      .then(() =>
+        this.logger.log({
+          message: 'Top SKU Report generated',
+          functionName,
+          data: { summarySku },
+        }),
+      )
+      .catch((error) => {
+        this.logger.error({
+          message: 'Error generating Top SKU Report',
+          functionName,
+          error,
+          data: { summarySku },
+        });
+      });
+
+    await slackIntegration
+      .generateSendoutLocationSegmentReports(
+        channel,
+        summaryLocationSegmentMessage,
+      )
+      .then(() =>
+        this.logger.log({
+          message: 'Location Segment Report generated',
+          functionName,
+          data: { summaryLocationSegmentMessage },
+        }),
+      )
+      .catch((error) => {
+        this.logger.error({
+          message: 'Error generating Location Segment Report',
+          functionName,
+          error,
+          data: { summaryLocationSegmentMessage },
+        });
+      });
+
+    await slackIntegration
+      .generateSendoutMessageReports(channel, summaryMessage)
+      .then(() =>
+        this.logger.log({
+          message: 'Message Sendout Report generated',
+          functionName,
+          data: { summaryMessage },
+        }),
+      )
+      .catch((error) => {
+        this.logger.error({
+          message: 'Error generating Message Sendout Report',
+          functionName,
+          error,
+          data: { summaryMessage },
+        });
+      });
 
     console.error('Summary Per Campaign');
   };
