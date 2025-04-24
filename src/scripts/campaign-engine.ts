@@ -13,7 +13,10 @@ import {
   IClevertapMessage,
 } from '../integrations/interfaces.ts';
 import { IStoreSuggestion } from '../repositories/interfaces.ts';
-import { ICommunication } from '../providers/interfaces.ts';
+import {
+  ICommunication,
+  IStoreRecommendation,
+} from '../providers/interfaces.ts';
 
 import { CHANNEL } from '../enums.ts';
 import { BigQueryRepository } from '../repositories/big-query.ts';
@@ -28,6 +31,8 @@ import { GenAiProvider } from '../providers/gen-ai.provider.ts';
 import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
 import { StoreRecommendationProvider } from '../providers/store-recomendation.provider.ts';
 import { CommunicationProvider } from '../providers/comunication.provider.ts';
+import { STORE_STATUS } from '../enums.ts';
+import { IReportSkuSummary } from '../integrations/interfaces.ts';
 
 // Process Gobal Variables
 
@@ -81,24 +86,25 @@ async function main({
   // });
 
   // connectlyEntries.slice(0, 10).forEach((entry) => {
-  //   console.error({
-  //     var: entry.campaignService?.variables,
-  //     vars: entry.campaignService?.messages.map((m) => m.variables),
-  //   });
+  //   console.error({ entry });
+  // console.error({
+  //   var: entry.campaignService?.variables,
+  //   vars: entry.campaignService?.messages.map((m) => m.variables),
+  // });
   // });
 
   const [connectlyMessages] = await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
       IConnectlyEntry[][]
     >,
-    reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries),
+    reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries, storeMap),
   ]);
   const [clevertapCampaigns] = await Promise.all([
     outputIntegrationMessages(
       CHANNEL.PushNotification,
       clevertapEntries,
     ) as Promise<IClevertapMessage[][]>,
-    reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries),
+    reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries, storeMap),
   ]);
   await sendCampaingsToIntegrations(
     connectlyMessages,
@@ -116,34 +122,94 @@ async function main({
 const reportMessagesToSlack = async (
   channel: CHANNEL,
   communications: ICommunication[],
+  storeMap: Map<number, IStoreRecommendation>,
 ): Promise<void> => {
   const summaryMap = communications
     .map(
       (communication) =>
-        [communication.utm.campaignName, communication.campaignService] as [
-          string,
-          CampaignProvider,
-        ],
+        [
+          communication.storeId,
+          communication.utm.campaignName,
+          communication.campaignService,
+        ] as [number, string, CampaignProvider],
     )
     .reduce(
-      (acc, [name, campaignService]) => {
-        const [cityId, , , , , , status] = name.split('_');
+      (acc, [storeId, name, campaignService]) => {
+        const { cityId, segment } = UTILS.campaignFromString(name);
+        const city = CITY_NAME[cityId];
+
+        let value;
+        const skus = (storeMap.get(storeId)?.skus || []).slice(0, 5);
+        const storeSet = acc.locationMap.get(city) || new Set<number>();
+        storeSet.add(storeId);
+        acc.locationMap.set(city, storeSet);
+
+        skus.forEach((sku) => {
+          const {
+            skuType,
+            referencePromotionId,
+            storeReferenceId,
+            reference,
+            image,
+            discountFormatted,
+          } = sku;
+          const skuId =
+            skuType === 'storeReferenceId'
+              ? String(storeReferenceId)
+              : `C-${referencePromotionId}`;
+          const referenceDiscount =
+            skuType === 'storeReferenceId' ? discountFormatted : null;
+          const keySku = `${city}|${skuId}`;
+          console.error({ sku, skuId, referenceDiscount });
+          const referenceValue = acc.locationSegmentSkuMap.get(keySku) || {
+            city,
+            referenceName: UTILS.removeExtraSpaces(reference) as string,
+            referenceImage: image,
+            value: 0,
+            referenceId: skuId,
+            referenceDiscount,
+          };
+          acc.locationSegmentSkuMap.set(keySku, {
+            ...referenceValue,
+            value: referenceValue.value + 1,
+          });
+        });
 
         const message = campaignService.getMessageName();
-        const keyLocation = `${CITY_NAME[cityId]}|${status}|${message}`;
-        let value = acc.locationSegmentMessageMap.get(keyLocation) || 0;
+        const keyLocation = `${city}|${segment}|${message}`;
+        value = acc.locationSegmentMessageMap.get(keyLocation) || 0;
         acc.locationSegmentMessageMap.set(keyLocation, value + 1);
 
-        const keyChannel = `${status}`;
+        const keyChannel = `${segment}`;
         value = acc.channelSegmentMap.get(keyChannel) || 0;
         acc.channelSegmentMap.set(keyChannel, value + 1);
         return acc;
       },
       {
-        locationSegmentMessageMap: new Map(),
-        channelSegmentMap: new Map(),
+        locationSegmentMessageMap: new Map<string, number>(),
+        channelSegmentMap: new Map<string, number>(),
+        locationSegmentSkuMap: new Map<string, IReportSkuSummary>(),
+        locationMap: new Map<string, Set<number>>(),
       },
     );
+
+  // console.log(summaryMap.locationSegmentSkuMap);
+
+  const summarySku = Array.from(summaryMap.locationSegmentSkuMap.values())
+    .sort((a, b) => a.city.localeCompare(b.city) || b.value - a.value)
+    .reduce((acc, curr) => {
+      const value = acc.get(curr.city) || [];
+      const citySet =
+        summaryMap.locationMap.get(curr.city) || new Set<number>();
+      const percentage = (curr.value / citySet.size) * 100;
+      console.log({ curr });
+      value.push({
+        ...curr,
+        percentage: isNaN(percentage) ? undefined : percentage,
+      });
+      acc.set(curr.city, value);
+      return acc;
+    }, new Map<string, IReportSkuSummary[]>());
 
   const summaryMessage = Array.from(summaryMap.channelSegmentMap.entries())
     .sort((a, b) => a[0].localeCompare(b[0]))
@@ -157,10 +223,14 @@ const reportMessagesToSlack = async (
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([key, qty]) => {
       const [city, status, message] = key.split('|');
-      return { city, status, message, qty };
+      return { city, status: status as STORE_STATUS, message, qty };
     });
 
-  const slackIntegration = new SlackIntegration();
+  const slackIntegration = new SlackIntegration(TODAY);
+  await slackIntegration.generateSendoutTopSkuReports(
+    channel,
+    Array.from(summarySku.entries()),
+  );
   await slackIntegration.generateSendoutLocationSegmentReports(
     channel,
     summaryLocationSegmentMessage,

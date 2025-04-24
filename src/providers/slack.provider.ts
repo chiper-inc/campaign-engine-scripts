@@ -10,6 +10,7 @@ export class SlackProvider {
 
   public async reportMessagesToSlack(
     channel: CHANNEL,
+    date: Date,
     communications: ICommunication[],
   ): Promise<void> {
     const summaryMap = communications
@@ -55,7 +56,7 @@ export class SlackProvider {
         return { city, status, message, qty };
       });
 
-    const slackIntegration = new SlackIntegration();
+    const slackIntegration = new SlackIntegration(date);
     await slackIntegration.generateSendoutLocationSegmentReports(
       channel,
       summaryLocationSegmentMessage,
@@ -64,7 +65,5 @@ export class SlackProvider {
       channel,
       summaryMessage,
     );
-
-    console.error('Summary Per Campaign');
   }
 }
