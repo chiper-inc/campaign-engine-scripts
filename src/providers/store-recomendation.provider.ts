@@ -214,14 +214,14 @@ export class StoreRecommendationProvider {
     const term = UTILS.formatDDMMYY(date); // DDMMYY
     const campaign = UTILS.campaignToString({
       cityId: UTILS.getCityId(locationId),
-      cpgId: UTILS.getCPG(locationId),
+      providerId: UTILS.getProvider(locationId),
       asset,
       payer,
       term,
       type,
       segment,
     });
-    // const campaign = `${UTILS.getCityId(locationId)}_${UTILS.getCPG(locationId)}_${
+    // const campaign = `${UTILS.getCityId(locationId)}_${UTILS.getProvider(locationId)}_${
     //   asset
     // }_${payer}_${UTILS.formatMMMDD(term)}_${type}_${segment}`;
     const source =

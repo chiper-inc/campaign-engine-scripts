@@ -15,7 +15,7 @@ export {
 
 export {
   getCityId,
-  getCPG,
+  getProvider,
   campaignToString,
   campaignFromString,
   putMessageToCampaignString,

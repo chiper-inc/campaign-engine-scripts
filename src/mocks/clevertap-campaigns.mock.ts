@@ -1,4 +1,4 @@
-import { PROVIDER } from "../enums.ts";
+import { SUPPLIER } from "../enums.ts";
 import { ICampaignParameter } from "./interfaces.ts";
 import * as UTILS from './utils.ts';
 
@@ -587,7 +587,7 @@ for (const key in offers) {
   }
 }
 
-const getClevertapCampaignKey = (num: number, lng = 'es') => (`${PROVIDER.Clevertap}|${num}|${lng}`);
+const getClevertapCampaignKey = (num: number, lng = 'es') => (`${SUPPLIER.Clevertap}|${num}|${lng}`);
 
 export const clevertapCampaignMap = new Map<string, ICampaignParameter[]>();
 
@@ -595,7 +595,7 @@ for (let i = 1; i <= maxMessagesPerCampaign; i++) {
   clevertapCampaignMap.set(getClevertapCampaignKey(i), 
     [
       {
-        provider: PROVIDER.Clevertap,
+        provider: SUPPLIER.Clevertap,
         name: `API_Clevertap.${i}_es_${version}`, 
         variables:
           UTILS.NAME

@@ -5,7 +5,7 @@ export const BASE_DATE = new Date('2025/03/05').setHours(
   0,
 ) as unknown as number;
 
-import { CHANNEL, LOCATION, PROVIDER } from './enums.ts';
+import { CHANNEL, LOCATION, SUPPLIER } from './enums.ts';
 
 export const CITY: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
@@ -20,7 +20,7 @@ export const CITY: { [k in LOCATION]: number } = {
   [LOCATION.VLN]: 24,
 };
 
-export const CPG: { [k in LOCATION]: number } = {
+export const PROVIDER: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
   [LOCATION.BOG]: 1377,
   [LOCATION.MDE]: 1377,
@@ -104,12 +104,12 @@ export const MONEY_FORMATTER = {
   [LOCATION.VLN]: moneyFormatter.VE,
 };
 
-export const PROVIDER_CHANNEL: { [k in PROVIDER]: CHANNEL } = {
-  [PROVIDER.Connectly]: CHANNEL.WhatsApp,
-  [PROVIDER.Clevertap]: CHANNEL.PushNotification,
+export const PROVIDER_CHANNEL: { [k in SUPPLIER]: CHANNEL } = {
+  [SUPPLIER.Connectly]: CHANNEL.WhatsApp,
+  [SUPPLIER.Clevertap]: CHANNEL.PushNotification,
 };
 
-export const CHANNEL_PROVIDER: { [k in CHANNEL]: PROVIDER } = {
-  [CHANNEL.WhatsApp]: PROVIDER.Connectly,
-  [CHANNEL.PushNotification]: PROVIDER.Clevertap,
+export const CHANNEL_PROVIDER: { [k in CHANNEL]: SUPPLIER } = {
+  [CHANNEL.WhatsApp]: SUPPLIER.Connectly,
+  [CHANNEL.PushNotification]: SUPPLIER.Clevertap,
 };
