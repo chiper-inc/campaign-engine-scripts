@@ -19,7 +19,7 @@ export class BigQueryRepository {
       END,
       MG.lastValueSegmentation
     )`;
-  private readonly communicationChannel = `IF(MG.locationId IN (22, 3), MG.communicationChannel, 'PushNotification')`;
+  private readonly communicationChannel = `IF(MG.locationId IN (22, 3), MG.communicationChannel, 'Push Notification')`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
@@ -93,8 +93,8 @@ export class BigQueryRepository {
         AND QRY.storeStatus = LSR.storeStatus
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 2000
-      -- OFFSET 7250
+      LIMIT 2000
+      OFFSET 7250
     `;
 
     this.logger.log({
