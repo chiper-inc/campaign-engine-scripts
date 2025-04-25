@@ -147,7 +147,7 @@ export class SlackIntegration {
     let fields: unknown[] = [];
     for (const item of list) {
       if (item.city !== prevCity) {
-        // await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
+        await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
         fields = [];
         prevCity = item.city;
         qtyCity = 0;
@@ -156,8 +156,8 @@ export class SlackIntegration {
       qtyCity += item.qty;
     }
     if (fields.length) {
-      console.log(composeMessage(prevCity, fields, qtyCity));
-      // await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
+      // console.log(composeMessage(prevCity, fields, qtyCity));
+      await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
     }
   }
 
@@ -197,8 +197,8 @@ export class SlackIntegration {
       fields.push(blockMessageField(item.messageName, item.qty));
       qtyMessage += item.qty;
     }
-    console.log(composeMessage(fields, qtyMessage));
-    // await this.publishMessage(composeMessage(fields, qtyMessage));
+    // console.log(composeMessage(fields, qtyMessage));
+    await this.publishMessage(composeMessage(fields, qtyMessage));
   }
 
   private async publishMessage(message: unknown): Promise<void> {
