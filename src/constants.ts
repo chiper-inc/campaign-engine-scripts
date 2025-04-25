@@ -1,10 +1,3 @@
-export const C2A_REFERENCE = 3;
-export const C2A_MACRO = 4;
-export const C2A_BRAND = 2;
-export const C2A_DISCOUNT_LIST = 17;
-export const C2A_REFERENCE_PROMOTION = 6;
-export const C2A_OFFER_LIST = 30; // 17
-
 export const BASE_DATE = new Date('2025/03/05').setHours(
   0,
   0,
@@ -12,7 +5,7 @@ export const BASE_DATE = new Date('2025/03/05').setHours(
   0,
 ) as unknown as number;
 
-import { CHANNEL, LOCATION, PROVIDER } from './enums.ts';
+import { CHANNEL, LOCATION, SERVICE_PROVIDER } from './enums.ts';
 
 export const CITY: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
@@ -27,7 +20,7 @@ export const CITY: { [k in LOCATION]: number } = {
   [LOCATION.VLN]: 24,
 };
 
-export const CPG: { [k in LOCATION]: number } = {
+export const PROVIDER: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
   [LOCATION.BOG]: 1377,
   [LOCATION.MDE]: 1377,
@@ -50,6 +43,18 @@ export const CITY_NAME: { [k: number | string]: string } = {
   [CITY[LOCATION.SCL]]: 'Santiago de Chile',
   [CITY[LOCATION.SAO]]: 'Sao Paulo',
   [CITY[LOCATION.VLN]]: 'Valencia',
+};
+
+export const CITY_LOCATION: { [k: number]: LOCATION } = {
+  [CITY[LOCATION.BOG]]: LOCATION.BOG,
+  [CITY[LOCATION.MDE]]: LOCATION.MDE,
+  [CITY[LOCATION.CLO]]: LOCATION.CLO,
+  [CITY[LOCATION.BAQ]]: LOCATION.BAQ,
+  [CITY[LOCATION.BGA]]: LOCATION.BGA,
+  [CITY[LOCATION.CMX]]: LOCATION.CMX,
+  [CITY[LOCATION.SCL]]: LOCATION.SCL,
+  [CITY[LOCATION.SAO]]: LOCATION.SAO,
+  [CITY[LOCATION.VLN]]: LOCATION.VLN,
 };
 
 const moneyFormatter = {
@@ -99,12 +104,12 @@ export const MONEY_FORMATTER = {
   [LOCATION.VLN]: moneyFormatter.VE,
 };
 
-export const PROVIDER_CHANNEL: { [k in PROVIDER]: CHANNEL } = {
-  [PROVIDER.Connectly]: CHANNEL.WhatsApp,
-  [PROVIDER.Clevertap]: CHANNEL.PushNotification,
+export const PROVIDER_CHANNEL: { [k in SERVICE_PROVIDER]: CHANNEL } = {
+  [SERVICE_PROVIDER.Connectly]: CHANNEL.WhatsApp,
+  [SERVICE_PROVIDER.Clevertap]: CHANNEL.PushNotification,
 };
 
-export const CHANNEL_PROVIDER: { [k in CHANNEL]: PROVIDER } = {
-  [CHANNEL.WhatsApp]: PROVIDER.Connectly,
-  [CHANNEL.PushNotification]: PROVIDER.Clevertap,
+export const CHANNEL_PROVIDER: { [k in CHANNEL]: SERVICE_PROVIDER } = {
+  [CHANNEL.WhatsApp]: SERVICE_PROVIDER.Connectly,
+  [CHANNEL.PushNotification]: SERVICE_PROVIDER.Clevertap,
 };

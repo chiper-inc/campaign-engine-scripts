@@ -19,6 +19,7 @@ export class BigQueryRepository {
       END,
       MG.lastValueSegmentation
     )`;
+  private readonly communicationChannel = `IF(MG.locationId IN (22, 3), MG.communicationChannel, 'Push Notification')`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
@@ -36,7 +37,7 @@ export class BigQueryRepository {
       MG.phone,
       MG.ranking,
       ${this.storeValueSegment} AS lastValueSegmentation,
-      MG.communicationChannel,
+      ${this.communicationChannel} AS communicationChannel,
       IFNULL(MG.daysSinceLastOrderDelivered, 0) AS daysSinceLastOrderDelivered,
       MG.warehouseId
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
@@ -92,7 +93,7 @@ export class BigQueryRepository {
         AND QRY.storeStatus = LSR.storeStatus
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 1000
+      LIMIT 2000
       OFFSET 7250
     `;
 

@@ -1,42 +1,25 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { Storage } from '@google-cloud/storage';
 
-import { BASE_DATE, CITY, CPG } from '../constants.ts';
-import { LOCATION } from '../enums.ts';
 import { Config } from '../config.ts';
+import { Logger } from 'logging-chiper';
 
-export const daysFromBaseDate = (date: Date): number =>
-  Math.trunc(((date as unknown as number) - BASE_DATE) / (1000 * 60 * 60 * 24));
+export {
+  daysFromBaseDate,
+  formatMMMDD,
+  formatDDMMYY,
+  formatYYYYMMDD,
+} from './date-utils.ts';
 
-export const formatMMMDD = (ddmmyy: string): string => {
-  const mpnth = ddmmyy.slice(2, 4);
-  const day = ddmmyy.slice(0, 2);
-  const months = [
-    '_',
-    'Ene',
-    'Feb',
-    'Mar',
-    'Abr',
-    'May',
-    'Jun',
-    'Jul',
-    'Ago',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dic',
-  ];
-  return `${months[Number(mpnth)]}${day}`;
-};
-
-export const formatDDMMYY = (date: Date): string => {
-  const isoString = date.toISOString();
-  return isoString.slice(8, 10) + isoString.slice(5, 7) + isoString.slice(2, 4);
-};
-
-export const formatYYYYMMDD = (date: Date): string =>
-  date.toISOString().slice(0, 10);
+export {
+  getCityId,
+  getProvider,
+  campaignToString,
+  campaignFromString,
+  putMessageToCampaignString,
+} from './campign-name.ts';
 
 export const replaceParams = (
   template: string,
@@ -55,10 +38,6 @@ export const choose = <T>(arr: T[]): T => {
   const randomIndex = getRandomNumber(arr.length);
   return arr[randomIndex];
 };
-
-export const getCityId = (locationId: LOCATION) => CITY[locationId] || 0;
-
-export const getCPG = (locationId: LOCATION) => CPG[locationId] || 0;
 
 export const removeExtraSpaces = (val: string | number): string | number =>
   typeof val === 'string' ? val.replace(/\s+/g, ' ').trim() : val;
@@ -123,6 +102,49 @@ export const writeJsonToFile = (
           resolve();
         }
       },
+    );
+  });
+};
+
+export const uploadJsonToGoogleCloudStorage = (
+  blobname: string,
+  data: unknown[],
+): Promise<void> => {
+  const functionName = uploadJsonToGoogleCloudStorage.name;
+  const stt = 'campaign-engine';
+  const context = 'UTILS';
+  return new Promise((resolve) => {
+    const { bucketName, projectId } = Config.google.cloudStorage;
+
+    const prefix = isProduction() ? '' : 'non-production/';
+    const blobFile = new Storage({ projectId })
+      .bucket(bucketName)
+      .file(`${prefix}${blobname}`);
+
+    resolve(
+      blobFile
+        .save(JSON.stringify(data, null, 2), {
+          contentType: 'application/json',
+        })
+        .then((response: unknown) => {
+          Logger.getInstance().warn({
+            stt: 'campaign-engine',
+            context: 'UTILS',
+            functionName,
+            message: `File uploaded to GCS gs://${bucketName}/${prefix}${blobname}`,
+            data: { response },
+          });
+        })
+        .catch((error: Error) => {
+          Logger.getInstance().error({
+            stt,
+            context,
+            functionName,
+            error,
+            message: `Error uploading file to GCS (gs://${bucketName}/${prefix}${blobname})`,
+            data: { error },
+          });
+        }),
     );
   });
 };
