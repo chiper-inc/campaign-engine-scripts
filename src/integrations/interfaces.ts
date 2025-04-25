@@ -77,3 +77,13 @@ export interface IClevertapCampaign {
   inSeconds?: number;
   timeoutSeconds?: number;
 }
+
+export interface IReportSkuSummary {
+  city: string;
+  referenceId: string;
+  referenceName: string;
+  referenceImage: string;
+  value: number;
+  percentage?: number;
+  referenceDiscount?: string | null;
+}

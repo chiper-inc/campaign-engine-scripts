@@ -1,17 +1,100 @@
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 import { CHANNEL, STORE_STATUS } from '../enums.ts';
+import { IReportSkuSummary } from './interfaces.ts';
+import * as UTILS from '../utils/index.ts';
 
 export class SlackIntegration {
   private readonly reportUrl;
   private readonly logger: LoggingProvider;
+  private readonly today: string;
 
-  constructor() {
+  constructor(today: Date) {
     this.reportUrl = Config.slack.reportUrl;
+    this.today = UTILS.formatYYYYMMDD(today);
     this.logger = new LoggingProvider({
       context: SlackIntegration.name,
       levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
+  }
+
+  public async generateSendoutTopSkuReports(
+    channel: CHANNEL,
+    list: [string, IReportSkuSummary[]][],
+  ): Promise<void> {
+    if (list.length === 0) return;
+
+    const TOP = 10;
+    const ranking = [
+      ':one:',
+      ':two:',
+      ':three:',
+      ':four:',
+      ':five:',
+      ':six:',
+      ':seven:',
+      ':eight:',
+      ':nine:',
+      ':keycap_ten:',
+    ];
+
+    const blockHeader = (
+      channel: CHANNEL,
+      city: string,
+      top: number,
+      total: number,
+    ): unknown => ({
+      type: 'section',
+      text: this.slackTextMarkdown(
+        `:alert: Campaign Engine *${channel}*'s Report 📊\n\n\n🧾 Top ${top} of *${total}* Recommendations for *${
+          city
+        }* on *${this.today}* :calendar:`,
+      ),
+    });
+
+    const blockMessageSku = (skuSummary: IReportSkuSummary, i: number) => {
+      const discount = skuSummary.referenceDiscount
+        ? `\n:point_right: ${skuSummary.referenceDiscount} Off`
+        : '';
+      const percentage = skuSummary.percentage?.toFixed(2);
+      return {
+        type: 'section',
+        text: this.slackTextMarkdown(
+          `${ranking[i]} *${skuSummary.referenceName}*${discount}\n\n:anger: Stores: *${percentage}%*`,
+        ),
+        accessory: this.slackImageAccessory(
+          skuSummary.referenceImage,
+          skuSummary.referenceId,
+        ),
+      };
+    };
+
+    const composeMessage = (
+      city: string,
+      top: number,
+      products: unknown[],
+      total: number,
+    ) => ({
+      blocks: [
+        this.slackDivider(),
+        blockHeader(channel, city, top, total),
+        ...products,
+        this.slackDivider(),
+      ],
+    });
+
+    for (const [city, skuSummaryList] of list) {
+      const products = skuSummaryList
+        .map((skuSummary, index) =>
+          index < TOP
+            ? [this.slackDivider(), blockMessageSku(skuSummary, index)]
+            : [],
+        )
+        .flat();
+      await this.publishMessage(
+        composeMessage(city, TOP, products, skuSummaryList.length),
+      );
+    }
   }
 
   public async generateSendoutLocationSegmentReports(
@@ -34,7 +117,7 @@ export class SlackIntegration {
       text: this.slackTextMarkdown(
         `📣 Campaign Engine *${channel}*'s Sendout Report for *${
           city
-        }* ℹ️\n\n*📊 Number of ${channel} Messages*: ${qty}\n\nDetails per segment:`,
+        }* on *${this.today}* :calendar:\n\n*📊 Number of ${channel} Messages*: ${qty}\n\nDetails per segment:`,
       ),
     });
 
@@ -73,6 +156,7 @@ export class SlackIntegration {
       qtyCity += item.qty;
     }
     if (fields.length) {
+      // console.log(composeMessage(prevCity, fields, qtyCity));
       await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
     }
   }
@@ -89,7 +173,7 @@ export class SlackIntegration {
     const blockHeader = (channel: CHANNEL, qty: number): unknown => ({
       type: 'section',
       text: this.slackTextMarkdown(
-        `📣 Campaign Engine *${channel}*'s Sendout Report Summary\n\n*🧾 Total Number of ${channel} Messages*: ${qty} 📈\n\nDetails per Campaign Mesagge:`,
+        `📣 Campaign Engine *${channel}*'s Sendout Report Summary on *${this.today}* :calendar:\n\n*🧾 Total Number of ${channel} Messages*: ${qty} 📈\n\nDetails per Campaign Mesagge:`,
       ),
     });
 
@@ -113,6 +197,7 @@ export class SlackIntegration {
       fields.push(blockMessageField(item.messageName, item.qty));
       qtyMessage += item.qty;
     }
+    // console.log(composeMessage(fields, qtyMessage));
     await this.publishMessage(composeMessage(fields, qtyMessage));
   }
 
@@ -146,6 +231,14 @@ export class SlackIntegration {
           data: { request },
         });
       });
+  }
+
+  private slackImageAccessory(imageUrl: string, altText: string): unknown {
+    return {
+      type: 'image',
+      image_url: imageUrl,
+      alt_text: altText,
+    };
   }
 
   private slackTextMarkdown(message: string): unknown {

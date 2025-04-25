@@ -1,4 +1,4 @@
-import { CHANNEL, LOCATION, PROVIDER, STORE_STATUS } from '../enums.ts';
+import { CHANNEL, LOCATION, SERVICE_PROVIDER, STORE_STATUS } from '../enums.ts';
 
 export interface IFrequencyParameter {
   locationId: LOCATION;
@@ -10,7 +10,7 @@ export interface IFrequencyParameter {
 }
 
 export interface ICampaignParameter {
-  provider: PROVIDER;
+  provider: SERVICE_PROVIDER;
   name: string;
   variables: string[];
   paths: string[];

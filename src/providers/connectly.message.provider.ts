@@ -21,7 +21,11 @@ export class ConnectlyMessageProvider extends MessageProvider {
 
     this.greetingTemplate = UTILS.choose(greetings);
     this.client = `+${store.phone}`;
-    this.utm.campaignName = `${this.utm.campaignName}_${campaignName.replace(/_/g, '-')}`;
+    this.utm.campaignName = UTILS.putMessageToCampaignString(
+      this.utm.campaignName,
+      campaignName,
+    );
+    // this.utm.campaignName = `${this.utm.campaignName}_${campaignName.replace(/_/g, '-')}`;
   }
 
   public setVariables(vars: TypeCampaignVariables): this {

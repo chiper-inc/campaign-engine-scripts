@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import * as UTILS from '../utils/index.ts';
-import { BASE_DATE, CHANNEL_PROVIDER, CITY_NAME } from '../constants.ts';
+import { BASE_DATE, CHANNEL_PROVIDER } from '../constants.ts';
 
 import {
   getLocationStatusRangeKey,
@@ -17,8 +17,6 @@ import { ICommunication } from '../providers/interfaces.ts';
 
 import { CHANNEL } from '../enums.ts';
 import { BigQueryRepository } from '../repositories/big-query.ts';
-import { SlackIntegration } from '../integrations/slack.ts';
-import { CampaignProvider } from '../providers/campaign.provider.ts';
 import { ConnectlyCampaignProvider } from '../providers/connectly.campaign.provider.ts';
 import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provider.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
@@ -28,6 +26,7 @@ import { GenAiProvider } from '../providers/gen-ai.provider.ts';
 import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
 import { StoreRecommendationProvider } from '../providers/store-recomendation.provider.ts';
 import { CommunicationProvider } from '../providers/comunication.provider.ts';
+import { SlackProvider } from '../providers/slack.provider.ts';
 
 // Process Gobal Variables
 
@@ -81,24 +80,35 @@ async function main({
   // });
 
   // connectlyEntries.slice(0, 10).forEach((entry) => {
-  //   console.error({
-  //     var: entry.campaignService?.variables,
-  //     vars: entry.campaignService?.messages.map((m) => m.variables),
-  //   });
+  //   console.error({ entry });
+  // console.error({
+  //   var: entry.campaignService?.variables,
+  //   vars: entry.campaignService?.messages.map((m) => m.variables),
   // });
+  // });
+
+  const slackProvider = new SlackProvider(TODAY);
 
   const [connectlyMessages] = await Promise.all([
     outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
       IConnectlyEntry[][]
     >,
-    reportMessagesToSlack(CHANNEL.WhatsApp, connectlyEntries),
+    slackProvider.reportMessagesToSlack(
+      CHANNEL.WhatsApp,
+      connectlyEntries,
+      storeMap,
+    ),
   ]);
   const [clevertapCampaigns] = await Promise.all([
     outputIntegrationMessages(
       CHANNEL.PushNotification,
       clevertapEntries,
     ) as Promise<IClevertapMessage[][]>,
-    reportMessagesToSlack(CHANNEL.PushNotification, clevertapEntries),
+    slackProvider.reportMessagesToSlack(
+      CHANNEL.PushNotification,
+      clevertapEntries,
+      storeMap,
+    ),
   ]);
   await sendCampaingsToIntegrations(
     connectlyMessages,
@@ -112,63 +122,6 @@ async function main({
 }
 
 //Helper Functions
-
-const reportMessagesToSlack = async (
-  channel: CHANNEL,
-  communications: ICommunication[],
-): Promise<void> => {
-  const summaryMap = communications
-    .map(
-      (communication) =>
-        [communication.utm.campaignName, communication.campaignService] as [
-          string,
-          CampaignProvider,
-        ],
-    )
-    .reduce(
-      (acc, [name, campaignService]) => {
-        const [cityId, , , , , , status] = name.split('_');
-
-        const message = campaignService.getMessageName();
-        const keyLocation = `${CITY_NAME[cityId]}|${status}|${message}`;
-        let value = acc.locationSegmentMessageMap.get(keyLocation) || 0;
-        acc.locationSegmentMessageMap.set(keyLocation, value + 1);
-
-        const keyChannel = `${status}`;
-        value = acc.channelSegmentMap.get(keyChannel) || 0;
-        acc.channelSegmentMap.set(keyChannel, value + 1);
-        return acc;
-      },
-      {
-        locationSegmentMessageMap: new Map(),
-        channelSegmentMap: new Map(),
-      },
-    );
-
-  const summaryMessage = Array.from(summaryMap.channelSegmentMap.entries())
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([messageName, qty]) => {
-      return { messageName, qty };
-    });
-
-  const summaryLocationSegmentMessage = Array.from(
-    summaryMap.locationSegmentMessageMap.entries(),
-  )
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([key, qty]) => {
-      const [city, status, message] = key.split('|');
-      return { city, status, message, qty };
-    });
-
-  const slackIntegration = new SlackIntegration();
-  await slackIntegration.generateSendoutLocationSegmentReports(
-    channel,
-    summaryLocationSegmentMessage,
-  );
-  await slackIntegration.generateSendoutMessageReports(channel, summaryMessage);
-
-  console.error('Summary Per Campaign');
-};
 
 const outputIntegrationMessages = async (
   channel: CHANNEL,
@@ -218,10 +171,30 @@ const splitcommunications = (
   communications: ICommunication[],
   exceptionStoreIds: Set<number>,
 ) => {
+  console.error(
+    'date,medium,cityId,segement,storeId,recommendation1,recommendation2,recommendation3,recomendation4,recomendation5',
+  );
   return communications
     .filter((communication) => !exceptionStoreIds.has(communication.storeId))
     .reduce(
       (acc, communication) => {
+        // console.log(communication);
+        const { storeId, utm } = communication;
+        const { cityId, term, asset, segment } = UTILS.campaignFromString(
+          utm.campaignName,
+        );
+        // console.log('=====');
+        const products = communication.utmCallToActions.map((item) => {
+          const {
+            callToAction: { storeReferenceId, referencePromotionId },
+          } = item;
+          return storeReferenceId
+            ? String(storeReferenceId)
+            : `C-${referencePromotionId}`;
+        });
+        console.error(
+          `${term},${asset},${cityId},${segment},${storeId},${products.join(',')}`,
+        );
         if (
           communication.campaignService instanceof ConnectlyCampaignProvider
         ) {
