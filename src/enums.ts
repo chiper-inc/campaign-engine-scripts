@@ -33,7 +33,7 @@ export enum CHANNEL {
   PushNotification = 'Push Notification',
 }
 
-export enum SUPPLIER {
+export enum SERVICE_PROVIDER {
   Connectly = 'Connectly',
   Clevertap = 'Clevertap',
 }

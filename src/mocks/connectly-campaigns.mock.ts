@@ -1,4 +1,4 @@
-import { SUPPLIER } from '../enums.ts';
+import { SERVICE_PROVIDER } from '../enums.ts';
 import { ICampaignParameter } from "./interfaces.ts";
 import * as UTILS from './utils.ts';
 
@@ -25,7 +25,7 @@ const versions: [number, string][] = [
 export const minMessagesPerCampaign = 2
 export const maxMessagesPerCampaign = 5;
 
-const getConnectlyCampaignKey = (num: number, lng = 'es') => (`${SUPPLIER.Connectly}|${num}|${lng}`);
+const getConnectlyCampaignKey = (num: number, lng = 'es') => (`${SERVICE_PROVIDER.Connectly}|${num}|${lng}`);
 
 export const connectlyCampaignMap: Map<string, ICampaignParameter[]> = 
   versions.reduce((acc, [numCards, version, lng = 'es']) => { 
@@ -48,7 +48,7 @@ export const connectlyCampaignMap: Map<string, ICampaignParameter[]> =
     const i = campaings ? campaings.length + 1 : 1;
     const name = `API_Carousel.${numCards}_${i}_${lng}_${version}`;
     campaings.push(
-      { provider: SUPPLIER.Connectly, name, variables, paths },
+      { provider: SERVICE_PROVIDER.Connectly, name, variables, paths },
     )
     acc.set(key, campaings);
     return acc;

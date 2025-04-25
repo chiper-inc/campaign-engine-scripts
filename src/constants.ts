@@ -5,7 +5,7 @@ export const BASE_DATE = new Date('2025/03/05').setHours(
   0,
 ) as unknown as number;
 
-import { CHANNEL, LOCATION, SUPPLIER } from './enums.ts';
+import { CHANNEL, LOCATION, SERVICE_PROVIDER } from './enums.ts';
 
 export const CITY: { [k in LOCATION]: number } = {
   [LOCATION._default]: 0,
@@ -104,12 +104,12 @@ export const MONEY_FORMATTER = {
   [LOCATION.VLN]: moneyFormatter.VE,
 };
 
-export const PROVIDER_CHANNEL: { [k in SUPPLIER]: CHANNEL } = {
-  [SUPPLIER.Connectly]: CHANNEL.WhatsApp,
-  [SUPPLIER.Clevertap]: CHANNEL.PushNotification,
+export const PROVIDER_CHANNEL: { [k in SERVICE_PROVIDER]: CHANNEL } = {
+  [SERVICE_PROVIDER.Connectly]: CHANNEL.WhatsApp,
+  [SERVICE_PROVIDER.Clevertap]: CHANNEL.PushNotification,
 };
 
-export const CHANNEL_PROVIDER: { [k in CHANNEL]: SUPPLIER } = {
-  [CHANNEL.WhatsApp]: SUPPLIER.Connectly,
-  [CHANNEL.PushNotification]: SUPPLIER.Clevertap,
+export const CHANNEL_PROVIDER: { [k in CHANNEL]: SERVICE_PROVIDER } = {
+  [CHANNEL.WhatsApp]: SERVICE_PROVIDER.Connectly,
+  [CHANNEL.PushNotification]: SERVICE_PROVIDER.Clevertap,
 };
