@@ -36,7 +36,7 @@ const UUID = uuid();
 
 async function main({
   day,
-  limit = 15000,
+  limit = 100000,
   offset = 0,
   includeShortlinks = false,
   sendToConnectly = false,
