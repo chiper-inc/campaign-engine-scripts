@@ -2,15 +2,18 @@ import * as UTILS from '../utils/index.ts';
 import { ICallToActionLink } from './interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 import { MessageProvider } from './message.provider.ts';
+import { CampaignMetadata } from './campaign-metadata.ts';
 
 export abstract class CampaignProvider {
   protected readonly lng: string;
   protected readonly messageValues: MessageProvider[];
   protected variableValues: TypeCampaignVariables;
+  protected readonly metadataValues: CampaignMetadata[];
 
   protected constructor(variables: TypeCampaignVariables, lng = 'es') {
     this.lng = lng;
     this.messageValues = [];
+    this.metadataValues = [];
     this.variableValues = { ...variables };
   }
 

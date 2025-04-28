@@ -21,13 +21,13 @@ export abstract class MessageProvider {
     this.message = messageName;
   }
 
-  public get utm(): IUtm {
-    return this.utmValue;
-  }
+  // public get utm(): IUtm {
+  //   return this.utmValue;
+  // }
 
-  public set utm(utm: IUtm) {
-    this.utmValue = utm;
-  }
+  // public set utm(utm: IUtm) {
+  //   this.utmValue = utm;
+  // }
 
   public get messageName(): string {
     return this.message;

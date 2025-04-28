@@ -227,7 +227,7 @@ export class StoreRecommendationProvider {
     const source =
       `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
     const content = uuid();
-    const medium = '164';
+    const medium = asset;
     return {
       campaignName: campaign,
       campaignContent: content,
