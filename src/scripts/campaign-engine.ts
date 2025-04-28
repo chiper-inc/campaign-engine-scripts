@@ -36,7 +36,7 @@ const UUID = uuid();
 
 async function main({
   day,
-  limit = 15000,
+  limit = 100000,
   offset = 0,
   includeShortlinks = false,
   sendToConnectly = false,
@@ -158,6 +158,11 @@ const sendCampaingsToIntegrations = async (
   const connectlyIntegration = new ConnectlyIntegration();
   const clevertapIntegration = new ClevertapIntegration();
   const promises: Promise<void>[] = [];
+  console.error(
+    connectlyEntries.length,
+    clevertapEntries.length,
+    clevertapEntries.flat().length,
+  );
   if (sendToConnectly) {
     promises.push(connectlyIntegration.sendAllEntries(connectlyEntries.flat()));
   }
