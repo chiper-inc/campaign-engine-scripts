@@ -158,11 +158,6 @@ const sendCampaingsToIntegrations = async (
   const connectlyIntegration = new ConnectlyIntegration();
   const clevertapIntegration = new ClevertapIntegration();
   const promises: Promise<void>[] = [];
-  console.error(
-    connectlyEntries.length,
-    clevertapEntries.length,
-    clevertapEntries.flat().length,
-  );
   if (sendToConnectly) {
     promises.push(connectlyIntegration.sendAllEntries(connectlyEntries.flat()));
   }
