@@ -57,6 +57,7 @@ async function main({
   const storeMap = storeReferenceProvider.assignCampaignAndUtm(
     storeReferenceProvider.generateMap(
       data.filter((row) => filterData(row, frequencyMap, day)),
+      day,
     ),
     day,
   );
@@ -81,10 +82,10 @@ async function main({
 
   // connectlyEntries.slice(0, 10).forEach((entry) => {
   //   console.error({ entry });
-  // console.error({
-  //   var: entry.campaignService?.variables,
-  //   vars: entry.campaignService?.messages.map((m) => m.variables),
-  // });
+  //   console.error({
+  //     var: entry.campaignService?.variables,
+  //     vars: entry.campaignService?.messages.map((m) => m.variables),
+  //   });
   // });
 
   const slackProvider = new SlackProvider(TODAY);
@@ -178,7 +179,6 @@ const splitcommunications = (
     .filter((communication) => !exceptionStoreIds.has(communication.storeId))
     .reduce(
       (acc, communication) => {
-        // console.log(communication);
         const { storeId, utm } = communication;
         const { cityId, term, asset, segment } = UTILS.campaignFromString(
           utm.campaignName,

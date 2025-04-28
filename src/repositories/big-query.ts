@@ -96,7 +96,7 @@ export class BigQueryRepository {
         -- AND QRY.locationId in (${LOCATION.CMX}, ${LOCATION.SCL})
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 2000
+      -- LIMIT 500
       -- OFFSET 7250
     `;
 
