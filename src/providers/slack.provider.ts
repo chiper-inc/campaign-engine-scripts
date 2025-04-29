@@ -19,7 +19,7 @@ export class SlackProvider {
   reportMessagesToSlack = async (
     channel: CHANNEL,
     communications: ICommunication[],
-    storeMap: Map<number, IStoreRecommendation>,
+    storeMap: Map<string, IStoreRecommendation>,
   ): Promise<void> => {
     const functionName = this.reportMessagesToSlack.name;
 
@@ -37,8 +37,12 @@ export class SlackProvider {
           const { cityId, segment } = UTILS.campaignFromString(name);
           const city = CITY_NAME[cityId];
 
+          // console.error({ campaignService });
+
           let value;
-          const skus = (storeMap.get(storeId)?.skus || []).slice(0, 5);
+          const skus = (
+            storeMap.get(`${storeId}-${channel}`)?.skus || []
+          ).slice(0, 5);
           const storeSet = acc.locationMap.get(city) || new Set<number>();
           storeSet.add(storeId);
           acc.locationMap.set(city, storeSet);

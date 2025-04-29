@@ -15,7 +15,7 @@ import * as UTILS from '../utils/index.ts';
 
 export class CommunicationProvider {
   public generateEntries(
-    storesMap: Map<number, IStoreRecommendation>,
+    storesMap: Map<string, IStoreRecommendation>,
   ): ICommunication[] {
     const entries: ICommunication[] = [];
     for (const data of Array.from(storesMap.values())) {

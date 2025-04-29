@@ -35,6 +35,20 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
 
     if (!variables || !variables.name) return null;
 
+    // if (variables.sku_1) {
+    //   const response = { titles: ['Hola'], products: [] } as {
+    //     titles: string[];
+    //     products: string[];
+    //   };
+    //   for (const k of Object.keys(variables)) {
+    //     if (k.startsWith('sku_')) {
+    //       response.products.push(String(variables[k] as unknown));
+    //     }
+    //   }
+    //   return response as unknown as TypeCampaignVariables;
+    // }
+
+    // console.log('==========');
     const inputJson = JSON.stringify(variables);
     const { parts, role } = this.userInstructions;
     const responseContent = await this.predictContent({

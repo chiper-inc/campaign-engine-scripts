@@ -19,7 +19,9 @@ export class BigQueryRepository {
       END,
       MG.lastValueSegmentation
     )`;
-  private readonly communicationChannel = `IF(MG.locationId IN (22, 3), MG.communicationChannel, 'Push Notification')`;
+  private readonly communicationChannel = `IF(MG.locationId IN (${
+    LOCATION.CMX
+  }), 'Push Notification', MG.communicationChannel)`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
