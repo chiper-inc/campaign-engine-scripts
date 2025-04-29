@@ -4,6 +4,7 @@ import { Config } from '../config.ts';
 import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
+import { MessageMetadata } from '../providers/message.metadata.ts';
 
 export class ClevertapIntegration {
   private readonly url: string;
@@ -70,7 +71,7 @@ export class ClevertapIntegration {
       body: message,
     };
     const cloudTask = new CloudTask(this.queueName);
-    const name = `Clevertap-Campaign-${message.campaign_id}`;
+    const name = `Clevertap-Campaign-${message.data.campaign_id}`;
     return cloudTask
       .createOneTask({
         name,
@@ -104,7 +105,9 @@ export class ClevertapIntegration {
     // console.log(`Created task ${response.name}`);
   }
 
-  async sendAllMessages(messages: IClevertapMessage[]): Promise<void> {
+  async sendAllMessages(
+    messages: { data: IClevertapMessage; metadata: MessageMetadata[] }[],
+  ): Promise<void> {
     const promises = [];
     let inSeconds = 0;
     let k = -1;
@@ -118,7 +121,9 @@ export class ClevertapIntegration {
     await Promise.all(promises);
   }
 
-  async sendAllCampaigns(campaings: IClevertapMessage[][]): Promise<void> {
+  async sendAllCampaigns(
+    campaings: { data: IClevertapMessage; metadata: MessageMetadata[] }[][],
+  ): Promise<void> {
     const functionName = this.sendAllCampaigns.name;
 
     const promises = [];

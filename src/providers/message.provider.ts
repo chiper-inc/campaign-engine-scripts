@@ -59,6 +59,6 @@ export abstract class MessageProvider {
 
   public abstract get integrationBody(): {
     data: IConnectlyEntry | IClevertapMessage;
-    metadata: unknown;
+    metadata: MessageMetadata[];
   };
 }

@@ -4,6 +4,7 @@ import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/connectly-greetings.mock.ts';
 import * as UTILS from '../utils/index.ts';
 import { STORE_STATUS } from '../enums.ts';
+import { MessageMetadata } from './message.metadata.ts';
 
 export class ConnectlyMessageProvider extends MessageProvider {
   private static imageQueryParams = 'w=800&h=400&fit=fill&bg=white';
@@ -45,7 +46,10 @@ export class ConnectlyMessageProvider extends MessageProvider {
     return this;
   }
 
-  public get integrationBody(): { data: IConnectlyEntry; metadata: unknown } {
+  public get integrationBody(): {
+    data: IConnectlyEntry;
+    metadata: MessageMetadata[];
+  } {
     return {
       data: {
         client: this.client,

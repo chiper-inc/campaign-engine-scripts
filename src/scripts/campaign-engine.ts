@@ -27,6 +27,7 @@ import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
 import { StoreRecommendationProvider } from '../providers/store-recomendation.provider.ts';
 import { CommunicationProvider } from '../providers/comunication.provider.ts';
 import { SlackProvider } from '../providers/slack.provider.ts';
+import { MessageMetadata } from '../providers/message.metadata.ts';
 
 // Process Gobal Variables
 
@@ -122,8 +123,14 @@ async function main({
     ),
   ]);
   await sendCampaingsToIntegrations(
-    connectlyMessages as IConnectlyEntry[][],
-    clevertapCampaigns as IClevertapMessage[][],
+    connectlyMessages as {
+      data: IConnectlyEntry;
+      metadata: MessageMetadata[];
+    }[][],
+    clevertapCampaigns as {
+      data: IClevertapMessage;
+      metadata: MessageMetadata[];
+    }[][],
     sendToConnectly,
     sendToClevertap,
   );
@@ -137,20 +144,20 @@ async function main({
 const outputIntegrationMessages = async (
   channel: CHANNEL,
   communications: ICommunication[],
-): Promise<(IConnectlyEntry | IClevertapMessage)[][]> => {
-  // {
-  //   data: IConnectlyEntry | IClevertapMessage;
-  //   metadata: unknown;
-  // }[]
-  //> => {
+): Promise<
+  {
+    data: IConnectlyEntry | IClevertapMessage;
+    metadata: MessageMetadata[];
+  }[][]
+> => {
   const entries: {
     data: IConnectlyEntry | IClevertapMessage;
-    metadata: unknown;
+    metadata: MessageMetadata[];
   }[][] = communications.map(
     (communication) =>
       communication.campaignService?.integrationBody as unknown as {
         data: IConnectlyEntry | IClevertapMessage;
-        metadata: unknown;
+        metadata: MessageMetadata[];
       }[],
   );
 
@@ -164,14 +171,15 @@ const outputIntegrationMessages = async (
   console.error(
     `Campaing ${UUID} generated for ${entries.length} stores as ${channel}`,
   );
-  return Promise.resolve(
-    entries.map((entry) => entry.map((item) => item.data)),
-  );
+  return Promise.resolve(entries);
 };
 
 const sendCampaingsToIntegrations = async (
-  connectlyEntries: IConnectlyEntry[][],
-  clevertapEntries: IClevertapMessage[][],
+  connectlyEntries: { data: IConnectlyEntry; metadata: MessageMetadata[] }[][],
+  clevertapEntries: {
+    data: IClevertapMessage;
+    metadata: MessageMetadata[];
+  }[][],
   sendToConnectly: boolean,
   sendToClevertap: boolean,
 ) => {

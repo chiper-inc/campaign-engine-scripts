@@ -1,3 +1,4 @@
+import { MessageMetadata } from '../providers/message.metadata.ts';
 import { TypeCampaignVariables } from '../types.ts';
 
 export interface IStoreReferenceData {
@@ -73,7 +74,7 @@ export interface ICatalogueReference {
 }
 
 export interface IClevertapCampaign {
-  message: IClevertapMessage;
+  message: { data: IClevertapMessage; metadata: MessageMetadata[] };
   inSeconds?: number;
   timeoutSeconds?: number;
 }

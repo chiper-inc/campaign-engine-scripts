@@ -3,6 +3,7 @@ import { Config } from '../config.ts';
 
 import { IConnectlyEntry } from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
+import { MessageMetadata } from '../providers/message.metadata.ts';
 
 export class ConnectlyIntegration {
   private readonly url: string;
@@ -34,13 +35,16 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendOneEntries(entry: IConnectlyEntry): Promise<{
+  public async sendOneEntry(entry: {
+    data: IConnectlyEntry;
+    metadata: MessageMetadata[];
+  }): Promise<{
     status: number;
     statusText: string;
     data?: unknown[];
   }> {
     const payload = {
-      entries: [entry],
+      entries: [entry.data],
     };
     return fetch(this.url, {
       method: 'POST',
@@ -57,10 +61,12 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendAllEntries(data: IConnectlyEntry[]) {
+  public async sendAllEntries(
+    entries: { data: IConnectlyEntry; metadata: MessageMetadata[] }[],
+  ) {
     const functionName = this.sendAllEntries.name;
 
-    const batches = this.splitIntoBatches(data, this.batchSize);
+    const batches = this.splitIntoBatches(entries, this.batchSize);
 
     let accepted = 0;
     let rejected = 0;
@@ -74,7 +80,7 @@ export class ConnectlyIntegration {
           const payload = {
             entries: [entry],
           };
-          return this.sendOneEntries(entry)
+          return this.sendOneEntry(entry)
             .then((response) => {
               statuses[response.status as unknown as string] =
                 (statuses[response.status as unknown as string] || 0) + 1;
@@ -134,15 +140,18 @@ export class ConnectlyIntegration {
   }
 
   private splitIntoBatches(
-    arr: IConnectlyEntry[],
+    arr: { data: IConnectlyEntry; metadata: MessageMetadata[] }[],
     batchSize: number,
-  ): IConnectlyEntry[][] {
-    return arr.reduce((acc, _, i) => {
-      if (i % batchSize === 0) {
-        acc.push(arr.slice(i, i + batchSize));
-      }
-      return acc;
-    }, [] as IConnectlyEntry[][]);
+  ): { data: IConnectlyEntry; metadata: MessageMetadata[] }[][] {
+    return arr.reduce(
+      (acc, _, i) => {
+        if (i % batchSize === 0) {
+          acc.push(arr.slice(i, i + batchSize));
+        }
+        return acc;
+      },
+      [] as { data: IConnectlyEntry; metadata: MessageMetadata[] }[][],
+    );
   }
 
   private sleep(): Promise<void> {

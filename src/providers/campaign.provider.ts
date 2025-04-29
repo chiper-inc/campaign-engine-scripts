@@ -6,6 +6,7 @@ import {
   IClevertapMessage,
   IConnectlyEntry,
 } from '../integrations/interfaces.ts';
+import { MessageMetadata } from './message.metadata.ts';
 
 export abstract class CampaignProvider {
   protected readonly lng: string;
@@ -36,7 +37,7 @@ export abstract class CampaignProvider {
 
   public get integrationBody(): {
     data: IConnectlyEntry | IClevertapMessage;
-    metadata: unknown;
+    metadata: MessageMetadata[];
   }[] {
     return this.messageValues.map((message) => message.integrationBody);
   }
