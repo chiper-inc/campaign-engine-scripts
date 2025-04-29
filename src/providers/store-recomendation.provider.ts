@@ -77,7 +77,8 @@ export class StoreRecommendationProvider {
 
     return filteredData.reduce((acc, row) => {
       const channels = [CHANNEL.WhatsApp].includes(row.communicationChannel)
-        ? [CHANNEL.WhatsApp, CHANNEL.PushNotification]
+        ? // ? [CHANNEL.WhatsApp, CHANNEL.PushNotification]
+          [CHANNEL.WhatsApp]
         : [CHANNEL.PushNotification];
 
       const params: TypeStoreParams = {
