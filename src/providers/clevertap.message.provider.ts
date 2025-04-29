@@ -1,4 +1,4 @@
-import { IUtm } from '../integrations/interfaces.ts';
+import { IClevertapMessage, IUtm } from '../integrations/interfaces.ts';
 import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
@@ -11,9 +11,10 @@ export class ClevertapMessageProvider extends MessageProvider {
   private readonly offerTemplate: string;
   private readonly identity: string;
 
-  constructor(store: TypeStore, _: string, utm: IUtm) {
-    const { segment: campaignName } =
-      UTILS.campaignFromString(utm.campaignName) ?? '';
+  constructor(store: TypeStore, _: string, utm: Partial<IUtm>) {
+    const { segment: campaignName } = UTILS.campaignFromString(
+      utm.campaignName ?? '',
+    );
     // const campaignName = utm.campaignName.split('_').slice(-1)[0] ?? '';
     const mainCampaign = `API_${campaignName.split('.')[0] ?? 'XYZ'}`;
 
@@ -55,13 +56,16 @@ export class ClevertapMessageProvider extends MessageProvider {
     return this;
   }
 
-  public get integrationBody(): unknown {
+  public get integrationBody(): { data: IClevertapMessage; metadata: unknown } {
     return {
-      to: {
-        identity: [this.identity],
+      data: {
+        to: {
+          identity: [this.identity],
+        },
+        campaign_id: this.campaignId,
+        ExternalTrigger: this.variablesValues,
       },
-      campaign_id: this.campaignId,
-      ExternalTrigger: this.variablesValues,
+      metadata: this.metadataValues,
     };
   }
 

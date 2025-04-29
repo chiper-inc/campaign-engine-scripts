@@ -1,5 +1,5 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm, ICallToActionLink } from './interfaces.ts';
+import { IUtm, ICallToActionLink, IUtmCallToAction } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { ClevertapMessageProvider } from './clevertap.message.provider.ts';
 import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.provider.ts';
@@ -18,7 +18,10 @@ export class ClevertapCampaignProvider extends CampaignProvider {
     const n = MOCKS.maxMessagesPerCampaign;
     for (let i = 1; i <= n && variables[`sku_${i}`]; i++) {
       this.messageValues.push(
-        new ClevertapMessageProvider(store, campaignName, utm),
+        new ClevertapMessageProvider(store, campaignName, {
+          ...utm,
+          campaignContent: undefined,
+        }),
       );
     }
   }
@@ -38,10 +41,17 @@ export class ClevertapCampaignProvider extends CampaignProvider {
       this.variableValues[path] = shortLink;
       this.messageValues[i].setPaths({ path: this.variableValues[path] });
     });
-    this.messageValues.forEach((message) => {
-      console.log(message);
-    });
+    // this.messageValues.forEach((message) => {
+    //   console.log(message);
+    // });
 
+    return this;
+  }
+
+  public setMetadata(utmCallToActions: IUtmCallToAction[]): this {
+    this.messageValues.forEach((message, index) => {
+      message.metadata = [utmCallToActions[index]];
+    });
     return this;
   }
 
@@ -50,9 +60,9 @@ export class ClevertapCampaignProvider extends CampaignProvider {
   }
 
   public async setMessagesVariables(): Promise<this> {
-    this.messageValues.forEach((message) => {
-      console.log(message);
-    });
+    // this.messageValues.forEach((message) => {
+    //   console.log(message);
+    // });
 
     const pushNotificationGenerator = ClevertapPushNotificationAI.getInstance();
 

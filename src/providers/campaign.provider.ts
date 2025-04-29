@@ -1,19 +1,20 @@
 import * as UTILS from '../utils/index.ts';
-import { ICallToActionLink } from './interfaces.ts';
+import { ICallToActionLink, IUtmCallToAction } from './interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 import { MessageProvider } from './message.provider.ts';
-import { CampaignMetadata } from './campaign-metadata.ts';
+import {
+  IClevertapMessage,
+  IConnectlyEntry,
+} from '../integrations/interfaces.ts';
 
 export abstract class CampaignProvider {
   protected readonly lng: string;
   protected readonly messageValues: MessageProvider[];
   protected variableValues: TypeCampaignVariables;
-  protected readonly metadataValues: CampaignMetadata[];
 
   protected constructor(variables: TypeCampaignVariables, lng = 'es') {
     this.lng = lng;
     this.messageValues = [];
-    this.metadataValues = [];
     this.variableValues = { ...variables };
   }
 
@@ -31,7 +32,12 @@ export abstract class CampaignProvider {
 
   public abstract getMessageName(): string;
 
-  public get integrationBody(): unknown[] {
+  public abstract setMetadata(utmCallToActions: IUtmCallToAction[]): this;
+
+  public get integrationBody(): {
+    data: IConnectlyEntry | IClevertapMessage;
+    metadata: unknown;
+  }[] {
     return this.messageValues.map((message) => message.integrationBody);
   }
 

@@ -1,5 +1,5 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm } from '../integrations/interfaces.ts';
+import { IConnectlyEntry, IUtm } from '../integrations/interfaces.ts';
 import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/connectly-greetings.mock.ts';
 import * as UTILS from '../utils/index.ts';
@@ -10,7 +10,7 @@ export class ConnectlyMessageProvider extends MessageProvider {
 
   private readonly client: string;
   private readonly greetingTemplate: string;
-  constructor(store: TypeStore, campaignName: string, utm: IUtm) {
+  constructor(store: TypeStore, campaignName: string, utm: Partial<IUtm>) {
     const [, messageClass, messageNumber] = campaignName.split('_');
     const campaignId = campaignName.replace(/_/g, ' ').toLowerCase();
     const greetings =
@@ -45,11 +45,14 @@ export class ConnectlyMessageProvider extends MessageProvider {
     return this;
   }
 
-  public get integrationBody(): unknown {
+  public get integrationBody(): { data: IConnectlyEntry; metadata: unknown } {
     return {
-      client: this.client,
-      campaignName: this.campaignId,
-      variables: this.variablesValues,
+      data: {
+        client: this.client,
+        campaignName: this.campaignId,
+        variables: this.variablesValues,
+      },
+      metadata: this.metadataValues,
     };
   }
 

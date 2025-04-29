@@ -1,3 +1,6 @@
+import { TypeSku } from '../types.ts';
+import { ICallToAction, IUtm, IUtmCallToAction } from './interfaces.ts';
+
 export interface IMetadata {
   storeId: number;
   campaignName: string; // Object | string;
@@ -123,5 +126,31 @@ export class MetadataMessageContent implements IMessageContent {
     this.campaignContent = campaignContent;
     this.storeReferenceId = storeReferenceId;
     this.referencePromotionId = referencePromotionId;
+  }
+}
+
+export class MessageMetadata {
+  private static $skus: TypeSku[];
+  private static $utm: IUtm;
+  private static storeId: number;
+  private static $callToAction: Partial<ICallToAction>;
+
+  constructor({ skus, utm, storeId, callToAction }: IUtmCallToAction) {
+    MessageMetadata.$skus = skus;
+    MessageMetadata.$utm = utm;
+    MessageMetadata.storeId = storeId;
+    MessageMetadata.$callToAction = callToAction;
+  }
+  public static get skus(): TypeSku[] {
+    return MessageMetadata.$skus;
+  }
+  public static get utm(): IUtm {
+    return MessageMetadata.$utm;
+  }
+  public static get store(): number {
+    return MessageMetadata.storeId;
+  }
+  public static get callToAction(): ICallToAction {
+    return MessageMetadata.$callToAction as ICallToAction;
   }
 }

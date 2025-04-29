@@ -64,10 +64,25 @@ async function main({
   const communications = new CommunicationProvider()
     .generateEntries(storeMap)
     .slice(offset, offset + limit);
-  const exceptionStoreIds = await Promise.all([
-    new DeeplinkProvider().generateLinks(communications, includeShortlinks),
-    new GenAiProvider().generateCampaignMessages(communications),
-  ]);
+
+  // console.log(JSON.stringify(communications, null, 2));
+  // const exceptionStoreIds = await Promise.all([
+  //   new DeeplinkProvider().generateLinks(communications, includeShortlinks),
+  //   new GenAiProvider().generateCampaignMessages(communications),
+  // ]);
+  // const exceptionStoreIds = await Promise.all([
+  const exceptionStoreIds: number[][] = [];
+  exceptionStoreIds.push(
+    await new DeeplinkProvider().generateLinks(
+      communications,
+      includeShortlinks,
+    ),
+  );
+  exceptionStoreIds.push(
+    await new GenAiProvider().generateCampaignMessages(communications),
+  );
+  // ]);
+
   const [connectlyEntries, clevertapEntries] = splitcommunications(
     communications,
     new Set(exceptionStoreIds.flat()),
@@ -91,9 +106,7 @@ async function main({
   const slackProvider = new SlackProvider(TODAY);
 
   const [connectlyMessages] = await Promise.all([
-    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries) as Promise<
-      IConnectlyEntry[][]
-    >,
+    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries),
     slackProvider.reportMessagesToSlack(
       CHANNEL.WhatsApp,
       connectlyEntries,
@@ -101,10 +114,7 @@ async function main({
     ),
   ]);
   const [clevertapCampaigns] = await Promise.all([
-    outputIntegrationMessages(
-      CHANNEL.PushNotification,
-      clevertapEntries,
-    ) as Promise<IClevertapMessage[][]>,
+    outputIntegrationMessages(CHANNEL.PushNotification, clevertapEntries),
     slackProvider.reportMessagesToSlack(
       CHANNEL.PushNotification,
       clevertapEntries,
@@ -112,8 +122,8 @@ async function main({
     ),
   ]);
   await sendCampaingsToIntegrations(
-    connectlyMessages,
-    clevertapCampaigns,
+    connectlyMessages as IConnectlyEntry[][],
+    clevertapCampaigns as IClevertapMessage[][],
     sendToConnectly,
     sendToClevertap,
   );
@@ -127,13 +137,21 @@ async function main({
 const outputIntegrationMessages = async (
   channel: CHANNEL,
   communications: ICommunication[],
-) => {
-  const entries: (IConnectlyEntry | IClevertapMessage)[][] = communications.map(
+): Promise<(IConnectlyEntry | IClevertapMessage)[][]> => {
+  // {
+  //   data: IConnectlyEntry | IClevertapMessage;
+  //   metadata: unknown;
+  // }[]
+  //> => {
+  const entries: {
+    data: IConnectlyEntry | IClevertapMessage;
+    metadata: unknown;
+  }[][] = communications.map(
     (communication) =>
-      communication.campaignService?.integrationBody as (
-        | IConnectlyEntry
-        | IClevertapMessage
-      )[],
+      communication.campaignService?.integrationBody as unknown as {
+        data: IConnectlyEntry | IClevertapMessage;
+        metadata: unknown;
+      }[],
   );
 
   const formattedToday = UTILS.formatYYYYMMDD(TODAY);
@@ -143,11 +161,12 @@ const outputIntegrationMessages = async (
     ).toLowerCase()}/${channel}.${formattedToday}.${UUID}.json`,
     entries,
   );
-  // console.log(JSON.stringify(entries, null, 2));
   console.error(
     `Campaing ${UUID} generated for ${entries.length} stores as ${channel}`,
   );
-  return entries;
+  return Promise.resolve(
+    entries.map((entry) => entry.map((item) => item.data)),
+  );
 };
 
 const sendCampaingsToIntegrations = async (
@@ -183,7 +202,6 @@ const splitcommunications = (
         const { cityId, term, asset, segment } = UTILS.campaignFromString(
           utm.campaignName,
         );
-        // console.log('=====');
         const products = communication.utmCallToActions.map((item) => {
           const {
             callToAction: { storeReferenceId, referencePromotionId },

@@ -48,7 +48,6 @@ export class ClevertapPushNotificationAI extends VERTEX_AI.VertexAIClient {
     //   return response as unknown as TypeCampaignVariables;
     // }
 
-    // console.log('==========');
     const inputJson = JSON.stringify(variables);
     const { parts, role } = this.userInstructions;
     const responseContent = await this.predictContent({

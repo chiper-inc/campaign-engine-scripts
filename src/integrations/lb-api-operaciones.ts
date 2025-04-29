@@ -8,6 +8,7 @@ import {
   IShortLinkResponseAndKey,
 } from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
+import { v4 as uuid } from 'uuid';
 
 export class LbApiOperacionesIntegration {
   private readonly url;
@@ -45,6 +46,7 @@ export class LbApiOperacionesIntegration {
   ): Promise<{ data?: IShortLinkResponse } | null> {
     const functionName = this.createOneShortLink.name;
 
+    payload.utm = { ...payload.utm, campaignContent: uuid() };
     if (retry >= this.maxRetries) {
       this.logger.error({
         message: `Max retries (${this.maxRetries}), reached for creating short link`,

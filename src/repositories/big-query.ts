@@ -63,7 +63,7 @@ export class BigQueryRepository {
 
   public selectStoreSuggestions(
     churnRanges: IFrequencyParameter[],
-    channels = [/* CHANNEL.WhatsApp, */ CHANNEL.PushNotification],
+    channels = [CHANNEL.WhatsApp, CHANNEL.PushNotification],
     storeStatus = [
       STORE_STATUS.Hibernating,
       STORE_STATUS.Resurrected,
@@ -93,11 +93,11 @@ export class BigQueryRepository {
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
-        AND QRY.communicationChannel = 'Push Notification'
+        -- AND QRY.communicationChannel = 'Push Notification'
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
       LIMIT 500
-      OFFSET 7250
+      OFFSET 5750
     `;
 
     this.logger.log({
