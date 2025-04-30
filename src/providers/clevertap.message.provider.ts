@@ -1,4 +1,4 @@
-import { IClevertapMessage, IUtm } from '../integrations/interfaces.ts';
+import { IClevertapEvent, IUtm } from '../integrations/interfaces.ts';
 import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
@@ -57,7 +57,7 @@ export class ClevertapMessageProvider extends MessageProvider {
     return this;
   }
 
-  public get integrationBody(): IMessageMetadata<IClevertapMessage> {
+  public get integrationBody(): IMessageMetadata<IClevertapEvent> {
     return {
       data: {
         to: {

@@ -1,7 +1,7 @@
 import { CloudTask } from './cloud-task.ts';
 
 import { Config } from '../config.ts';
-import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
+import { IClevertapCampaign, IClevertapEvent } from './interfaces.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
 import {
@@ -50,18 +50,19 @@ export class ClevertapIntegration {
     });
   }
 
-  public async sendOneMessage(
-    { message, inSeconds, timeoutSeconds }: IClevertapCampaign,
+  public async sendOneEvent(
+    event: IClevertapCampaign,
     retry = 0,
   ): Promise<unknown> {
-    const functionName = this.sendOneMessage.name;
+    const { message, inSeconds = 0, timeoutSeconds = 0 } = event;
+    const functionName = this.sendOneEvent.name;
 
     if (retry >= this.maxRetries) {
       this.logger.error({
         message: `Max retries (${this.maxRetries}), reached for sending Clevertap Campaign`,
         functionName,
         error: new Error('Max retries reached'),
-        data: { message, inSeconds, timeoutSeconds },
+        data: { event, inSeconds, timeoutSeconds },
       });
       return null;
     }
@@ -106,7 +107,7 @@ export class ClevertapIntegration {
           error,
           data: { request: { name, request, inSeconds, timeoutSeconds } },
         });
-        return this.sendOneMessage(
+        return this.sendOneEvent(
           { message, inSeconds, timeoutSeconds },
           retry + 1,
         );
@@ -114,24 +115,24 @@ export class ClevertapIntegration {
     // console.log(`Created task ${response.name}`);
   }
 
-  async sendAllMessages(
-    messages: MessageMetadataList<IClevertapMessage>,
+  async sendAllEvents(
+    events: MessageMetadataList<IClevertapEvent>,
   ): Promise<void> {
     const promises = [];
     let inSeconds = 0;
     let k = -1;
-    for (const message of messages) {
+    for (const event of events) {
       inSeconds += Math.floor(Math.pow(2, k)) * this.backoffSecondsStep;
       k++;
       promises.push(
-        this.sendOneMessage({ message: message, inSeconds: inSeconds }),
+        this.sendOneEvent({ message: event, inSeconds: inSeconds }),
       );
     }
     await Promise.all(promises);
   }
 
   async sendAllCampaigns(
-    campaings: MessageMetadataList<IClevertapMessage>[],
+    campaings: MessageMetadataList<IClevertapEvent>[],
   ): Promise<void> {
     const functionName = this.sendAllCampaigns.name;
 
@@ -155,8 +156,8 @@ export class ClevertapIntegration {
       return;
     }
     let numBatch = 0;
-    for (const messages of campaings) {
-      promises.push(this.sendAllMessages(messages));
+    for (const events of campaings) {
+      promises.push(this.sendAllEvents(events));
       if (promises.length >= this.batchSize) {
         await Promise.all(promises);
         this.logger.warn({
@@ -184,9 +185,10 @@ export class ClevertapIntegration {
   }
 
   private generateMetadata(
-    message: IMessageMetadata<IClevertapMessage>,
+    message: IMessageMetadata<IClevertapEvent>,
     response: unknown,
   ): object {
+    console.log(message);
     return message.metadata;
   }
 

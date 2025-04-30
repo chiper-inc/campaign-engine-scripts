@@ -3,8 +3,8 @@ import { ICallToActionLink, IUtmCallToAction } from './interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 import { MessageProvider } from './message.provider.ts';
 import {
-  IClevertapMessage,
-  IConnectlyEntry,
+  IClevertapEvent,
+  IConnectlyEvent,
 } from '../integrations/interfaces.ts';
 import { IMessageMetadata } from './message.metadata.ts';
 
@@ -36,8 +36,8 @@ export abstract class CampaignProvider {
   public abstract setMetadata(utmCallToActions: IUtmCallToAction[]): this;
 
   public get integrationBody(): (
-    | IMessageMetadata<IConnectlyEntry>
-    | IMessageMetadata<IClevertapMessage>
+    | IMessageMetadata<IConnectlyEvent>
+    | IMessageMetadata<IClevertapEvent>
   )[] {
     return this.messageValues.map((message) => message.integrationBody);
   }

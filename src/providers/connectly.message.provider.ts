@@ -1,5 +1,5 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IConnectlyEntry, IUtm } from '../integrations/interfaces.ts';
+import { IConnectlyEvent, IUtm } from '../integrations/interfaces.ts';
 import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/connectly-greetings.mock.ts';
 import * as UTILS from '../utils/index.ts';
@@ -47,7 +47,7 @@ export class ConnectlyMessageProvider extends MessageProvider {
   }
 
   public get integrationBody(): {
-    data: IConnectlyEntry;
+    data: IConnectlyEvent;
     metadata: MessageMetadata[];
   } {
     return {

@@ -1,6 +1,6 @@
 import {
-  IClevertapMessage,
-  IConnectlyEntry,
+  IClevertapEvent,
+  IConnectlyEvent,
   IUtm,
 } from '../integrations/interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
@@ -58,6 +58,6 @@ export abstract class MessageProvider {
   public abstract setPaths(vars: TypeCampaignVariables): this;
 
   public abstract get integrationBody():
-    | IMessageMetadata<IConnectlyEntry>
-    | IMessageMetadata<IClevertapMessage>;
+    | IMessageMetadata<IConnectlyEvent>
+    | IMessageMetadata<IClevertapEvent>;
 }

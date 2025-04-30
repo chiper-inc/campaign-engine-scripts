@@ -42,12 +42,12 @@ export interface IShortLinkResponseAndKey {
   value: IShortLinkRequest;
   storeId: number;
 }
-export interface IConnectlyEntry {
+export interface IConnectlyEvent {
   client: string;
   campaignName: string;
   variables: TypeCampaignVariables;
 }
-export interface IClevertapMessage {
+export interface IClevertapEvent {
   to: { identity: string[] };
   campaign_id: string;
   ExternalTrigger: TypeCampaignVariables;
@@ -74,7 +74,7 @@ export interface ICatalogueReference {
 }
 
 export interface IClevertapCampaign {
-  message: { data: IClevertapMessage; metadata: MessageMetadata[] };
+  message: { data: IClevertapEvent; metadata: MessageMetadata[] };
   inSeconds?: number;
   timeoutSeconds?: number;
 }

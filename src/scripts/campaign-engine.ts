@@ -9,8 +9,8 @@ import {
 } from '../parameters.ts';
 
 import {
-  IConnectlyEntry,
-  IClevertapMessage,
+  IConnectlyEvent,
+  IClevertapEvent,
 } from '../integrations/interfaces.ts';
 import { IStoreSuggestion } from '../repositories/interfaces.ts';
 import { ICommunication } from '../providers/interfaces.ts';
@@ -27,11 +27,7 @@ import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
 import { StoreRecommendationProvider } from '../providers/store-recomendation.provider.ts';
 import { CommunicationProvider } from '../providers/comunication.provider.ts';
 import { SlackProvider } from '../providers/slack.provider.ts';
-import {
-  IMessageMetadata,
-  MessageMetadata,
-  MessageMetadataList,
-} from '../providers/message.metadata.ts';
+import { MessageMetadataList } from '../providers/message.metadata.ts';
 
 // Process Gobal Variables
 
@@ -88,7 +84,7 @@ async function main({
   );
   // ]);
 
-  const [connectlyEntries, clevertapEntries] = splitcommunications(
+  const [connectlyEvents, clevertapEvents] = splitcommunications(
     communications,
     new Set(exceptionStoreIds.flat()),
   );
@@ -110,30 +106,30 @@ async function main({
 
   const slackProvider = new SlackProvider(TODAY);
 
-  const [connectlyMessages] = await Promise.all([
-    outputIntegrationMessages<IConnectlyEntry>(
+  const [connectlyCampaigns] = await Promise.all([
+    outputIntegrationMessages<IConnectlyEvent>(
       CHANNEL.WhatsApp,
-      connectlyEntries,
+      connectlyEvents,
     ),
     slackProvider.reportMessagesToSlack(
       CHANNEL.WhatsApp,
-      connectlyEntries,
+      connectlyEvents,
       storeMap,
     ),
   ]);
   const [clevertapCampaigns] = await Promise.all([
-    outputIntegrationMessages<IClevertapMessage>(
+    outputIntegrationMessages<IClevertapEvent>(
       CHANNEL.PushNotification,
-      clevertapEntries,
+      clevertapEvents,
     ),
     slackProvider.reportMessagesToSlack(
       CHANNEL.PushNotification,
-      clevertapEntries,
+      clevertapEvents,
       storeMap,
     ),
   ]);
   await sendCampaingsToIntegrations(
-    connectlyMessages,
+    connectlyCampaigns,
     clevertapCampaigns,
     sendToConnectly,
     sendToClevertap,
@@ -169,8 +165,8 @@ const outputIntegrationMessages = async <T>(
 };
 
 const sendCampaingsToIntegrations = async (
-  connectlyEntries: MessageMetadataList<IConnectlyEntry>[],
-  clevertapEntries: MessageMetadataList<IClevertapMessage>[],
+  connectlyEvents: MessageMetadataList<IConnectlyEvent>[],
+  clevertapEvents: MessageMetadataList<IClevertapEvent>[],
   sendToConnectly: boolean,
   sendToClevertap: boolean,
 ) => {
@@ -178,10 +174,10 @@ const sendCampaingsToIntegrations = async (
   const clevertapIntegration = new ClevertapIntegration();
   const promises: Promise<void>[] = [];
   if (sendToConnectly) {
-    promises.push(connectlyIntegration.sendAllEntries(connectlyEntries.flat()));
+    promises.push(connectlyIntegration.sendAllCampaigns(connectlyEvents));
   }
   if (sendToClevertap) {
-    promises.push(clevertapIntegration.sendAllCampaigns(clevertapEntries));
+    promises.push(clevertapIntegration.sendAllCampaigns(clevertapEvents));
   }
   await Promise.all(promises);
 };

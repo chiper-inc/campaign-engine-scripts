@@ -1,7 +1,7 @@
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 
-import { IConnectlyEntry } from './interfaces.ts';
+import { IConnectlyEvent } from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
 import {
   IMessageMetadata,
@@ -39,7 +39,7 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendOneEntry(entry: IMessageMetadata<IConnectlyEntry>): Promise<{
+  public async sendOneEvent(entry: IMessageMetadata<IConnectlyEvent>): Promise<{
     status: number;
     statusText: string;
     data?: unknown[];
@@ -62,10 +62,12 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendAllEntries(entries: MessageMetadataList<IConnectlyEntry>) {
-    const functionName = this.sendAllEntries.name;
+  public async sendAllEvents(
+    events: MessageMetadataList<IConnectlyEvent>,
+  ): Promise<void> {
+    const functionName = this.sendAllEvents.name;
 
-    const batches = this.splitIntoBatches(entries, this.batchSize);
+    const batches = this.splitIntoBatches(events, this.batchSize);
 
     let accepted = 0;
     let rejected = 0;
@@ -79,7 +81,7 @@ export class ConnectlyIntegration {
           const payload = {
             entries: [entry.data],
           };
-          return this.sendOneEntry(entry)
+          return this.sendOneEvent(entry)
             .then((response) => {
               statuses[response.status as unknown as string] =
                 (statuses[response.status as unknown as string] || 0) + 1;
@@ -144,23 +146,30 @@ export class ConnectlyIntegration {
     });
   }
 
+  public async sendAllCampaigns(
+    campaigns: MessageMetadataList<IConnectlyEvent>[],
+  ): Promise<void> {
+    return this.sendAllEvents(campaigns.flat());
+  }
+
   private splitIntoBatches(
-    list: MessageMetadataList<IConnectlyEntry>,
+    list: MessageMetadataList<IConnectlyEvent>,
     batchSize: number,
-  ): MessageMetadataList<IConnectlyEntry>[] {
+  ): MessageMetadataList<IConnectlyEvent>[] {
     return list.reduce((acc, _, i) => {
       if (i % batchSize === 0) {
         acc.push(list.slice(i, i + batchSize));
       }
       return acc;
-    }, [] as MessageMetadataList<IConnectlyEntry>[]);
+    }, [] as MessageMetadataList<IConnectlyEvent>[]);
   }
 
   private generateMetadata(
-    entry: IMessageMetadata<IConnectlyEntry>,
+    event: IMessageMetadata<IConnectlyEvent>,
     response: unknown,
   ): object {
-    return entry.metadata;
+    console.log(event);
+    return event.metadata;
   }
 
   private sleep(): Promise<void> {
