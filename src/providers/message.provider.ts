@@ -32,10 +32,6 @@ export abstract class MessageProvider {
     return this.utmValue as IUtm;
   }
 
-  // public set utm(utm: IUtm) {
-  //   this.utmValue = utm;
-  // }
-
   public get messageName(): string {
     return this.message;
   }

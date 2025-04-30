@@ -1,7 +1,6 @@
 import Joi from 'joi';
 import dotenv from 'dotenv';
 import * as CUSTOM_OFFER from './mocks/custom-offer.mock.ts';
-// import { env } from 'process';
 
 dotenv.config();
 

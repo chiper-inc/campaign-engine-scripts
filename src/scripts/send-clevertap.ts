@@ -27,12 +27,6 @@ const script = async (filename: string): Promise<void> => {
         ),
       })),
     ),
-
-    // =>
-    //   campaing.map((message) => ({
-    //     data: message.data,
-    //     metadata: new MessageMetadata(message.metadata),
-    //   })),
   );
 };
 

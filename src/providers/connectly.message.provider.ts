@@ -26,7 +26,6 @@ export class ConnectlyMessageProvider extends MessageProvider {
       this.utm.campaignName,
       campaignName,
     );
-    // this.utm.campaignName = `${this.utm.campaignName}_${campaignName.replace(/_/g, '-')}`;
   }
 
   public setVariables(vars: TypeCampaignVariables): this {
