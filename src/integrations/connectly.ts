@@ -168,8 +168,16 @@ export class ConnectlyIntegration {
     event: IMessageMetadata<IConnectlyEvent>,
     response: unknown,
   ): object {
-    console.log(event);
-    return event.metadata;
+    const { data, metadata } = event;
+
+    const arr = metadata.map((metadataItem, i) => {
+      return metadataItem.expand(
+        i,
+        (i) => `${data.variables[`sku_${(i ?? 0) + 1}`]}`,
+      );
+    });
+    console.error(JSON.stringify(arr, null, 2));
+    return arr;
   }
 
   private sleep(): Promise<void> {

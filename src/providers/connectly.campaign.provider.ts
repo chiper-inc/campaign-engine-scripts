@@ -4,6 +4,7 @@ import { CampaignProvider } from './campaign.provider.ts';
 import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
 import { OFFER_TYPE } from '../repositories/interfaces.ts';
+import { MessageMetadata } from './message.metadata.ts';
 
 export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
@@ -84,7 +85,9 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
   }
 
   public setMetadata(utmCallToActions: IUtmCallToAction[]): this {
-    this.messageValues[0].metadata = utmCallToActions;
+    this.messageValues[0].metadata = utmCallToActions.map(
+      (utmCallToAction) => new MessageMetadata(utmCallToAction),
+    );
     return this;
   }
 

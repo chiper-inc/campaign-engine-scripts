@@ -6,6 +6,7 @@ import { LoggingProvider } from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
 import {
   IMessageMetadata,
+  MessageMetadata,
   MessageMetadataList,
 } from '../providers/message.metadata.ts';
 
@@ -185,11 +186,31 @@ export class ClevertapIntegration {
   }
 
   private generateMetadata(
-    message: IMessageMetadata<IClevertapEvent>,
+    event: IMessageMetadata<IClevertapEvent>,
     response: unknown,
   ): object {
-    console.log(message);
-    return message.metadata;
+    console.log(event);
+
+    const { data, metadata } = event;
+
+    const arr = metadata.map((metadataItem, i) => {
+      return metadataItem.expand(i, () => `${data.ExternalTrigger.message}`);
+    });
+    // const arr = this.f2(metadata, () => `${data.ExternalTrigger.message}`);
+
+    // const metadataItem = metadata[0];
+
+    // const { callToAction } = metadataItem;
+    // const obj = {
+    //   ...metadataItem,
+    //   callToAction: {
+    //     ...callToAction,
+    //     actionType: MessageMetadata.actionType[callToAction.actionTypeId],
+    //   },
+    //   skus: func(metadataItem.skus, () => `${data.ExternalTrigger.message}`),
+    // };
+    console.error(JSON.stringify(arr, null, 2));
+    return arr;
   }
 
   private sleep(): Promise<void> {

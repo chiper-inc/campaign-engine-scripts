@@ -5,6 +5,7 @@ import { ClevertapMessageProvider } from './clevertap.message.provider.ts';
 import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { OFFER_TYPE } from '../repositories/interfaces.ts';
+import { MessageMetadata } from './message.metadata.ts';
 
 export class ClevertapCampaignProvider extends CampaignProvider {
   constructor(
@@ -50,7 +51,7 @@ export class ClevertapCampaignProvider extends CampaignProvider {
 
   public setMetadata(utmCallToActions: IUtmCallToAction[]): this {
     this.messageValues.forEach((message, index) => {
-      message.metadata = [utmCallToActions[index]];
+      message.metadata = [new MessageMetadata(utmCallToActions[index])];
     });
     return this;
   }
