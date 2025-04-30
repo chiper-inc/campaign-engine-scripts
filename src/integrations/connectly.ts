@@ -166,18 +166,31 @@ export class ConnectlyIntegration {
 
   private generateMetadata(
     event: IMessageMetadata<IConnectlyEvent>,
-    response: unknown,
+    response: { [k: string]: unknown },
   ): object {
     const { data, metadata } = event;
 
-    const arr = metadata.map((metadataItem, i) => {
+    const recommendations = metadata.map((metadataItem, i) => {
       return metadataItem.expand(
         i,
         (i) => `${data.variables[`sku_${(i ?? 0) + 1}`]}`,
       );
     });
-    console.log(response);
-    return arr;
+    const timestamp = new Date().toISOString();
+    const dataEvent = {
+      storeId: metadata[0]?.storeId || 0,
+      requestedAt: timestamp,
+      scheduledAt: timestamp,
+      connectly: {
+        externalId: data.client,
+        campaignId: response?.campaignId,
+        campaignName: response?.campignName,
+        campaignVersion: response?.campaignVersion,
+        sendoutId: response?.sendoutId,
+      },
+      recommendations,
+    };
+    return dataEvent;
   }
 
   private sleep(): Promise<void> {

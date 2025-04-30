@@ -97,8 +97,6 @@ export class ClevertapIntegration {
           message: 'event.messageRequest.clevertap',
           functionName,
           data: this.generateMetadata(message, {
-            name,
-            request,
             inSeconds,
             timeoutSeconds,
           }),
@@ -106,6 +104,14 @@ export class ClevertapIntegration {
         return response;
       })
       .catch((error) => {
+        this.logger.log({
+          message: 'event.messageRequest.clevertap',
+          functionName,
+          data: this.generateMetadata(message, {
+            inSeconds,
+            timeoutSeconds,
+          }),
+        });
         this.logger.error({
           message: `Error creating cloud task - Retry ${retry}`,
           functionName,
@@ -224,31 +230,35 @@ export class ClevertapIntegration {
 
   private generateMetadata(
     event: IMessageMetadata<IClevertapEvent>,
-    request: unknown,
+    request: { [key: string]: number },
   ): object {
-    console.log(event);
-
     const { data, metadata } = event;
 
-    const arr = metadata.map((metadataItem, i) => {
+    const recommendations = metadata.map((metadataItem, i) => {
       return metadataItem.expand(i, () => `${data.ExternalTrigger.message}`);
     });
-    // const arr = this.f2(metadata, () => `${data.ExternalTrigger.message}`);
 
-    // const metadataItem = metadata[0];
+    const timestamp = new Date();
+    const scheduledAt = new Date();
+    const timeoutedAt = new Date();
 
-    // const { callToAction } = metadataItem;
-    // const obj = {
-    //   ...metadataItem,
-    //   callToAction: {
-    //     ...callToAction,
-    //     actionType: MessageMetadata.actionType[callToAction.actionTypeId],
-    //   },
-    //   skus: func(metadataItem.skus, () => `${data.ExternalTrigger.message}`),
-    // };
-    console.log(arr);
-    console.error(JSON.stringify(arr, null, 2));
-    return arr;
+    scheduledAt.setTime(timestamp.getTime() + (request?.inSeconds ?? 0) * 1000);
+    timeoutedAt.setTime(
+      timestamp.getTime() + (request?.timeoutSeconds ?? 0) * 1000,
+    );
+
+    const dataEvent = {
+      storeId: metadata[0]?.storeId || 0,
+      requestedAt: timestamp.toISOString(),
+      scheduledAt: scheduledAt.toISOString(),
+      timeoutedAt: timeoutedAt.toISOString(),
+      clevertap: {
+        externalId: data.to.identity[0] || '',
+        campaignId: data.campaign_id,
+      },
+      recommendations,
+    };
+    return dataEvent;
   }
 
   private sleep(): Promise<void> {

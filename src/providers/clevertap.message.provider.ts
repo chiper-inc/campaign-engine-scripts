@@ -41,7 +41,6 @@ export class ClevertapMessageProvider extends MessageProvider {
     this.titleTemplate = MOCKS.titles[mainCampaign][iTitle];
     this.offerTemplate = MOCKS.offers[mainCampaign][iOffer];
     this.identity = `uuId-${store.storeId}-uuId`;
-    // console.log('UTM PN: ', JSON.stringify(this.utm));
   }
 
   public setVariables(vars: TypeCampaignVariables): this {

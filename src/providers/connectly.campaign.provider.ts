@@ -24,10 +24,6 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
   }
 
   public async setMessagesVariables(): Promise<this> {
-    // this.messageValues.forEach((message) => {
-    //   console.log(message);
-    // });
-
     const carouselContentGenerator =
       ConnectlyCarouselNotificationAI.getInstance();
     const carouselContent = (await carouselContentGenerator.generateContent(
@@ -76,10 +72,6 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
     this.messageValues.forEach((message) =>
       message.setPaths(this.variableValues),
     );
-
-    // this.messageValues.forEach((message) => {
-    //   console.log(message);
-    // });
 
     return this;
   }

@@ -42,9 +42,6 @@ export class ClevertapCampaignProvider extends CampaignProvider {
       this.variableValues[path] = shortLink;
       this.messageValues[i].setPaths({ path: this.variableValues[path] });
     });
-    // this.messageValues.forEach((message) => {
-    //   console.log(message);
-    // });
 
     return this;
   }

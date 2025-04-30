@@ -66,43 +66,15 @@ async function main({
     .generateEntries(storeMap)
     .slice(offset, offset + limit);
 
-  // console.log(JSON.stringify(communications, null, 2));
-  // const exceptionStoreIds = await Promise.all([
-  //   new DeeplinkProvider().generateLinks(communications, includeShortlinks),
-  //   new GenAiProvider().generateCampaignMessages(communications),
-  // ]);
-  // const exceptionStoreIds = await Promise.all([
-  const exceptionStoreIds: number[][] = [];
-  exceptionStoreIds.push(
-    await new DeeplinkProvider().generateLinks(
-      communications,
-      includeShortlinks,
-    ),
-  );
-  exceptionStoreIds.push(
-    await new GenAiProvider().generateCampaignMessages(communications),
-  );
-  // ]);
+  const exceptionStoreIds = await Promise.all([
+    new DeeplinkProvider().generateLinks(communications, includeShortlinks),
+    new GenAiProvider().generateCampaignMessages(communications),
+  ]);
 
   const [connectlyEvents, clevertapEvents] = splitcommunications(
     communications,
     new Set(exceptionStoreIds.flat()),
   );
-
-  // clevertapEntries.slice(0, 10).forEach((entry) => {
-  //   console.error({
-  //     var: entry.campaignService?.variables,
-  //     vars: entry.campaignService?.messages.map((m) => m.variables),
-  //   });
-  // });
-
-  // connectlyEntries.slice(0, 10).forEach((entry) => {
-  //   console.error({ entry });
-  //   console.error({
-  //     var: entry.campaignService?.variables,
-  //     vars: entry.campaignService?.messages.map((m) => m.variables),
-  //   });
-  // });
 
   const slackProvider = new SlackProvider(TODAY);
 

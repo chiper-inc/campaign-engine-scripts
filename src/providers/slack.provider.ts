@@ -37,8 +37,6 @@ export class SlackProvider {
           const { cityId, segment } = UTILS.campaignFromString(name);
           const city = CITY_NAME[cityId];
 
-          // console.error({ campaignService });
-
           let value;
           const skus = (
             storeMap.get(`${storeId}-${channel}`)?.skus || []

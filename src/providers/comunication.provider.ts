@@ -80,7 +80,6 @@ export class CommunicationProvider {
         utmCallToActions,
       });
     }
-    // console.error(JSON.stringify(entries, null, 2));
     return entries;
   }
 
