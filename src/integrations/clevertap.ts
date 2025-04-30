@@ -104,14 +104,6 @@ export class ClevertapIntegration {
         return response;
       })
       .catch((error) => {
-        this.logger.log({
-          message: 'event.messageRequest.clevertap',
-          functionName,
-          data: this.generateMetadata(message, {
-            inSeconds,
-            timeoutSeconds,
-          }),
-        });
         this.logger.error({
           message: `Error creating cloud task - Retry ${retry}`,
           functionName,
