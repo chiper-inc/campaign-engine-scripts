@@ -6,7 +6,6 @@ import { LoggingProvider } from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
 import {
   IMessageMetadata,
-  MessageMetadata,
   MessageMetadataList,
 } from '../providers/message.metadata.ts';
 
@@ -16,7 +15,7 @@ export class ClevertapIntegration {
   private readonly headers: { [key: string]: string };
   private readonly queueName: string;
   private readonly backoffSecondsStep: number;
-  private readonly batchSize: number = Config.clevertap.batchSize;
+  private readonly batchSize: number = Config.clevertap.batchSize * 8;
   private readonly waitingTime: number = 750;
   private readonly maxRetries: number = 3;
   private readonly backoffMilisecondsStep: number = 30000; // 30s
@@ -126,12 +125,19 @@ export class ClevertapIntegration {
   ): Promise<void> {
     const promises = [];
     let inSeconds = 0;
-    let k = -1;
+    // let k = -1;
+    // for (const message of messages) {
+    //   inSeconds += Math.floor(Math.pow(2, k++)) * this.backoffSecondsStep;
+    const minutesBetweenMessages = [0, 60, 120, 120, 120, 120];
+    const timeout = 45 * 60; // 45m
     for (const event of events) {
-      inSeconds += Math.floor(Math.pow(2, k)) * this.backoffSecondsStep;
-      k++;
+      inSeconds += (minutesBetweenMessages.shift() ?? 0) * 60; // * 60s
       promises.push(
-        this.sendOneEvent({ message: event, inSeconds: inSeconds }),
+        this.sendOneEvent({
+          message: event,
+          inSeconds: inSeconds,
+          timeoutSeconds: inSeconds + timeout,
+        }),
       );
     }
     await Promise.all(promises);
@@ -143,7 +149,11 @@ export class ClevertapIntegration {
     const functionName = this.sendAllCampaigns.name;
 
     const promises = [];
-    const totalBatches = Math.ceil(campaings.length / this.batchSize);
+    const totalMessages = campaings.reduce(
+      (acc, messages) => acc + messages.length,
+      0,
+    );
+    const totalBatches = Math.ceil(totalMessages / this.batchSize);
 
     this.logger.warn({
       message: `Start Sending Clevertap Campaigns`,
@@ -152,6 +162,8 @@ export class ClevertapIntegration {
         totalBatches,
         batchSize: this.batchSize,
         campaingsLength: campaings.length,
+        totalMessages,
+        averageMessagesPerCampaign: totalMessages / campaings.length,
       },
     });
     if (totalBatches === 0) {
@@ -162,31 +174,51 @@ export class ClevertapIntegration {
       return;
     }
     let numBatch = 0;
-    for (const events of campaings) {
-      promises.push(this.sendAllEvents(events));
-      if (promises.length >= this.batchSize) {
+    let i = 0;
+    let j = 0;
+    for (const messages of campaings) {
+      promises.push(this.sendAllEvents(messages));
+      i += messages.length;
+      j += messages.length;
+      if (i >= this.batchSize) {
         await Promise.all(promises);
         this.logger.warn({
-          message: `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`,
+          message: `batch ${++numBatch} of ${totalBatches} (Total Messages = ${j}) Clevertap Campaign sending. done`,
           functionName,
-          data: { batchSize: this.batchSize, numBatch, totalBatches },
+          data: {
+            batchSize: this.batchSize,
+            numBatch,
+            totalBatches,
+            totalMessages: j,
+          },
         });
         await this.sleep();
         promises.length = 0;
+        i = 0;
       }
     }
     if (promises.length > 0) {
       await Promise.all(promises);
       this.logger.warn({
-        message: `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`,
+        message: `batch ${++numBatch} of ${totalBatches} (Total Messages = ${j} Clevertap Campaign sending. done`,
         functionName,
-        data: { batchSize: this.batchSize, numBatch, totalBatches },
+        data: {
+          batchSize: this.batchSize,
+          numBatch,
+          totalBatches,
+          totalMessages: j,
+        },
       });
     }
     this.logger.warn({
       message: `End Sending Clevertap Campaigns`,
       functionName,
-      data: { batchSize: this.batchSize, numBatch, totalBatches },
+      data: {
+        batchSize: this.batchSize,
+        numBatch,
+        totalBatches,
+        totalMessages: j,
+      },
     });
   }
 
