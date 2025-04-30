@@ -97,7 +97,12 @@ export class ClevertapIntegration {
         this.logger.log({
           message: 'event.messageRequest.clevertap',
           functionName,
-          data: this.generateMetadata(message, response),
+          data: this.generateMetadata(message, {
+            name,
+            request,
+            inSeconds,
+            timeoutSeconds,
+          }),
         });
         return response;
       })
@@ -187,7 +192,7 @@ export class ClevertapIntegration {
 
   private generateMetadata(
     event: IMessageMetadata<IClevertapEvent>,
-    response: unknown,
+    request: unknown,
   ): object {
     console.log(event);
 
@@ -209,6 +214,7 @@ export class ClevertapIntegration {
     //   },
     //   skus: func(metadataItem.skus, () => `${data.ExternalTrigger.message}`),
     // };
+    console.log(arr);
     console.error(JSON.stringify(arr, null, 2));
     return arr;
   }

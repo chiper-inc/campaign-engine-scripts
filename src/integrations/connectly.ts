@@ -176,7 +176,7 @@ export class ConnectlyIntegration {
         (i) => `${data.variables[`sku_${(i ?? 0) + 1}`]}`,
       );
     });
-    console.error(JSON.stringify(arr, null, 2));
+    console.log(response);
     return arr;
   }
 
