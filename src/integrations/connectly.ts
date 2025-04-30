@@ -23,7 +23,8 @@ export class ConnectlyIntegration {
     };
     this.logger = new LoggingProvider({
       context: ConnectlyIntegration.name,
-      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+      levels:
+        LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'ConnectlyIntegration initialized',
@@ -78,7 +79,7 @@ export class ConnectlyIntegration {
       await Promise.all(
         batch.map(async (entry) => {
           const payload = {
-            entries: [entry],
+            entries: [entry.data],
           };
           return this.sendOneEntry(entry)
             .then((response) => {
@@ -99,6 +100,12 @@ export class ConnectlyIntegration {
               if (data[0].error) {
                 rejections.push({ request: payload, response: data });
                 rejected += 1;
+              } else {
+                this.logger.log({
+                  message: 'event.messageRequest.connectly',
+                  functionName,
+                  data: this.generateMetadata(entry, data[0]),
+                });
               }
             })
             .catch((error) => {
@@ -152,6 +159,13 @@ export class ConnectlyIntegration {
       },
       [] as { data: IConnectlyEntry; metadata: MessageMetadata[] }[][],
     );
+  }
+
+  private generateMetadata(
+    entry: { data: IConnectlyEntry; metadata: MessageMetadata[] },
+    response: unknown,
+  ): object {
+    return entry.metadata;
   }
 
   private sleep(): Promise<void> {

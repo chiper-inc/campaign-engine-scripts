@@ -32,7 +32,8 @@ export class ClevertapIntegration {
       : 15 /* 15s */;
     this.logger = new LoggingProvider({
       context: ClevertapIntegration.name,
-      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+      levels:
+        LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'ClevertapIntegration initialized',
@@ -80,13 +81,18 @@ export class ClevertapIntegration {
         timeoutSeconds,
       })
       .then((response) => {
+        // this.logger.log({
+        //   message: 'Cloud Task created successfully',
+        //   functionName,
+        //   data: {
+        //     request: { name, request, inSeconds, timeoutSeconds },
+        //     response,
+        //   },
+        // });
         this.logger.log({
-          message: 'Cloud Task created successfully',
+          message: 'event.messageRequest.clevertap',
           functionName,
-          data: {
-            request: { name, request, inSeconds, timeoutSeconds },
-            response,
-          },
+          data: this.generateMetadata(message, response),
         });
         return response;
       })
@@ -172,6 +178,13 @@ export class ClevertapIntegration {
       functionName,
       data: { batchSize: this.batchSize, numBatch, totalBatches },
     });
+  }
+
+  private generateMetadata(
+    message: { data: IClevertapMessage; metadata: MessageMetadata },
+    response: unknown,
+  ): object {
+    return message.metadata;
   }
 
   private sleep(): Promise<void> {
