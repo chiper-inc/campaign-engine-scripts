@@ -27,7 +27,11 @@ import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
 import { StoreRecommendationProvider } from '../providers/store-recomendation.provider.ts';
 import { CommunicationProvider } from '../providers/comunication.provider.ts';
 import { SlackProvider } from '../providers/slack.provider.ts';
-import { MessageMetadata } from '../providers/message.metadata.ts';
+import {
+  IMessageMetadata,
+  MessageMetadata,
+  MessageMetadataList,
+} from '../providers/message.metadata.ts';
 
 // Process Gobal Variables
 
@@ -107,7 +111,10 @@ async function main({
   const slackProvider = new SlackProvider(TODAY);
 
   const [connectlyMessages] = await Promise.all([
-    outputIntegrationMessages(CHANNEL.WhatsApp, connectlyEntries),
+    outputIntegrationMessages<IConnectlyEntry>(
+      CHANNEL.WhatsApp,
+      connectlyEntries,
+    ),
     slackProvider.reportMessagesToSlack(
       CHANNEL.WhatsApp,
       connectlyEntries,
@@ -115,7 +122,10 @@ async function main({
     ),
   ]);
   const [clevertapCampaigns] = await Promise.all([
-    outputIntegrationMessages(CHANNEL.PushNotification, clevertapEntries),
+    outputIntegrationMessages<IClevertapMessage>(
+      CHANNEL.PushNotification,
+      clevertapEntries,
+    ),
     slackProvider.reportMessagesToSlack(
       CHANNEL.PushNotification,
       clevertapEntries,
@@ -123,14 +133,8 @@ async function main({
     ),
   ]);
   await sendCampaingsToIntegrations(
-    connectlyMessages as {
-      data: IConnectlyEntry;
-      metadata: MessageMetadata[];
-    }[][],
-    clevertapCampaigns as {
-      data: IClevertapMessage;
-      metadata: MessageMetadata[];
-    }[][],
+    connectlyMessages,
+    clevertapCampaigns,
     sendToConnectly,
     sendToClevertap,
   );
@@ -141,24 +145,14 @@ async function main({
 
 //Helper Functions
 
-const outputIntegrationMessages = async (
+const outputIntegrationMessages = async <T>(
   channel: CHANNEL,
   communications: ICommunication[],
-): Promise<
-  {
-    data: IConnectlyEntry | IClevertapMessage;
-    metadata: MessageMetadata[];
-  }[][]
-> => {
-  const entries: {
-    data: IConnectlyEntry | IClevertapMessage;
-    metadata: MessageMetadata[];
-  }[][] = communications.map(
+): Promise<MessageMetadataList<T>[]> => {
+  const entries: MessageMetadataList<T>[] = communications.map(
     (communication) =>
-      communication.campaignService?.integrationBody as unknown as {
-        data: IConnectlyEntry | IClevertapMessage;
-        metadata: MessageMetadata[];
-      }[],
+      communication.campaignService
+        ?.integrationBody as unknown as MessageMetadataList<T>,
   );
 
   const formattedToday = UTILS.formatYYYYMMDD(TODAY);
@@ -175,11 +169,8 @@ const outputIntegrationMessages = async (
 };
 
 const sendCampaingsToIntegrations = async (
-  connectlyEntries: { data: IConnectlyEntry; metadata: MessageMetadata[] }[][],
-  clevertapEntries: {
-    data: IClevertapMessage;
-    metadata: MessageMetadata[];
-  }[][],
+  connectlyEntries: MessageMetadataList<IConnectlyEntry>[],
+  clevertapEntries: MessageMetadataList<IClevertapMessage>[],
   sendToConnectly: boolean,
   sendToClevertap: boolean,
 ) => {

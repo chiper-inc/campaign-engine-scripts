@@ -4,7 +4,7 @@ import {
   IUtm,
 } from '../integrations/interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
-import { MessageMetadata } from './message.metadata.ts';
+import { IMessageMetadata, MessageMetadata } from './message.metadata.ts';
 
 export abstract class MessageProvider {
   protected utmValue: Partial<IUtm>;
@@ -57,8 +57,7 @@ export abstract class MessageProvider {
 
   public abstract setPaths(vars: TypeCampaignVariables): this;
 
-  public abstract get integrationBody(): {
-    data: IConnectlyEntry | IClevertapMessage;
-    metadata: MessageMetadata[];
-  };
+  public abstract get integrationBody():
+    | IMessageMetadata<IConnectlyEntry>
+    | IMessageMetadata<IClevertapMessage>;
 }

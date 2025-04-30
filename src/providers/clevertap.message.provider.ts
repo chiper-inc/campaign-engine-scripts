@@ -3,7 +3,7 @@ import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import * as UTILS from '../utils/index.ts';
-import { MessageMetadata } from './message.metadata.ts';
+import { IMessageMetadata } from './message.metadata.ts';
 
 export class ClevertapMessageProvider extends MessageProvider {
   private static imageQueryParams = 'w=800&h=400&fit=fill&bg=white';
@@ -57,10 +57,7 @@ export class ClevertapMessageProvider extends MessageProvider {
     return this;
   }
 
-  public get integrationBody(): {
-    data: IClevertapMessage;
-    metadata: MessageMetadata[];
-  } {
+  public get integrationBody(): IMessageMetadata<IClevertapMessage> {
     return {
       data: {
         to: {

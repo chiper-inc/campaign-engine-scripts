@@ -3,7 +3,10 @@ import { Config } from '../config.ts';
 
 import { IConnectlyEntry } from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
-import { MessageMetadata } from '../providers/message.metadata.ts';
+import {
+  IMessageMetadata,
+  MessageMetadataList,
+} from '../providers/message.metadata.ts';
 
 export class ConnectlyIntegration {
   private readonly url: string;
@@ -36,10 +39,7 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendOneEntry(entry: {
-    data: IConnectlyEntry;
-    metadata: MessageMetadata[];
-  }): Promise<{
+  public async sendOneEntry(entry: IMessageMetadata<IConnectlyEntry>): Promise<{
     status: number;
     statusText: string;
     data?: unknown[];
@@ -62,9 +62,7 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendAllEntries(
-    entries: { data: IConnectlyEntry; metadata: MessageMetadata[] }[],
-  ) {
+  public async sendAllEntries(entries: MessageMetadataList<IConnectlyEntry>) {
     const functionName = this.sendAllEntries.name;
 
     const batches = this.splitIntoBatches(entries, this.batchSize);
@@ -147,22 +145,19 @@ export class ConnectlyIntegration {
   }
 
   private splitIntoBatches(
-    arr: { data: IConnectlyEntry; metadata: MessageMetadata[] }[],
+    list: MessageMetadataList<IConnectlyEntry>,
     batchSize: number,
-  ): { data: IConnectlyEntry; metadata: MessageMetadata[] }[][] {
-    return arr.reduce(
-      (acc, _, i) => {
-        if (i % batchSize === 0) {
-          acc.push(arr.slice(i, i + batchSize));
-        }
-        return acc;
-      },
-      [] as { data: IConnectlyEntry; metadata: MessageMetadata[] }[][],
-    );
+  ): MessageMetadataList<IConnectlyEntry>[] {
+    return list.reduce((acc, _, i) => {
+      if (i % batchSize === 0) {
+        acc.push(list.slice(i, i + batchSize));
+      }
+      return acc;
+    }, [] as MessageMetadataList<IConnectlyEntry>[]);
   }
 
   private generateMetadata(
-    entry: { data: IConnectlyEntry; metadata: MessageMetadata[] },
+    entry: IMessageMetadata<IConnectlyEntry>,
     response: unknown,
   ): object {
     return entry.metadata;

@@ -4,7 +4,10 @@ import { Config } from '../config.ts';
 import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
-import { MessageMetadata } from '../providers/message.metadata.ts';
+import {
+  IMessageMetadata,
+  MessageMetadataList,
+} from '../providers/message.metadata.ts';
 
 export class ClevertapIntegration {
   private readonly url: string;
@@ -112,7 +115,7 @@ export class ClevertapIntegration {
   }
 
   async sendAllMessages(
-    messages: { data: IClevertapMessage; metadata: MessageMetadata[] }[],
+    messages: MessageMetadataList<IClevertapMessage>,
   ): Promise<void> {
     const promises = [];
     let inSeconds = 0;
@@ -128,7 +131,7 @@ export class ClevertapIntegration {
   }
 
   async sendAllCampaigns(
-    campaings: { data: IClevertapMessage; metadata: MessageMetadata[] }[][],
+    campaings: MessageMetadataList<IClevertapMessage>[],
   ): Promise<void> {
     const functionName = this.sendAllCampaigns.name;
 
@@ -181,7 +184,7 @@ export class ClevertapIntegration {
   }
 
   private generateMetadata(
-    message: { data: IClevertapMessage; metadata: MessageMetadata },
+    message: IMessageMetadata<IClevertapMessage>,
     response: unknown,
   ): object {
     return message.metadata;

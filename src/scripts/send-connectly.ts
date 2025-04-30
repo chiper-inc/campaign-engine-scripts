@@ -2,13 +2,12 @@ import * as UTILS from '../utils/index.ts';
 import { IConnectlyEntry } from '../integrations/interfaces.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { Logger } from 'logging-chiper';
-import { MessageMetadata } from '../providers/message.metadata.ts';
+import { MessageMetadataList } from '../providers/message.metadata.ts';
 
 const script = async (filename: string): Promise<void> => {
-  const data = (await UTILS.readFileToJson(filename)) as {
-    data: IConnectlyEntry;
-    metadata: MessageMetadata[];
-  }[];
+  const data = (await UTILS.readFileToJson(
+    filename,
+  )) as MessageMetadataList<IConnectlyEntry>;
   const connectlyIntegration = new ConnectlyIntegration();
   await connectlyIntegration.sendAllEntries(data.flat());
 };
