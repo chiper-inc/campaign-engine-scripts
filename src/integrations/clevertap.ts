@@ -69,7 +69,7 @@ export class ClevertapIntegration {
       url: `${this.url}/1/send/externaltrigger.json`,
       method,
       headers: this.headers,
-      body: message,
+      body: message.data,
     };
     const cloudTask = new CloudTask(this.queueName);
     const name = `Clevertap-Campaign-${message.data.campaign_id}`;
@@ -81,14 +81,14 @@ export class ClevertapIntegration {
         timeoutSeconds,
       })
       .then((response) => {
-        // this.logger.log({
-        //   message: 'Cloud Task created successfully',
-        //   functionName,
-        //   data: {
-        //     request: { name, request, inSeconds, timeoutSeconds },
-        //     response,
-        //   },
-        // });
+        this.logger.log({
+          message: 'Cloud Task created successfully',
+          functionName,
+          data: {
+            request: { name, request, inSeconds, timeoutSeconds },
+            response,
+          },
+        });
         this.logger.log({
           message: 'event.messageRequest.clevertap',
           functionName,
