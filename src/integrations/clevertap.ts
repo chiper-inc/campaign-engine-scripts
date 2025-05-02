@@ -19,7 +19,9 @@ export class ClevertapIntegration {
   private readonly waitingTime: number = 750;
   private readonly maxRetries: number = 3;
   private readonly backoffMilisecondsStep: number = 30000; // 30s
-
+  private readonly today = new Date(
+    new Date().setHours(0, 0, 0, 0) as unknown as Date, // UTC-5
+  );
   private logger: LoggingProvider;
 
   constructor() {
@@ -48,6 +50,7 @@ export class ClevertapIntegration {
         backoffSecondsStep: this.backoffSecondsStep,
       },
     });
+    console.error({ today: this.today.toISOString() });
   }
 
   public async sendOneEvent(
@@ -77,28 +80,33 @@ export class ClevertapIntegration {
     };
     const cloudTask = new CloudTask(this.queueName);
     const name = `Clevertap-Campaign-${message.data.campaign_id}`;
+    const scheduledAt = new Date(this.today.getTime() + inSeconds * 1000);
+    const timeoutedAt = new Date(this.today.getTime() + timeoutSeconds * 1000);
+    const dataRequest = {
+      name,
+      request,
+      scheduledAt: scheduledAt.toISOString(),
+      timeoutedAt: timeoutedAt.toISOString(),
+    };
     return cloudTask
       .createOneTask({
         name,
         request,
-        inSeconds,
-        timeoutSeconds,
+        scheduledAt,
       })
       .then((response) => {
-        this.logger.log({
-          message: 'Cloud Task created successfully',
-          functionName,
-          data: {
-            request: { name, request, inSeconds, timeoutSeconds },
-            response,
-          },
+        console.error({
+          dataRequest,
+          inSeconds,
+          timeoutSeconds,
+          today: this.today.toISOString(),
         });
         this.logger.log({
           message: 'event.messageRequest.clevertap',
           functionName,
           data: this.generateMetadata(message, {
-            inSeconds,
-            timeoutSeconds,
+            scheduledAt,
+            timeoutedAt,
           }),
         });
         return response;
@@ -108,7 +116,7 @@ export class ClevertapIntegration {
           message: `Error creating cloud task - Retry ${retry}`,
           functionName,
           error,
-          data: { request: { name, request, inSeconds, timeoutSeconds } },
+          data: dataRequest,
         });
         return this.sendOneEvent(
           { message, inSeconds, timeoutSeconds },
@@ -126,7 +134,15 @@ export class ClevertapIntegration {
     // let k = -1;
     // for (const message of messages) {
     //   inSeconds += Math.floor(Math.pow(2, k++)) * this.backoffSecondsStep;
-    const minutesBetweenMessages = [0, 60, 120, 120, 120, 120];
+    const minutesBetweenMessages = [
+      // 9h COT
+      14.5 * 60,
+      60,
+      120,
+      120,
+      120,
+      120,
+    ];
     const timeout = 45 * 60; // 45m
     for (const event of events) {
       inSeconds += (minutesBetweenMessages.shift() ?? 0) * 60; // * 60s
@@ -222,7 +238,7 @@ export class ClevertapIntegration {
 
   private generateMetadata(
     event: IMessageMetadata<IClevertapEvent>,
-    request: { [key: string]: number },
+    request: { [key: string]: Date },
   ): object {
     const { data, metadata } = event;
 
@@ -231,13 +247,13 @@ export class ClevertapIntegration {
     });
 
     const timestamp = new Date();
-    const scheduledAt = new Date();
-    const timeoutedAt = new Date();
+    const scheduledAt = request?.scheduledAt ?? new Date();
+    const timeoutedAt = request?.timeoutedAt ?? new Date();
 
-    scheduledAt.setTime(timestamp.getTime() + (request?.inSeconds ?? 0) * 1000);
-    timeoutedAt.setTime(
-      timestamp.getTime() + (request?.timeoutSeconds ?? 0) * 1000,
-    );
+    // scheduledAt.setTime(timestamp.getTime() + (request?.inSeconds ?? 0) * 1000);
+    // timeoutedAt.setTime(
+    //   timestamp.getTime() + (request?.timeoutSeconds ?? 0) * 1000,
+    // );
 
     const dataEvent = {
       storeId: metadata[0]?.storeId || 0,
