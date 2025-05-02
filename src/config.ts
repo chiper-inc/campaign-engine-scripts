@@ -7,7 +7,7 @@ dotenv.config();
 // Define the Joi schema for validation
 const configSchema = Joi.object({
   environment: Joi.string()
-    .valid('development', 'production', 'test')
+    .valid('develop', 'production', 'staging')
     .required(),
   logging: Joi.object({
     levels: Joi.array()
@@ -72,7 +72,7 @@ const configSchema = Joi.object({
 // Define the configuration object
 
 export const Config = {
-  environment: process.env.ENVIRONMENT ?? 'development',
+  environment: process.env.ENVIRONMENT ?? 'develop',
   logging: {
     levels: process.env.LOGGING_LEVELS
       ? process.env.LOGGING_LEVELS.split(',').map((level) =>
