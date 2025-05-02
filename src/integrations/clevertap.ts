@@ -15,7 +15,7 @@ export class ClevertapIntegration {
   private readonly headers: { [key: string]: string };
   private readonly queueName: string;
   private readonly backoffSecondsStep: number;
-  private readonly batchSize: number = Config.clevertap.batchSize * 8;
+  private readonly batchSize: number = Config.clevertap.batchSize;
   private readonly waitingTime: number = 750;
   private readonly maxRetries: number = 3;
   private readonly backoffMilisecondsStep: number = 30000; // 30s
