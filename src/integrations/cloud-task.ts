@@ -2,10 +2,12 @@ import { v2 } from '@google-cloud/tasks';
 import { v4 as uuid } from 'uuid';
 import { google } from '@google-cloud/tasks/build/protos';
 import { Config } from '../config.ts';
+import { LoggingProvider } from '../providers/logging.provider.ts';
 
 export class CloudTask {
   private readonly parent;
   private readonly client: v2.CloudTasksClient;
+  private logger: LoggingProvider;
 
   constructor(queue?: string) {
     this.client = new v2.CloudTasksClient();
@@ -14,12 +16,15 @@ export class CloudTask {
       Config.google.location,
       queue ?? Config.google.cloudTask.queue,
     );
+    this.logger = new LoggingProvider({
+      context: CloudTask.name,
+    });
   }
 
   async createOneTask({
     request,
     name,
-    inSeconds,
+    scheduledAt,
   }: {
     name?: string;
     request: {
@@ -28,9 +33,10 @@ export class CloudTask {
       body: unknown;
       headers?: { [key: string]: string };
     };
-    inSeconds?: number;
-    timeoutSeconds?: number;
+    scheduledAt?: Date;
   }) {
+    const functionName = this.createOneTask.name;
+
     const task: google.cloud.tasks.v2.ITask = {
       httpRequest: {
         httpMethod: request.method,
@@ -40,17 +46,27 @@ export class CloudTask {
       },
       name: `${this.parent}/tasks/${name || CloudTask.name}-${uuid()}`,
     };
-    if (inSeconds) {
-      task.scheduleTime = {
-        seconds: Date.now() / 1000 + inSeconds,
-      };
+    if (scheduledAt) {
+      task.scheduleTime = { seconds: Math.floor(scheduledAt.getTime() / 1000) };
     }
 
-    const [response] = await this.client.createTask({
-      parent: this.parent,
-      task,
-    });
+    const [data] = await this.client
+      .createTask({
+        parent: this.parent,
+        task,
+      })
+      .then((response) => {
+        this.logger.log({
+          message: 'Cloud Task created successfully',
+          functionName,
+          data: {
+            request: { request, name, scheduledAt },
+            response,
+          },
+        });
+        return response;
+      });
 
-    return response;
+    return data;
   }
 }

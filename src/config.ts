@@ -1,14 +1,13 @@
 import Joi from 'joi';
 import dotenv from 'dotenv';
 import * as CUSTOM_OFFER from './mocks/custom-offer.mock.ts';
-// import { env } from 'process';
 
 dotenv.config();
 
 // Define the Joi schema for validation
 const configSchema = Joi.object({
   environment: Joi.string()
-    .valid('development', 'production', 'test')
+    .valid('develop', 'production', 'staging')
     .required(),
   logging: Joi.object({
     levels: Joi.array()
@@ -73,7 +72,7 @@ const configSchema = Joi.object({
 // Define the configuration object
 
 export const Config = {
-  environment: process.env.ENVIRONMENT ?? 'development',
+  environment: process.env.ENVIRONMENT ?? 'develop',
   logging: {
     levels: process.env.LOGGING_LEVELS
       ? process.env.LOGGING_LEVELS.split(',').map((level) =>
@@ -121,7 +120,7 @@ export const Config = {
     },
     vertexAI: {
       model: 'gemini-2.0-flash-001',
-      bacthSize: 64,
+      bacthSize: 32,
     },
     cloudStorage: {
       projectId: 'dataflow-chiper',
@@ -132,7 +131,7 @@ export const Config = {
     apiUrl: process.env.CLEVERTAP_API_URL ?? '',
     accountId: process.env.CLEVERTAP_API_ACCOUNT_ID ?? '',
     passcode: process.env.CLEVERTAP_API_PASSCODE ?? '',
-    batchSize: 16,
+    batchSize: 16 * 4, // 512,
   },
 };
 

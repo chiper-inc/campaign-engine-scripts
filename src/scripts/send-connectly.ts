@@ -1,12 +1,33 @@
 import * as UTILS from '../utils/index.ts';
-import { IConnectlyEntry } from '../integrations/interfaces.ts';
+import { IConnectlyEvent } from '../integrations/interfaces.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { Logger } from 'logging-chiper';
+import {
+  MessageMetadata,
+  MessageMetadataList,
+} from '../providers/message.metadata.ts';
 
 const script = async (filename: string): Promise<void> => {
-  const data = (await UTILS.readFileToJson(filename)) as IConnectlyEntry[];
+  const campaigns = (await UTILS.readFileToJson(
+    filename,
+  )) as MessageMetadataList<IConnectlyEvent>[];
   const connectlyIntegration = new ConnectlyIntegration();
-  await connectlyIntegration.sendAllEntries(data.flat());
+  await connectlyIntegration.sendAllCampaigns(
+    campaigns.map((campaign) =>
+      campaign.map((message) => ({
+        data: message.data,
+        metadata: message.metadata.map(
+          (md) =>
+            new MessageMetadata({
+              skus: md.skus,
+              storeId: md.storeId,
+              utm: md.utm,
+              callToAction: md.callToAction,
+            }),
+        ),
+      })),
+    ),
+  );
 };
 
 (async () => {

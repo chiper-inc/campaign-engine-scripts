@@ -1,13 +1,12 @@
-// import { CampaignProvider } from '../services/campaign.service.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
-// import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import {
   IShortLinkRequest,
   IShortLinkResponse,
   IShortLinkResponseAndKey,
 } from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
+import { v4 as uuid } from 'uuid';
 
 export class LbApiOperacionesIntegration {
   private readonly url;
@@ -45,6 +44,7 @@ export class LbApiOperacionesIntegration {
   ): Promise<{ data?: IShortLinkResponse } | null> {
     const functionName = this.createOneShortLink.name;
 
+    payload.utm = { ...payload.utm, campaignContent: uuid() };
     if (retry >= this.maxRetries) {
       this.logger.error({
         message: `Max retries (${this.maxRetries}), reached for creating short link`,
@@ -57,16 +57,6 @@ export class LbApiOperacionesIntegration {
     if (retry > 0) await this.sleep();
 
     const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action`;
-
-    // const url = `${Config.lbApiOperaciones.apiUrl}/operational/create-external-action${
-    //   (payload?.callToAction?.storeReferenceId || 1) % 101 === 0 ? '/sss' : ''
-    // }`;
-
-    // if (payload?.callToAction?.storeReferenceId) {
-    //   payload.callToAction.referenceId = StoreReferenceMap.get(
-    //     payload.callToAction.storeReferenceId,
-    //   )?.referenceId as number;
-    // }
 
     const request = {
       url,
