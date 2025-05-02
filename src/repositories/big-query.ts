@@ -96,7 +96,7 @@ export class BigQueryRepository {
         -- AND QRY.communicationChannel = 'Push Notification'
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 500
+      LIMIT 15000
       OFFSET 5750
     `;
 
