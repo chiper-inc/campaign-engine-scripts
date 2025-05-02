@@ -1,9 +1,10 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm, ICallToActionLink } from './interfaces.ts';
+import { IUtm, ICallToActionLink, IUtmCallToAction } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
 import { OFFER_TYPE } from '../repositories/interfaces.ts';
+import { MessageMetadata } from './message.metadata.ts';
 
 export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
@@ -15,7 +16,10 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
   ) {
     super(variables, lng);
     this.messageValues.push(
-      new ConnectlyMessageProvider(store, campaignName, utm),
+      new ConnectlyMessageProvider(store, campaignName, {
+        ...utm,
+        campaignContent: undefined,
+      }),
     );
   }
 
@@ -67,6 +71,14 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
 
     this.messageValues.forEach((message) =>
       message.setPaths(this.variableValues),
+    );
+
+    return this;
+  }
+
+  public setMetadata(utmCallToActions: IUtmCallToAction[]): this {
+    this.messageValues[0].metadata = utmCallToActions.map(
+      (utmCallToAction) => new MessageMetadata(utmCallToAction),
     );
     return this;
   }

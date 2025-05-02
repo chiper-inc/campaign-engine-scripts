@@ -63,8 +63,6 @@ export const addQueryParams = (url: string, query: string): string => {
 // File Utilities
 
 const filePath = (filename: string, dirname?: string): string => {
-  // const __filename = fileURLToPath(import.meta.url);
-  // const __dirname = path.dirname(__filename);
   dirname = dirname ?? os.tmpdir();
   return path.join(dirname, filename);
 };

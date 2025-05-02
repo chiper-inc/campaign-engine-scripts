@@ -1,9 +1,13 @@
 import { CloudTask } from './cloud-task.ts';
 
 import { Config } from '../config.ts';
-import { IClevertapCampaign, IClevertapMessage } from './interfaces.ts';
+import { IClevertapCampaign, IClevertapEvent } from './interfaces.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import * as UTILS from '../utils/index.ts';
+import {
+  IMessageMetadata,
+  MessageMetadataList,
+} from '../providers/message.metadata.ts';
 
 export class ClevertapIntegration {
   private readonly url: string;
@@ -11,7 +15,7 @@ export class ClevertapIntegration {
   private readonly headers: { [key: string]: string };
   private readonly queueName: string;
   private readonly backoffSecondsStep: number;
-  private readonly batchSize: number = Config.clevertap.batchSize;
+  private readonly batchSize: number = Config.clevertap.batchSize * 8;
   private readonly waitingTime: number = 750;
   private readonly maxRetries: number = 3;
   private readonly backoffMilisecondsStep: number = 30000; // 30s
@@ -31,7 +35,8 @@ export class ClevertapIntegration {
       : 15 /* 15s */;
     this.logger = new LoggingProvider({
       context: ClevertapIntegration.name,
-      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+      levels:
+        LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'ClevertapIntegration initialized',
@@ -45,18 +50,19 @@ export class ClevertapIntegration {
     });
   }
 
-  public async sendOneMessage(
-    { message, inSeconds, timeoutSeconds }: IClevertapCampaign,
+  public async sendOneEvent(
+    event: IClevertapCampaign,
     retry = 0,
   ): Promise<unknown> {
-    const functionName = this.sendOneMessage.name;
+    const { message, inSeconds = 0, timeoutSeconds = 0 } = event;
+    const functionName = this.sendOneEvent.name;
 
     if (retry >= this.maxRetries) {
       this.logger.error({
         message: `Max retries (${this.maxRetries}), reached for sending Clevertap Campaign`,
         functionName,
         error: new Error('Max retries reached'),
-        data: { message, inSeconds, timeoutSeconds },
+        data: { event, inSeconds, timeoutSeconds },
       });
       return null;
     }
@@ -67,10 +73,10 @@ export class ClevertapIntegration {
       url: `${this.url}/1/send/externaltrigger.json`,
       method,
       headers: this.headers,
-      body: message,
+      body: message.data,
     };
     const cloudTask = new CloudTask(this.queueName);
-    const name = `Clevertap-Campaign-${message.campaign_id}`;
+    const name = `Clevertap-Campaign-${message.data.campaign_id}`;
     return cloudTask
       .createOneTask({
         name,
@@ -87,6 +93,14 @@ export class ClevertapIntegration {
             response,
           },
         });
+        this.logger.log({
+          message: 'event.messageRequest.clevertap',
+          functionName,
+          data: this.generateMetadata(message, {
+            inSeconds,
+            timeoutSeconds,
+          }),
+        });
         return response;
       })
       .catch((error) => {
@@ -96,7 +110,7 @@ export class ClevertapIntegration {
           error,
           data: { request: { name, request, inSeconds, timeoutSeconds } },
         });
-        return this.sendOneMessage(
+        return this.sendOneEvent(
           { message, inSeconds, timeoutSeconds },
           retry + 1,
         );
@@ -104,25 +118,40 @@ export class ClevertapIntegration {
     // console.log(`Created task ${response.name}`);
   }
 
-  async sendAllMessages(messages: IClevertapMessage[]): Promise<void> {
+  async sendAllEvents(
+    events: MessageMetadataList<IClevertapEvent>,
+  ): Promise<void> {
     const promises = [];
     let inSeconds = 0;
-    let k = -1;
-    for (const message of messages) {
-      inSeconds += Math.floor(Math.pow(2, k)) * this.backoffSecondsStep;
-      k++;
+    // let k = -1;
+    // for (const message of messages) {
+    //   inSeconds += Math.floor(Math.pow(2, k++)) * this.backoffSecondsStep;
+    const minutesBetweenMessages = [0, 60, 120, 120, 120, 120];
+    const timeout = 45 * 60; // 45m
+    for (const event of events) {
+      inSeconds += (minutesBetweenMessages.shift() ?? 0) * 60; // * 60s
       promises.push(
-        this.sendOneMessage({ message: message, inSeconds: inSeconds }),
+        this.sendOneEvent({
+          message: event,
+          inSeconds: inSeconds,
+          timeoutSeconds: inSeconds + timeout,
+        }),
       );
     }
     await Promise.all(promises);
   }
 
-  async sendAllCampaigns(campaings: IClevertapMessage[][]): Promise<void> {
+  async sendAllCampaigns(
+    campaings: MessageMetadataList<IClevertapEvent>[],
+  ): Promise<void> {
     const functionName = this.sendAllCampaigns.name;
 
     const promises = [];
-    const totalBatches = Math.ceil(campaings.length / this.batchSize);
+    const totalMessages = campaings.reduce(
+      (acc, messages) => acc + messages.length,
+      0,
+    );
+    const totalBatches = Math.ceil(totalMessages / this.batchSize);
 
     this.logger.warn({
       message: `Start Sending Clevertap Campaigns`,
@@ -131,6 +160,8 @@ export class ClevertapIntegration {
         totalBatches,
         batchSize: this.batchSize,
         campaingsLength: campaings.length,
+        totalMessages,
+        averageMessagesPerCampaign: totalMessages / campaings.length,
       },
     });
     if (totalBatches === 0) {
@@ -141,32 +172,85 @@ export class ClevertapIntegration {
       return;
     }
     let numBatch = 0;
+    let i = 0;
+    let j = 0;
     for (const messages of campaings) {
-      promises.push(this.sendAllMessages(messages));
-      if (promises.length >= this.batchSize) {
+      promises.push(this.sendAllEvents(messages));
+      i += messages.length;
+      j += messages.length;
+      if (i >= this.batchSize) {
         await Promise.all(promises);
         this.logger.warn({
-          message: `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`,
+          message: `batch ${++numBatch} of ${totalBatches} (Total Messages = ${j}) Clevertap Campaign sending. done`,
           functionName,
-          data: { batchSize: this.batchSize, numBatch, totalBatches },
+          data: {
+            batchSize: this.batchSize,
+            numBatch,
+            totalBatches,
+            totalMessages: j,
+          },
         });
         await this.sleep();
         promises.length = 0;
+        i = 0;
       }
     }
     if (promises.length > 0) {
       await Promise.all(promises);
       this.logger.warn({
-        message: `batch ${++numBatch} of ${totalBatches} Clevertap Campaign sending. done`,
+        message: `batch ${++numBatch} of ${totalBatches} (Total Messages = ${j} Clevertap Campaign sending. done`,
         functionName,
-        data: { batchSize: this.batchSize, numBatch, totalBatches },
+        data: {
+          batchSize: this.batchSize,
+          numBatch,
+          totalBatches,
+          totalMessages: j,
+        },
       });
     }
     this.logger.warn({
       message: `End Sending Clevertap Campaigns`,
       functionName,
-      data: { batchSize: this.batchSize, numBatch, totalBatches },
+      data: {
+        batchSize: this.batchSize,
+        numBatch,
+        totalBatches,
+        totalMessages: j,
+      },
     });
+  }
+
+  private generateMetadata(
+    event: IMessageMetadata<IClevertapEvent>,
+    request: { [key: string]: number },
+  ): object {
+    const { data, metadata } = event;
+
+    const recommendations = metadata.map((metadataItem, i) => {
+      return metadataItem.expand(i, () => `${data.ExternalTrigger.message}`);
+    });
+
+    const timestamp = new Date();
+    const scheduledAt = new Date();
+    const timeoutedAt = new Date();
+
+    scheduledAt.setTime(timestamp.getTime() + (request?.inSeconds ?? 0) * 1000);
+    timeoutedAt.setTime(
+      timestamp.getTime() + (request?.timeoutSeconds ?? 0) * 1000,
+    );
+
+    const dataEvent = {
+      storeId: metadata[0]?.storeId || 0,
+      requestedAt: timestamp.toISOString(),
+      scheduledAt: scheduledAt.toISOString(),
+      timeoutedAt: timeoutedAt.toISOString(),
+      clevertap: {
+        externalId: data.to.identity[0] || '',
+        campaignId: data.campaign_id,
+      },
+      recommendations,
+    };
+    return dataEvent;
   }
 
   private sleep(): Promise<void> {

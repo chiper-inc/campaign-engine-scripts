@@ -1,14 +1,33 @@
 import * as UTILS from '../utils/index.ts';
-import { IClevertapMessage } from '../integrations/interfaces.ts';
+import { IClevertapEvent } from '../integrations/interfaces.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
 import { Logger } from 'logging-chiper';
+import {
+  MessageMetadataList,
+  MessageMetadata,
+} from '../providers/message.metadata.ts';
 
 const script = async (filename: string): Promise<void> => {
-  const campaings = (await UTILS.readFileToJson(
+  const campaigns = (await UTILS.readFileToJson(
     filename,
-  )) as IClevertapMessage[][];
+  )) as MessageMetadataList<IClevertapEvent>[];
   const clevertapIntegration = new ClevertapIntegration();
-  await clevertapIntegration.sendAllCampaigns(campaings);
+  await clevertapIntegration.sendAllCampaigns(
+    campaigns.map((campaign) =>
+      campaign.map((message) => ({
+        data: message.data,
+        metadata: message.metadata.map(
+          (md) =>
+            new MessageMetadata({
+              skus: md.skus,
+              storeId: md.storeId,
+              utm: md.utm,
+              callToAction: md.callToAction,
+            }),
+        ),
+      })),
+    ),
+  );
 };
 
 (async () => {

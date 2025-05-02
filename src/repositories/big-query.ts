@@ -19,7 +19,9 @@ export class BigQueryRepository {
       END,
       MG.lastValueSegmentation
     )`;
-  private readonly communicationChannel = `IF(MG.locationId IN (22, 3), MG.communicationChannel, 'Push Notification')`;
+  private readonly communicationChannel = `IF(MG.locationId IN (${
+    LOCATION.CMX
+  }), 'Push Notification', MG.communicationChannel)`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
@@ -61,7 +63,7 @@ export class BigQueryRepository {
 
   public selectStoreSuggestions(
     churnRanges: IFrequencyParameter[],
-    channels = [/* CHANNEL.WhatsApp, */ CHANNEL.PushNotification],
+    channels = [CHANNEL.WhatsApp, CHANNEL.PushNotification],
     storeStatus = [
       STORE_STATUS.Hibernating,
       STORE_STATUS.Resurrected,
@@ -91,10 +93,11 @@ export class BigQueryRepository {
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
+        -- AND QRY.communicationChannel = 'Push Notification'
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 2000
-      -- OFFSET 7250
+      LIMIT 500
+      OFFSET 5750
     `;
 
     this.logger.log({

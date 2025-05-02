@@ -10,12 +10,11 @@ import { MessageProvider } from './message.provider.ts';
 import { ICallToAction, IUtm } from './interfaces.ts';
 import { Config } from '../config.ts';
 import { OFFER_TYPE } from '../repositories/interfaces.ts';
-import { v4 as uuid } from 'uuid';
 import * as UTILS from '../utils/index.ts';
 
 export class CommunicationProvider {
   public generateEntries(
-    storesMap: Map<number, IStoreRecommendation>,
+    storesMap: Map<string, IStoreRecommendation>,
   ): ICommunication[] {
     const entries: ICommunication[] = [];
     for (const data of Array.from(storesMap.values())) {
@@ -65,6 +64,8 @@ export class CommunicationProvider {
 
       if (!utmCallToActions) continue;
 
+      campaignService.setMetadata(utmCallToActions);
+
       const utmCallToAction = this.generateCallToAction(
         coreUtm,
         store.storeId,
@@ -74,14 +75,11 @@ export class CommunicationProvider {
       entries.push({
         storeId: store.storeId,
         campaignService,
-        connectlyEntry: undefined,
-        clevertapEntry: undefined,
         utm: coreUtm,
         utmCallToAction,
         utmCallToActions,
       });
     }
-    // console.error(JSON.stringify(entries, null, 2));
     return entries;
   }
 
@@ -150,7 +148,7 @@ export class CommunicationProvider {
   }
 
   private generateCallToActionPaths(
-    messageServices: MessageProvider[],
+    messages: MessageProvider[],
     paths: string[],
     storeId: number,
     offers: IOffer[],
@@ -161,23 +159,27 @@ export class CommunicationProvider {
       if (!path) return null;
       let callToAction: Partial<ICallToAction> = {};
       let utm: IUtm | undefined = undefined;
+      let skus: TypeSku[] = [];
       if (index && index !== 'dsct') {
         if (isNaN(Number(index))) {
           // path_n
           callToAction = this.generateCallToActionToOfferList(offers);
-          utm = messageServices[0]?.utm;
+          skus = offers.map((offer) => offer.sku);
+          utm = messages[0]?.utm;
         } else {
           const i = Number(index) - 1;
           callToAction = this.generateCallToActionToOfferDetail(offers[i]);
-          utm = messageServices[i]?.utm ?? messageServices[0]?.utm;
+          skus = [offers[i].sku];
+          utm = messages[i]?.utm ?? messages[0]?.utm;
         }
       } else {
         callToAction = this.generateCallToActionToDiscountList();
-        utm = messageServices[0]?.utm;
+        utm = messages[0]?.utm;
       }
       pathObj.push({
         storeId,
-        utm: { ...utm, campaignContent: uuid() },
+        skus,
+        utm: { ...utm },
         callToAction,
       });
     }
@@ -191,20 +193,24 @@ export class CommunicationProvider {
     offers: IOffer[],
   ): IUtmCallToAction {
     let callToAction: Partial<ICallToAction> = {};
+    let skus: TypeSku[] = [];
     if (offers.length === 1) {
       callToAction = this.generateCallToActionToOfferDetail(offers[0]);
+      skus = [offers[0].sku];
     } else if (offers.length > 1) {
       // 2 or more skus then C2A_OFFER_LIST
 
       callToAction = this.generateCallToActionToOfferList(offers);
+      skus = offers.map((offer) => offer.sku);
     } else {
       // NO Sku included
       callToAction = this.generateCallToActionToDiscountList();
     }
     return {
       callToAction,
-      storeId,
       utm,
+      storeId,
+      skus,
     };
   }
 
@@ -281,6 +287,7 @@ export class CommunicationProvider {
     }
 
     const offer = {
+      sku,
       type: sku.skuType,
       storeReferenceId:
         sku.storeReferenceId === null ? undefined : sku.storeReferenceId,

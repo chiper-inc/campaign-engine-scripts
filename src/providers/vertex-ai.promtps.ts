@@ -38,9 +38,6 @@ export const userInstructionsConnectlyCarousel: Content = {
       comercialización por parte del comerciante, debe estar precedido por un emoji relacionado al 'producto', y 
       la información del 'descuento' debe ir entre \`\`\`*\`\`\` (Bolded in markdown).
     `),
-    // partFromText(`
-    //   Se debe generar 1 'titulo' por cada 2 'productos' en la 'PushNotification'.
-    // `),
     partFromText(`
       Generar la respuesta en formato JSON con la siguiente propiedad:
       a) \`\`\`products\`\`\` (array de strings con los mensajes de cada 'producto')
@@ -73,9 +70,6 @@ export const userInstructionsClevertapPushNotification: Content = {
       que invitan al comerciante a aprovechar la oferta, y debe estar acompañado por un emoji relacionado al título. 
       El nombre del comerciante puede ser usado eventualmente en el título.
     `),
-    // partFromText(`
-    //   Se debe generar 1 'titulo' por cada 2 'productos' en la 'PushNotification'.
-    // `),
     partFromText(`
       Generar la respuesta en formato JSON con las siguientes propiedades:
       a) \`\`\`titles\`\`\` (array de strings con los 'títulos')
