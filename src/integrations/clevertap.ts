@@ -94,12 +94,6 @@ export class ClevertapIntegration {
         scheduledAt,
       })
       .then((response) => {
-        console.error({
-          dataRequest,
-          inSeconds,
-          timeoutSeconds,
-          today: this.today.toISOString(),
-        });
         this.logger.log({
           message: 'event.messageRequest.clevertap',
           functionName,
