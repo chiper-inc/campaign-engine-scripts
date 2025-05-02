@@ -158,9 +158,9 @@ const splitcommunications = (
   communications: ICommunication[],
   exceptionStoreIds: Set<number>,
 ) => {
-  console.error(
-    'date,medium,cityId,segement,storeId,recommendation1,recommendation2,recommendation3,recomendation4,recomendation5',
-  );
+  // console.error(
+  //   'date,medium,cityId,segement,storeId,recommendation1,recommendation2,recommendation3,recomendation4,recomendation5',
+  // );
   return communications
     .filter((communication) => !exceptionStoreIds.has(communication.storeId))
     .reduce(
@@ -177,9 +177,9 @@ const splitcommunications = (
             ? String(storeReferenceId)
             : `C-${referencePromotionId}`;
         });
-        console.error(
-          `${term},${asset},${cityId},${segment},${storeId},${products.join(',')}`,
-        );
+        // console.error(
+        //   `${term},${asset},${cityId},${segment},${storeId},${products.join(',')}`,
+        // );
         if (
           communication.campaignService instanceof ConnectlyCampaignProvider
         ) {
