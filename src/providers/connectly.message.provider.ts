@@ -1,16 +1,17 @@
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
-import { IUtm } from '../integrations/interfaces.ts';
+import { IConnectlyEvent, IUtm } from '../integrations/interfaces.ts';
 import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/connectly-greetings.mock.ts';
 import * as UTILS from '../utils/index.ts';
 import { STORE_STATUS } from '../enums.ts';
+import { MessageMetadata } from './message.metadata.ts';
 
 export class ConnectlyMessageProvider extends MessageProvider {
   private static imageQueryParams = 'w=800&h=400&fit=fill&bg=white';
 
   private readonly client: string;
   private readonly greetingTemplate: string;
-  constructor(store: TypeStore, campaignName: string, utm: IUtm) {
+  constructor(store: TypeStore, campaignName: string, utm: Partial<IUtm>) {
     const [, messageClass, messageNumber] = campaignName.split('_');
     const campaignId = campaignName.replace(/_/g, ' ').toLowerCase();
     const greetings =
@@ -25,7 +26,6 @@ export class ConnectlyMessageProvider extends MessageProvider {
       this.utm.campaignName,
       campaignName,
     );
-    // this.utm.campaignName = `${this.utm.campaignName}_${campaignName.replace(/_/g, '-')}`;
   }
 
   public setVariables(vars: TypeCampaignVariables): this {
@@ -45,11 +45,17 @@ export class ConnectlyMessageProvider extends MessageProvider {
     return this;
   }
 
-  public get integrationBody(): unknown {
+  public get integrationBody(): {
+    data: IConnectlyEvent;
+    metadata: MessageMetadata[];
+  } {
     return {
-      client: this.client,
-      campaignName: this.campaignId,
-      variables: this.variablesValues,
+      data: {
+        client: this.client,
+        campaignName: this.campaignId,
+        variables: this.variablesValues,
+      },
+      metadata: this.metadataValues,
     };
   }
 

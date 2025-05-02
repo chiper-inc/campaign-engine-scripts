@@ -43,8 +43,6 @@ export class ConnectlyCarouselNotificationAI extends VertexAIClient {
 
     if (!variables || !variables.name) return null;
 
-    // if (variables.path_5) throw new Error('Path_5 is not allowed');
-
     const inputJson = JSON.stringify(variables);
     const { parts, role } = this.userInstructions;
     const responseContent = await this.predictContent({

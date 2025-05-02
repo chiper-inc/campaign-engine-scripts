@@ -1,8 +1,4 @@
 import { ICallToAction, IUtm } from '../providers/interfaces.ts';
-import {
-  IClevertapMessage,
-  IConnectlyEntry,
-} from '../integrations/interfaces.ts';
 import { CampaignProvider } from '../providers/campaign.provider.ts';
 import {
   TypeCampaignEntry,
@@ -18,11 +14,10 @@ export interface IUtmCallToAction {
   callToAction: Partial<ICallToAction>;
   utm: IUtm;
   storeId: number;
+  skus: TypeSku[];
 }
 export interface ICommunication {
   storeId: number;
-  connectlyEntry: IConnectlyEntry | undefined;
-  clevertapEntry: IClevertapMessage | undefined;
   campaignService?: CampaignProvider;
   utm: IUtm;
   utmCallToAction: IUtmCallToAction;
@@ -40,6 +35,7 @@ export interface IStoreRecommendation {
 }
 
 export interface IOffer {
+  sku: TypeSku;
   type: OFFER_TYPE;
   storeReferenceId?: number;
   referencePromotionId?: number;

@@ -1,8 +1,12 @@
 import { LoggingProvider } from '../providers/logging.provider.ts';
 import { Config } from '../config.ts';
 
-import { IConnectlyEntry } from './interfaces.ts';
+import { IConnectlyEvent } from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
+import {
+  IMessageMetadata,
+  MessageMetadataList,
+} from '../providers/message.metadata.ts';
 
 export class ConnectlyIntegration {
   private readonly url: string;
@@ -22,7 +26,8 @@ export class ConnectlyIntegration {
     };
     this.logger = new LoggingProvider({
       context: ConnectlyIntegration.name,
-      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+      levels:
+        LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'ConnectlyIntegration initialized',
@@ -34,13 +39,13 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendOneEntries(entry: IConnectlyEntry): Promise<{
+  public async sendOneEvent(entry: IMessageMetadata<IConnectlyEvent>): Promise<{
     status: number;
     statusText: string;
     data?: unknown[];
   }> {
     const payload = {
-      entries: [entry],
+      entries: [entry.data],
     };
     return fetch(this.url, {
       method: 'POST',
@@ -57,10 +62,12 @@ export class ConnectlyIntegration {
     });
   }
 
-  public async sendAllEntries(data: IConnectlyEntry[]) {
-    const functionName = this.sendAllEntries.name;
+  public async sendAllEvents(
+    events: MessageMetadataList<IConnectlyEvent>,
+  ): Promise<void> {
+    const functionName = this.sendAllEvents.name;
 
-    const batches = this.splitIntoBatches(data, this.batchSize);
+    const batches = this.splitIntoBatches(events, this.batchSize);
 
     let accepted = 0;
     let rejected = 0;
@@ -72,9 +79,9 @@ export class ConnectlyIntegration {
       await Promise.all(
         batch.map(async (entry) => {
           const payload = {
-            entries: [entry],
+            entries: [entry.data],
           };
-          return this.sendOneEntries(entry)
+          return this.sendOneEvent(entry)
             .then((response) => {
               statuses[response.status as unknown as string] =
                 (statuses[response.status as unknown as string] || 0) + 1;
@@ -93,6 +100,12 @@ export class ConnectlyIntegration {
               if (data[0].error) {
                 rejections.push({ request: payload, response: data });
                 rejected += 1;
+              } else {
+                this.logger.log({
+                  message: 'event.messageRequest.connectly',
+                  functionName,
+                  data: this.generateMetadata(entry, data[0]),
+                });
               }
             })
             .catch((error) => {
@@ -133,16 +146,51 @@ export class ConnectlyIntegration {
     });
   }
 
+  public async sendAllCampaigns(
+    campaigns: MessageMetadataList<IConnectlyEvent>[],
+  ): Promise<void> {
+    return this.sendAllEvents(campaigns.flat());
+  }
+
   private splitIntoBatches(
-    arr: IConnectlyEntry[],
+    list: MessageMetadataList<IConnectlyEvent>,
     batchSize: number,
-  ): IConnectlyEntry[][] {
-    return arr.reduce((acc, _, i) => {
+  ): MessageMetadataList<IConnectlyEvent>[] {
+    return list.reduce((acc, _, i) => {
       if (i % batchSize === 0) {
-        acc.push(arr.slice(i, i + batchSize));
+        acc.push(list.slice(i, i + batchSize));
       }
       return acc;
-    }, [] as IConnectlyEntry[][]);
+    }, [] as MessageMetadataList<IConnectlyEvent>[]);
+  }
+
+  private generateMetadata(
+    event: IMessageMetadata<IConnectlyEvent>,
+    response: { [k: string]: unknown },
+  ): object {
+    const { data, metadata } = event;
+
+    const recommendations = metadata.map((metadataItem, i) => {
+      return metadataItem.expand(
+        i,
+        (i) => `${data.variables[`sku_${(i ?? 0) + 1}`]}`,
+      );
+    });
+    const timestamp = new Date().toISOString();
+    const dataEvent = {
+      storeId: metadata[0]?.storeId || 0,
+      requestedAt: timestamp,
+      scheduledAt: timestamp,
+      connectly: {
+        externalId: data.client,
+        campaignId: response?.campaignId,
+        campaignName: response?.campignName,
+        campaignVersion: response?.campaignVersion,
+        sendoutId: response?.sendoutId,
+      },
+      recommendations,
+    };
+    return dataEvent;
   }
 
   private sleep(): Promise<void> {

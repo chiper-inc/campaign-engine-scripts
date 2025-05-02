@@ -1,7 +1,12 @@
 import * as UTILS from '../utils/index.ts';
-import { ICallToActionLink } from './interfaces.ts';
+import { ICallToActionLink, IUtmCallToAction } from './interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 import { MessageProvider } from './message.provider.ts';
+import {
+  IClevertapEvent,
+  IConnectlyEvent,
+} from '../integrations/interfaces.ts';
+import { IMessageMetadata } from './message.metadata.ts';
 
 export abstract class CampaignProvider {
   protected readonly lng: string;
@@ -28,7 +33,12 @@ export abstract class CampaignProvider {
 
   public abstract getMessageName(): string;
 
-  public get integrationBody(): unknown[] {
+  public abstract setMetadata(utmCallToActions: IUtmCallToAction[]): this;
+
+  public get integrationBody(): (
+    | IMessageMetadata<IConnectlyEvent>
+    | IMessageMetadata<IClevertapEvent>
+  )[] {
     return this.messageValues.map((message) => message.integrationBody);
   }
 

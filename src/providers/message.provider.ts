@@ -1,17 +1,23 @@
-import { IUtm } from '../integrations/interfaces.ts';
+import {
+  IClevertapEvent,
+  IConnectlyEvent,
+  IUtm,
+} from '../integrations/interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
+import { IMessageMetadata, MessageMetadata } from './message.metadata.ts';
 
 export abstract class MessageProvider {
-  protected utmValue: IUtm;
+  protected utmValue: Partial<IUtm>;
   protected readonly variablesValues: TypeCampaignVariables;
   protected readonly lng: string;
   protected readonly message: string;
   protected readonly campaignId: string;
+  protected readonly metadataValues: MessageMetadata[];
 
   protected constructor(
     campaignId: string,
     messageName: string,
-    utm: IUtm,
+    utm: Partial<IUtm>,
     lng = 'es',
   ) {
     this.lng = lng;
@@ -19,14 +25,11 @@ export abstract class MessageProvider {
     this.variablesValues = {};
     this.campaignId = campaignId;
     this.message = messageName;
+    this.metadataValues = [];
   }
 
   public get utm(): IUtm {
-    return this.utmValue;
-  }
-
-  public set utm(utm: IUtm) {
-    this.utmValue = utm;
+    return this.utmValue as IUtm;
   }
 
   public get messageName(): string {
@@ -37,9 +40,20 @@ export abstract class MessageProvider {
     return this.variablesValues;
   }
 
+  public get metadata(): MessageMetadata[] {
+    return this.metadataValues;
+  }
+
+  public set metadata(messageMetadata: MessageMetadata[]) {
+    this.metadataValues.length = 0;
+    this.metadataValues.push(...messageMetadata);
+  }
+
   public abstract setVariables(vars: TypeCampaignVariables): this;
 
   public abstract setPaths(vars: TypeCampaignVariables): this;
 
-  public abstract get integrationBody(): unknown;
+  public abstract get integrationBody():
+    | IMessageMetadata<IConnectlyEvent>
+    | IMessageMetadata<IClevertapEvent>;
 }

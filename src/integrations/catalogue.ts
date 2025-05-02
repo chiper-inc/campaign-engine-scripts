@@ -188,15 +188,3 @@ export class CatalogueIntegration {
     return `${url}`.replace(this.oldImageUrl, this.newImageUrl);
   }
 }
-
-// const x = new CatalogueIntegration();
-// x.getReferencePricesFromCatalogue({
-//   storeReferenceIds: [446929, 447237, 309533, 426342, 185344],
-//   warehouseIds: [175],
-//   locationId: LOCATION.BOG,
-//   storeId: 150011,
-// })
-//   .then((res) => {
-//     console.log(JSON.stringify(res.data, null, 2));
-//   })
-//   .catch(console.error);

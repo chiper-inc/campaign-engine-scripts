@@ -53,14 +53,21 @@ export class DeeplinkProvider {
 
     communications.forEach((communication) => {
       const { utmCallToActions, utmCallToAction, storeId } = communication;
-      communication.shortLinks = utmCallToActions.map((utmCallToAction) =>
-        this.func(storeSet, shortLinkMap, { utmCallToAction, storeId }),
-      );
+      communication.shortLinks = utmCallToActions.map((utmCallToAction) => {
+        const shortLink = this.shortLinkLookup(storeSet, shortLinkMap, {
+          utmCallToAction,
+          storeId,
+        });
+        utmCallToAction.utm.campaignContent = shortLink?.campaignContent;
+        return shortLink;
+      });
 
-      communication.shortLink = this.func(storeSet, shortLinkMap, {
+      communication.shortLink = this.shortLinkLookup(storeSet, shortLinkMap, {
         utmCallToAction,
         storeId,
       });
+      utmCallToAction.utm.campaignContent = communication.shortLink
+        ?.campaignContent as string;
     });
     return Array.from(storeSet);
   }
@@ -115,7 +122,7 @@ export class DeeplinkProvider {
     }, new Map());
   }
 
-  private func = (
+  private shortLinkLookup = (
     storeSet: Set<number>,
     shortLinkMap: Map<string, ICallToActionLink>,
     {
@@ -123,7 +130,8 @@ export class DeeplinkProvider {
       storeId,
     }: { utmCallToAction: IUtmCallToAction; storeId: number },
   ) => {
-    const functionName = this.func.name;
+    const functionName = this.shortLinkLookup.name;
+
     const key = this.getUtmAndCallToActionKey(utmCallToAction);
     const shortLink = shortLinkMap.get(key);
     if (this.isEmptyLink(shortLink)) {

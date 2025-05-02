@@ -156,7 +156,6 @@ export class SlackIntegration {
       qtyCity += item.qty;
     }
     if (fields.length) {
-      // console.log(composeMessage(prevCity, fields, qtyCity));
       await this.publishMessage(composeMessage(prevCity, fields, qtyCity));
     }
   }
@@ -197,7 +196,6 @@ export class SlackIntegration {
       fields.push(blockMessageField(item.messageName, item.qty));
       qtyMessage += item.qty;
     }
-    // console.log(composeMessage(fields, qtyMessage));
     await this.publishMessage(composeMessage(fields, qtyMessage));
   }
 

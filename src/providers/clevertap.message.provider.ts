@@ -1,8 +1,9 @@
-import { IUtm } from '../integrations/interfaces.ts';
+import { IClevertapEvent, IUtm } from '../integrations/interfaces.ts';
 import { MessageProvider } from './message.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import * as UTILS from '../utils/index.ts';
+import { IMessageMetadata } from './message.metadata.ts';
 
 export class ClevertapMessageProvider extends MessageProvider {
   private static imageQueryParams = 'w=800&h=400&fit=fill&bg=white';
@@ -11,9 +12,10 @@ export class ClevertapMessageProvider extends MessageProvider {
   private readonly offerTemplate: string;
   private readonly identity: string;
 
-  constructor(store: TypeStore, _: string, utm: IUtm) {
-    const { segment: campaignName } =
-      UTILS.campaignFromString(utm.campaignName) ?? '';
+  constructor(store: TypeStore, _: string, utm: Partial<IUtm>) {
+    const { segment: campaignName } = UTILS.campaignFromString(
+      utm.campaignName ?? '',
+    );
     // const campaignName = utm.campaignName.split('_').slice(-1)[0] ?? '';
     const mainCampaign = `API_${campaignName.split('.')[0] ?? 'XYZ'}`;
 
@@ -39,7 +41,6 @@ export class ClevertapMessageProvider extends MessageProvider {
     this.titleTemplate = MOCKS.titles[mainCampaign][iTitle];
     this.offerTemplate = MOCKS.offers[mainCampaign][iOffer];
     this.identity = `uuId-${store.storeId}-uuId`;
-    // console.log('UTM PN: ', JSON.stringify(this.utm));
   }
 
   public setVariables(vars: TypeCampaignVariables): this {
@@ -55,13 +56,16 @@ export class ClevertapMessageProvider extends MessageProvider {
     return this;
   }
 
-  public get integrationBody(): unknown {
+  public get integrationBody(): IMessageMetadata<IClevertapEvent> {
     return {
-      to: {
-        identity: [this.identity],
+      data: {
+        to: {
+          identity: [this.identity],
+        },
+        campaign_id: this.campaignId,
+        ExternalTrigger: this.variablesValues,
       },
-      campaign_id: this.campaignId,
-      ExternalTrigger: this.variablesValues,
+      metadata: this.metadataValues,
     };
   }
 

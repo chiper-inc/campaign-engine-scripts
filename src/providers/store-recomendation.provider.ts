@@ -32,8 +32,55 @@ export class StoreRecommendationProvider {
 
   public generateMap(
     filteredData: IStoreSuggestion[],
-  ): Map<number, IStoreRecommendation> {
+    day: number,
+  ): Map<string, Partial<IStoreRecommendation>> {
+    const getStoreKey = (id: number, channel: CHANNEL): string =>
+      `${id}-${channel}`;
+    const mapLookup = ({
+      acc,
+      row,
+      channel,
+      params,
+    }: {
+      acc: Map<string, IStoreRecommendation>;
+      row: IStoreSuggestion;
+      channel: CHANNEL;
+      params: TypeStoreParams;
+    }): Partial<IStoreRecommendation> =>
+      acc.get(getStoreKey(row.storeId, channel)) || {
+        params: { ...params, communicationChannel: channel },
+        store: this.getStore(row),
+        skus: [] as TypeSku[],
+      };
+
+    const getRecomendationPerChannel = ({
+      channels,
+      row,
+      isTurn,
+      recommendation,
+    }: {
+      channels: CHANNEL[];
+      row: IStoreSuggestion;
+      isTurn: boolean;
+      recommendation: Partial<IStoreRecommendation> | null;
+    }) => {
+      if (recommendation) {
+        if (channels.length === 1) {
+          // Only WhatsApp
+          recommendation.skus?.push(this.getSku(row));
+        } else if (isTurn) {
+          recommendation.skus?.push(this.getSku(row));
+        }
+      }
+      return recommendation;
+    };
+
     return filteredData.reduce((acc, row) => {
+      const channels = [CHANNEL.WhatsApp].includes(row.communicationChannel)
+        ? // ? [CHANNEL.WhatsApp, CHANNEL.PushNotification]
+          [CHANNEL.WhatsApp]
+        : [CHANNEL.PushNotification];
+
       const params: TypeStoreParams = {
         locationId: row.locationId,
         communicationChannel: row.communicationChannel,
@@ -43,30 +90,61 @@ export class StoreRecommendationProvider {
         from: row.from ?? null,
         to: row.to ?? null,
       };
-      const a = acc.get(row.storeId) || {
-        params,
-        store: this.getStore(row),
-        skus: [],
-      };
-      a.skus.push(this.getSku(row));
-      acc.set(row.storeId, a);
+      const [wa, pn] = [
+        channels.includes(CHANNEL.WhatsApp)
+          ? mapLookup({ acc, channel: CHANNEL.WhatsApp, params, row })
+          : null,
+        channels.includes(CHANNEL.PushNotification)
+          ? mapLookup({ acc, channel: CHANNEL.PushNotification, params, row })
+          : null,
+      ];
+
+      const isWhatsappTurn = // Switch between channels
+        ((pn?.skus?.length ?? 0) + (wa?.skus?.length ?? 0)) % 2 === day % 2;
+
+      if (wa) {
+        acc.set(
+          getStoreKey(row.storeId, CHANNEL.WhatsApp),
+          getRecomendationPerChannel({
+            channels,
+            recommendation: wa,
+            row,
+            isTurn: isWhatsappTurn,
+          }),
+        );
+      }
+      if (pn) {
+        acc.set(
+          getStoreKey(row.storeId, CHANNEL.PushNotification),
+          getRecomendationPerChannel({
+            channels,
+            recommendation: pn,
+            row,
+            isTurn: !isWhatsappTurn,
+          }),
+        );
+      }
       return acc;
     }, new Map());
   }
 
   public assignCampaignAndUtm(
-    storeMap: Map<number, IStoreRecommendation>,
+    storeMap: Map<string, Partial<IStoreRecommendation>>,
     day: number,
-  ): Map<number, IStoreRecommendation> {
+  ): Map<string, IStoreRecommendation> {
     const newStoreMap = new Map();
-    for (const [storeId, storeRecommendation] of storeMap.entries()) {
-      const { params, skus } = storeRecommendation;
-      const campaign = this.getCampaignRange(params, day, skus.length);
+    for (const [storeKey, storeRecommendation] of storeMap.entries()) {
+      const { params, skus = [] } = storeRecommendation;
+      const campaign = this.getCampaignRange(
+        params as TypeStoreParams,
+        day,
+        skus.length,
+      );
 
       if (!campaign) continue;
 
-      const utm = this.getUtm(params, day);
-      newStoreMap.set(storeId, {
+      const utm = this.getUtm(params as TypeStoreParams, day);
+      newStoreMap.set(storeKey, {
         ...storeRecommendation,
         campaign,
         utm,
@@ -227,7 +305,7 @@ export class StoreRecommendationProvider {
     const source =
       `${CHANNEL_PROVIDER[communicationChannel]}-campaign`.toLowerCase();
     const content = uuid();
-    const medium = '164';
+    const medium = asset;
     return {
       campaignName: campaign,
       campaignContent: content,
