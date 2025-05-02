@@ -131,7 +131,7 @@ export const Config = {
     apiUrl: process.env.CLEVERTAP_API_URL ?? '',
     accountId: process.env.CLEVERTAP_API_ACCOUNT_ID ?? '',
     passcode: process.env.CLEVERTAP_API_PASSCODE ?? '',
-    batchSize: 16 * 8 * 4, // 512,
+    batchSize: 16 * 4, // 512,
   },
 };
 
