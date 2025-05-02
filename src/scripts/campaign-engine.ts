@@ -32,6 +32,7 @@ import { MessageMetadataList } from '../providers/message.metadata.ts';
 // Process Gobal Variables
 
 const TODAY = new Date(new Date().setHours(0, 0, 0, 0) as unknown as Date);
+console.error({ TODAY });
 const UUID = uuid();
 // Main Function
 
