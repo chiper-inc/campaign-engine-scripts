@@ -120,7 +120,7 @@ export const Config = {
     },
     vertexAI: {
       model: 'gemini-2.0-flash-001',
-      bacthSize: 64,
+      bacthSize: 32,
     },
     cloudStorage: {
       projectId: 'dataflow-chiper',

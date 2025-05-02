@@ -19,9 +19,9 @@ export class BigQueryRepository {
       END,
       MG.lastValueSegmentation
     )`;
-  private readonly communicationChannel = `IF(MG.locationId IN (${
-    LOCATION.CMX
-  }), 'Push Notification', MG.communicationChannel)`;
+
+  private locationList = [LOCATION.CMX, LOCATION.CLO].join(',');
+  private readonly communicationChannel = `IF(MG.locationId IN (${this.locationList}), 'Push Notification', MG.communicationChannel)`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
@@ -47,6 +47,7 @@ export class BigQueryRepository {
       -- AND MG.ranking <= 5
       AND ((MG.discountFormatted <> '0%' and MG.storeReferenceId IS NOT NULL) OR (MG.referencePromotionId IS NOT NULL))
       AND MG.phone NOT LIKE '5_9613739%'
+      AND MG.locationId IN (${this.locationList})
       AND MG.phone NOT LIKE '5_9223372%'
   `;
 
@@ -96,8 +97,8 @@ export class BigQueryRepository {
         -- AND QRY.communicationChannel = 'Push Notification'
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      LIMIT 15000
-      OFFSET 5750
+      -- LIMIT 15000
+      -- OFFSET 5750
     `;
 
     this.logger.log({

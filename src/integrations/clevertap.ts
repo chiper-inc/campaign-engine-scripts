@@ -50,7 +50,6 @@ export class ClevertapIntegration {
         backoffSecondsStep: this.backoffSecondsStep,
       },
     });
-    console.error({ today: this.today.toISOString() });
   }
 
   public async sendOneEvent(
@@ -135,8 +134,7 @@ export class ClevertapIntegration {
     // for (const message of messages) {
     //   inSeconds += Math.floor(Math.pow(2, k++)) * this.backoffSecondsStep;
     const minutesBetweenMessages = [
-      // 9h COT
-      14.5 * 60,
+      5 + 9 * 60, // 9h COT
       60,
       120,
       120,
