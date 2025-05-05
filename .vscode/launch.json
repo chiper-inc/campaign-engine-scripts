@@ -13,6 +13,16 @@
       "args": ["link"],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "preLaunchTask": "tsc: build - tsconfig.json"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Clevertap Sending Engine",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/scripts/send-clevertap.ts",
+      "args": ["tmp/clevertap.2025-05-04.json"],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "preLaunchTask": "tsc: build - tsconfig.json"
     }
   ]
 }
