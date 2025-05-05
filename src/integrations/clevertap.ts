@@ -8,6 +8,7 @@ import {
   IMessageMetadata,
   MessageMetadataList,
 } from '../providers/message.metadata.ts';
+import { google } from '@google-cloud/tasks/build/protos';
 
 export class ClevertapIntegration {
   private readonly url: string;
@@ -23,10 +24,13 @@ export class ClevertapIntegration {
     new Date().setHours(0, 0, 0, 0) as unknown as Date, // UTC-5
   );
   private logger: LoggingProvider;
+  private eventLogger: LoggingProvider;
+  private readonly cloudTask: CloudTask;
 
   constructor() {
     this.url = Config.clevertap.apiUrl;
     this.queueName = Config.google.cloudTask.queue;
+    this.cloudTask = new CloudTask(this.queueName);
     this.headers = {
       'X-CleverTap-Account-Id': Config.clevertap.accountId,
       'X-CleverTap-Passcode': Config.clevertap.passcode,
@@ -38,6 +42,10 @@ export class ClevertapIntegration {
     this.logger = new LoggingProvider({
       context: ClevertapIntegration.name,
       levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+    });
+    this.eventLogger = new LoggingProvider({
+      context: `${ClevertapIntegration.name}Event`,
+      levels: LoggingProvider.LOG,
     });
     this.logger.log({
       message: 'ClevertapIntegration initialized',
@@ -51,23 +59,13 @@ export class ClevertapIntegration {
     });
   }
 
-  public async sendOneEvent(
-    event: IClevertapCampaign,
-    retry = 0,
-  ): Promise<unknown> {
-    const { message, inSeconds = 0, timeoutSeconds = 0 } = event;
-    const functionName = this.sendOneEvent.name;
+  public async generateOneEvent(event: IClevertapCampaign): Promise<{
+    cloudTask: google.cloud.tasks.v2.ITask;
+    onInjectionCompleted: () => void;
+  } | null> {
+    const functionName = this.generateOneEvent.name;
 
-    if (retry >= this.maxRetries) {
-      this.logger.error({
-        message: `Max retries (${this.maxRetries}), reached for sending Clevertap Campaign`,
-        functionName,
-        error: new Error('Max retries reached'),
-        data: { event, inSeconds, timeoutSeconds },
-      });
-      return null;
-    }
-    if (retry > 0) await this.blackoff(retry);
+    const { message, inSeconds = 0, timeoutSeconds = 0 } = event;
 
     const method: 'POST' | 'GET' | 'PUT' | 'DELETE' = 'POST';
     const request = {
@@ -76,52 +74,32 @@ export class ClevertapIntegration {
       headers: this.headers,
       body: message.data,
     };
-    const cloudTask = new CloudTask(this.queueName);
+    // const cloudTask = new CloudTask(this.queueName);
     const name = `Clevertap-Campaign-${message.data.campaign_id}`;
     const scheduledAt = new Date(this.today.getTime() + inSeconds * 1000);
     const timeoutedAt = new Date(this.today.getTime() + timeoutSeconds * 1000);
-    const dataRequest = {
-      name,
-      request,
-      scheduledAt: scheduledAt.toISOString(),
-      timeoutedAt: timeoutedAt.toISOString(),
-    };
-    return cloudTask
-      .createOneTask({
+    return this.cloudTask.generateOneTask(
+      {
         name,
         request,
         scheduledAt,
-      })
-      .then((response) => {
-        this.logger.log({
+      },
+      () =>
+        this.eventLogger.log({
           message: 'event.messageRequest.clevertap',
           functionName,
           data: this.generateMetadata(message, {
             scheduledAt,
             timeoutedAt,
           }),
-        });
-        return response;
-      })
-      .catch((error) => {
-        this.logger.error({
-          message: `Error creating cloud task - Retry ${retry}`,
-          functionName,
-          error,
-          data: dataRequest,
-        });
-        return this.sendOneEvent(
-          { message, inSeconds, timeoutSeconds },
-          retry + 1,
-        );
-      });
-    // console.log(`Created task ${response.name}`);
+        }),
+    );
   }
 
   async sendAllEvents(
     events: MessageMetadataList<IClevertapEvent>,
-  ): Promise<void> {
-    const promises = [];
+  ): Promise<unknown[]> {
+    const cloudTasks = [];
     let inSeconds = 0;
     // let k = -1;
     // for (const message of messages) {
@@ -137,23 +115,24 @@ export class ClevertapIntegration {
     const timeout = 45 * 60; // 45m
     for (const event of events) {
       inSeconds += (minutesBetweenMessages.shift() ?? 0) * 60; // * 60s
-      promises.push(
-        this.sendOneEvent({
+      cloudTasks.push(
+        this.generateOneEvent({
           message: event,
           inSeconds: inSeconds,
           timeoutSeconds: inSeconds + timeout,
         }),
       );
     }
-    await Promise.all(promises);
+    return Promise.all(cloudTasks);
   }
 
   async sendAllCampaigns(
     campaings: MessageMetadataList<IClevertapEvent>[],
+    retry = 0,
   ): Promise<void> {
     const functionName = this.sendAllCampaigns.name;
 
-    const promises = [];
+    const promises: unknown[][] = [];
     const totalMessages = campaings.reduce(
       (acc, messages) => acc + messages.length,
       0,
@@ -178,42 +157,44 @@ export class ClevertapIntegration {
       });
       return;
     }
+
     let numBatch = 0;
     let i = 0;
     let j = 0;
     for (const messages of campaings) {
-      promises.push(this.sendAllEvents(messages));
+      promises.push(await this.sendAllEvents(messages));
       i += messages.length;
       j += messages.length;
       if (i >= this.batchSize) {
-        await Promise.all(promises);
-        this.logger.warn({
-          message: `batch ${++numBatch} of ${totalBatches} (Total Messages = ${j}) Clevertap Campaign sending. done`,
-          functionName,
-          data: {
-            batchSize: this.batchSize,
-            numBatch,
+        await this.injectAllEvents(
+          {
+            payload: promises.flat() as {
+              cloudTask: google.cloud.tasks.v2.ITask;
+              onInjectionCompleted: () => void;
+            }[],
+            numBatch: numBatch++,
             totalBatches,
             totalMessages: j,
           },
-        });
-        await this.sleep();
+          retry,
+        );
         promises.length = 0;
         i = 0;
       }
     }
     if (promises.length > 0) {
-      await Promise.all(promises);
-      this.logger.warn({
-        message: `batch ${++numBatch} of ${totalBatches} (Total Messages = ${j} Clevertap Campaign sending. done`,
-        functionName,
-        data: {
-          batchSize: this.batchSize,
-          numBatch,
+      await this.injectAllEvents(
+        {
+          payload: promises.flat() as {
+            cloudTask: google.cloud.tasks.v2.ITask;
+            onInjectionCompleted: () => void;
+          }[],
+          numBatch: numBatch++,
           totalBatches,
           totalMessages: j,
         },
-      });
+        retry,
+      );
     }
     this.logger.warn({
       message: `End Sending Clevertap Campaigns`,
@@ -225,6 +206,67 @@ export class ClevertapIntegration {
         totalMessages: j,
       },
     });
+  }
+
+  private async injectAllEvents(
+    {
+      payload,
+      numBatch,
+      totalBatches,
+      totalMessages,
+    }: {
+      numBatch: number;
+      totalBatches: number;
+      totalMessages: number;
+      payload: {
+        cloudTask: google.cloud.tasks.v2.ITask;
+        onInjectionCompleted: () => void;
+      }[];
+    },
+    retry: number,
+  ): Promise<void> {
+    const functionName = this.injectAllEvents.name;
+
+    await this.cloudTask
+      .injectTasks({
+        payload,
+        starts: totalMessages - payload.length,
+        ends: totalMessages,
+      })
+      .then(() => {
+        this.logger.warn({
+          message: `batch ${++numBatch} of ${totalBatches} (Total Messages = ${totalMessages}) Clevertap Campaign sending. done`,
+          functionName,
+          data: {
+            batchSize: this.batchSize,
+            numBatch,
+            totalBatches,
+            totalMessages,
+          },
+        });
+      })
+      .catch(async (error) => {
+        this.logger.error({
+          message: `Error injecting tasks - Retry ${retry}`,
+          error: new Error(error as string),
+          functionName,
+          data: {
+            batchSize: this.batchSize,
+            numBatch,
+            totalBatches,
+            totalMessages,
+          },
+        });
+        await this.blackoff(retry);
+        return this.cloudTask.injectTasks(
+          {
+            payload,
+            starts: 0,
+            ends: payload.length,
+          },
+          retry + 1,
+        );
+      });
   }
 
   private generateMetadata(
