@@ -37,8 +37,7 @@ export class ClevertapIntegration {
       : 15 /* 15s */;
     this.logger = new LoggingProvider({
       context: ClevertapIntegration.name,
-      levels:
-        LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'ClevertapIntegration initialized',
@@ -233,7 +232,6 @@ export class ClevertapIntegration {
     request: { [key: string]: Date },
   ): object {
     const { data, metadata } = event;
-
     const recommendations = metadata.map((metadataItem, i) => {
       return metadataItem.expand(i, () => `${data.ExternalTrigger.message}`);
     });
@@ -241,6 +239,7 @@ export class ClevertapIntegration {
     const timestamp = new Date();
     const scheduledAt = request?.scheduledAt ?? new Date();
     const timeoutedAt = request?.timeoutedAt ?? new Date();
+    // console.error(timestamp, scheduledAt, timeoutedAt);
 
     // scheduledAt.setTime(timestamp.getTime() + (request?.inSeconds ?? 0) * 1000);
     // timeoutedAt.setTime(

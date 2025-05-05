@@ -50,6 +50,10 @@ export class CloudTask {
       task.scheduleTime = { seconds: Math.floor(scheduledAt.getTime() / 1000) };
     }
 
+    // if (task) {
+    //   return null;
+    // }
+
     const [data] = await this.client
       .createTask({
         parent: this.parent,
