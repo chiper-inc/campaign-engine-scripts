@@ -128,7 +128,7 @@ export class ClevertapIntegration {
     // for (const message of messages) {
     //   inSeconds += Math.floor(Math.pow(2, k++)) * this.backoffSecondsStep;
     const minutesBetweenMessages = [
-      5 + 9 * 60, // 9h COT
+      5 * 60 + 9 * 60, // 9h COT
       60,
       120,
       120,
