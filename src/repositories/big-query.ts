@@ -3,11 +3,17 @@ import { IStoreSuggestion, OFFER_TYPE } from './interfaces.ts';
 import { IFrequencyParameter } from '../mocks/interfaces.ts';
 import { CHANNEL, LOCATION, STORE_STATUS } from '../enums.ts';
 import { LoggingProvider } from '../providers/logging.provider.ts';
+import { messagesPerCampaign } from '../parameters/campaigns.ts';
 
 export class BigQueryRepository {
   private readonly bigquery: BigQuery;
   private readonly defaultOptions: object;
   private readonly logger: LoggingProvider;
+  private readonly maxRanking =
+    messagesPerCampaign[CHANNEL.PushNotification].max >
+    messagesPerCampaign[CHANNEL.WhatsApp].max
+      ? messagesPerCampaign[CHANNEL.PushNotification].max
+      : messagesPerCampaign[CHANNEL.WhatsApp].max;
   private readonly storeValueSegment = `
     IF (MG.storeStatus = 'New', 
       CASE
@@ -44,7 +50,7 @@ export class BigQueryRepository {
       MG.warehouseId
     FROM \`chiperdw.dbt.BI_D-MessageGenerator\` MG
     WHERE MG.phone IS NOT NULL
-      -- AND MG.ranking <= 5
+      AND MG.ranking <= ${this.maxRanking}
       AND ((MG.discountFormatted <> '0%' and MG.storeReferenceId IS NOT NULL) OR (MG.referencePromotionId IS NOT NULL))
       AND MG.phone NOT LIKE '5_9613739%'
       AND MG.locationId IN (${this.locationList})
