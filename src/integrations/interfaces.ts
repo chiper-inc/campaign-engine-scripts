@@ -27,6 +27,7 @@ export interface IUtm {
 export interface IShortLinkRequest {
   callToAction: Partial<ICallToAction>;
   utm: IUtm;
+  includeShortLink: boolean;
 }
 
 export interface IShortLinkResponse {
