@@ -102,6 +102,7 @@ export class DeeplinkProvider {
         value: {
           utm: value.utm,
           callToAction: value.callToAction,
+          includeShortLink: false, // TODO set it base on the communication channel false only for Push Notification
         },
         storeId: value.storeId,
       })),

@@ -132,7 +132,7 @@ export class ClevertapIntegration {
   ): Promise<void> {
     const functionName = this.sendAllCampaigns.name;
 
-    const promises: unknown[][] = [];
+    const payloads: unknown[][] = [];
     const totalMessages = campaings.reduce(
       (acc, messages) => acc + messages.length,
       0,
@@ -162,13 +162,13 @@ export class ClevertapIntegration {
     let i = 0;
     let j = 0;
     for (const messages of campaings) {
-      promises.push(await this.sendAllEvents(messages));
+      payloads.push(await this.sendAllEvents(messages));
       i += messages.length;
       j += messages.length;
       if (i >= this.batchSize) {
         await this.injectAllEvents(
           {
-            payload: promises.flat() as {
+            payload: payloads.flat() as {
               cloudTask: google.cloud.tasks.v2.ITask;
               onInjectionCompleted: () => void;
             }[],
@@ -178,14 +178,14 @@ export class ClevertapIntegration {
           },
           retry,
         );
-        promises.length = 0;
+        payloads.length = 0;
         i = 0;
       }
     }
-    if (promises.length > 0) {
+    if (payloads.length > 0) {
       await this.injectAllEvents(
         {
-          payload: promises.flat() as {
+          payload: payloads.flat() as {
             cloudTask: google.cloud.tasks.v2.ITask;
             onInjectionCompleted: () => void;
           }[],
