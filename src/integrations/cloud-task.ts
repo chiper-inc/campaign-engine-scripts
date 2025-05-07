@@ -71,6 +71,7 @@ export class CloudTask {
         body: Buffer.from(JSON.stringify(body)).toString('base64'),
         headers: {
           Authorization: Config.lbApiOperaciones.apiKey as string,
+          'Content-Type': 'application/json',
         },
       },
       name: `${parent}/tasks/${CloudTask.name}-${functionName}-${uuid()}`,
