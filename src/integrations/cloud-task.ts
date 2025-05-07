@@ -9,10 +9,17 @@ export class CloudTask {
   private readonly client: v2.CloudTasksClient;
   private readonly queue: string;
   private logger: LoggingProvider;
+  private static hostMap: { [key: string]: string } = {
+    development: 'beta.api.chiper.co',
+    staging: 'staging.api.chiper.co',
+    production: 'api.chiper.co',
+  };
+  private readonly injectorUrl: string;
 
   constructor(queue?: string) {
     this.client = new v2.CloudTasksClient();
     this.queue = queue ?? Config.google.cloudTask.queue;
+    this.injectorUrl = `https://${CloudTask.hostMap[Config.environment] ?? CloudTask.hostMap.development}/operaciones`;
     this.logger = new LoggingProvider({
       context: CloudTask.name,
       levels: LoggingProvider.WARN | LoggingProvider.ERROR,
@@ -57,23 +64,17 @@ export class CloudTask {
       tasks: payload.map((item) => item.cloudTask),
     };
 
-    const headers = {
-      API_KEY: Config.lbApiOperaciones.apiKey as string,
-    };
     const task: google.cloud.tasks.v2.ITask = {
       httpRequest: {
         httpMethod: 'POST',
-        url: 'https://api.chiper.co/operaciones/cloud-task/injector',
+        url: `${this.injectorUrl}/cloud-task-queue/${this.queue}/injector`,
         body: Buffer.from(JSON.stringify(body)).toString('base64'),
-        headers: headers,
+        headers: {
+          Authorization: Config.lbApiOperaciones.apiKey as string,
+        },
       },
       name: `${parent}/tasks/${CloudTask.name}-${functionName}-${uuid()}`,
     };
-
-    console.error(
-      'SIZE OF PAYLOAD',
-      Buffer.from(JSON.stringify(body)).toString('base64').length,
-    );
 
     const [data] = await this.client
       .createTask({ parent, task })
@@ -131,21 +132,14 @@ export class CloudTask {
   } {
     // const functionName = this.createOneTask.name;
 
-    const parent = this.client.queuePath(
-      Config.google.project,
-      Config.google.location,
-      this.queue,
-    );
-
     const cloudTask: google.cloud.tasks.v2.ITask = {
       httpRequest: {
         httpMethod: request.method,
         url: request.url,
         body: request.body as string,
-        //        body: Buffer.from(JSON.stringify(request.body)).toString('base64'),
         headers: request.headers,
       },
-      name: `${parent}/tasks/${name ?? CloudTask.name}-${uuid()}`,
+      name: `${name ?? CloudTask.name}-${uuid()}`,
     };
     if (scheduledAt) {
       cloudTask.scheduleTime = {
