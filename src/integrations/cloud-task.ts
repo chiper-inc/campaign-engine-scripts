@@ -67,7 +67,7 @@ export class CloudTask {
     const task: google.cloud.tasks.v2.ITask = {
       httpRequest: {
         httpMethod: 'POST',
-        url: `${this.injectorUrl}/cloud-task-queue/${this.queue}/injector`,
+        url: `${this.injectorUrl}/cloud-task-queues/${this.queue}/injector`,
         body: Buffer.from(JSON.stringify(body)).toString('base64'),
         headers: {
           Authorization: Config.lbApiOperaciones.apiKey as string,
