@@ -97,15 +97,18 @@ export class DeeplinkProvider {
     preMap: Map<string, IUtmCallToAction>,
   ): Promise<Map<string, ICallToActionLink>> {
     const responses = await this.lbApiOperacionesIntegration.createAllShortLink(
-      Array.from(preMap.entries()).map(([key, value]) => ({
-        key,
-        value: {
-          utm: value.utm,
-          callToAction: value.callToAction,
-          includeShortLink: false, // TODO set it base on the communication channel false only for Push Notification
-        },
-        storeId: value.storeId,
-      })),
+      Array.from(preMap.entries()).map(
+        ([key, { storeId, utm, callToAction }]) => ({
+          key,
+          value: {
+            utm,
+            callToAction,
+            // The Push Notification (PN) does not need to be shortened
+            includeShortLink: utm.campaignMedium !== 'PN',
+          },
+          storeId,
+        }),
+      ),
     );
     return responses.reduce((acc, obj) => {
       const { key, response } = obj;
