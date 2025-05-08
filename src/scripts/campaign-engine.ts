@@ -37,38 +37,34 @@ const UUID = uuid();
 
 async function main({
   day,
-  limit = 100000,
-  offset = 0,
+  limit = 1500,
+  offset = 15000,
   includeShortlinks = false,
   sendToConnectly = false,
   sendToClevertap = false,
+  includeGenAi = false,
 }: {
   day: number;
   limit?: number;
   offset?: number;
   includeShortlinks?: boolean;
+  includeGenAi?: boolean;
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
-  const storeReferenceProvider = new StoreRecommendationProvider(
-    BASE_DATE,
-    UUID,
+  const storeReferenceProvider = new StoreRecommendationProvider({
+    baseDate: new Date(BASE_DATE),
+  });
+  await storeReferenceProvider.load({ limit, offset, day, filter: filterData });
+  await storeReferenceProvider.generateOfferCopyMap();
+
+  const communications = new CommunicationProvider().generateEntries(
+    Array.from(storeReferenceProvider.storeMap.values()),
   );
-  const data = await executeQueryBigQuery();
-  const storeMap = storeReferenceProvider.assignCampaignAndUtm(
-    storeReferenceProvider.generateMap(
-      data.filter((row) => filterData(row, frequencyMap, day)),
-      day,
-    ),
-    day,
-  );
-  const communications = new CommunicationProvider()
-    .generateEntries(storeMap)
-    .slice(offset, offset + limit);
 
   const exceptionStoreIds = await Promise.all([
     new DeeplinkProvider().generateLinks(communications, includeShortlinks),
-    new GenAiProvider().generateCampaignMessages(communications),
+    new GenAiProvider().generateCampaignMessages(communications, includeGenAi),
   ]);
 
   const [connectlyEvents, clevertapEvents] = splitcommunications(
@@ -86,7 +82,7 @@ async function main({
     slackProvider.reportMessagesToSlack(
       CHANNEL.WhatsApp,
       connectlyEvents,
-      storeMap,
+      storeReferenceProvider.storeMap,
     ),
   ]);
   const [clevertapCampaigns] = await Promise.all([
@@ -97,7 +93,7 @@ async function main({
     slackProvider.reportMessagesToSlack(
       CHANNEL.PushNotification,
       clevertapEvents,
-      storeMap,
+      storeReferenceProvider.storeMap,
     ),
   ]);
   await sendCampaingsToIntegrations(
@@ -211,16 +207,6 @@ function filterData(
   const mod = getFrequency(row, frequencyMap);
   if (!mod) return false;
   return row.storeId % mod === day % mod;
-}
-
-// Repository functions
-
-function executeQueryBigQuery(): Promise<IStoreSuggestion[]> {
-  const bigQueryRepository = new BigQueryRepository();
-  return bigQueryRepository.selectStoreSuggestions(
-    frequencyByLocationAndStatusAndRange,
-    [CHANNEL.WhatsApp, CHANNEL.PushNotification],
-  );
 }
 
 // Run Main Function

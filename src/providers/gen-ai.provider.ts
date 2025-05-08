@@ -15,6 +15,7 @@ export class GenAiProvider {
 
   public async generateCampaignMessages(
     communications: ICommunication[],
+    includeGenAi: boolean,
   ): Promise<number[]> {
     const functionName = this.generateCampaignMessages.name;
 

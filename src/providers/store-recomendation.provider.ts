@@ -10,27 +10,60 @@ import {
 import { IUtm } from '../integrations/interfaces.ts';
 import * as UTILS from '../utils/index.ts';
 import { CHANNEL_PROVIDER } from '../constants.ts';
-import { campaignMap, getCampaignKey } from '../parameters.ts';
+import { campaignMap, frequencyMap, getCampaignKey } from '../parameters.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 import * as CAMPAING from '../parameters/campaigns.ts';
 import { v4 as uuid } from 'uuid';
 import { Config } from '../config.ts';
+import { BigQueryRepository } from '../repositories/big-query.ts';
+import { frequencyByLocationAndStatusAndRange } from '../parameters.ts';
 
 export class StoreRecommendationProvider {
   private static oldHostName = Config.catalogue.oldImageUrl;
   private static newHostName = Config.catalogue.newImageUrl;
   private static storeReferenceMap = StoreReferenceMap;
 
-  private readonly baseDate: number;
-  private readonly uuid: string;
+  private readonly baseDate: Date;
+  private readonly skuMapValue: Map<string, { sku: TypeSku; copy?: string }>;
+  private storeMapValue: Map<string, IStoreRecommendation>;
 
-  constructor(baseDate: number, UUID: string) {
-    this.baseDate = baseDate as number;
-    this.uuid = UUID;
+  constructor({ baseDate }: { baseDate: Date }) {
+    this.baseDate = baseDate;
+    this.skuMapValue = new Map();
+    this.storeMapValue = new Map();
   }
 
-  public generateMap(
+  public async load({
+    limit,
+    offset,
+    day,
+    filter,
+  }: {
+    limit?: number;
+    offset?: number;
+    day: number;
+    filter: (
+      row: IStoreSuggestion,
+      frequencyMap: Map<string, number>,
+      day: number,
+    ) => boolean;
+  }): Promise<void> {
+    const bigQueryRepository = new BigQueryRepository({ offset, limit });
+    const data = await bigQueryRepository.selectStoreSuggestions(
+      frequencyByLocationAndStatusAndRange,
+      [CHANNEL.WhatsApp, CHANNEL.PushNotification],
+    );
+    this.storeMapValue = this.assignCampaignAndUtm(
+      this.generateMap(
+        data.filter((row) => filter(row, frequencyMap, day)),
+        day,
+      ),
+      day,
+    );
+  }
+
+  private generateMap(
     filteredData: IStoreSuggestion[],
     day: number,
   ): Map<string, Partial<IStoreRecommendation>> {
@@ -128,7 +161,7 @@ export class StoreRecommendationProvider {
     }, new Map());
   }
 
-  public assignCampaignAndUtm(
+  private assignCampaignAndUtm(
     storeMap: Map<string, Partial<IStoreRecommendation>>,
     day: number,
   ): Map<string, IStoreRecommendation> {
@@ -169,7 +202,7 @@ export class StoreRecommendationProvider {
       row.recommendationType === OFFER_TYPE.referencePromotion
         ? row.recommendationId
         : null;
-    return {
+    const currentSku = {
       skuType: row.recommendationType,
       storeReferenceId,
       referencePromotionId,
@@ -177,6 +210,14 @@ export class StoreRecommendationProvider {
       discountFormatted: row.discountFormatted,
       image: this.getImageUrl(row),
     };
+
+    const sku = this.skuMapValue.get(this.getOfferCopyKey(currentSku))?.sku;
+    if (!sku) {
+      this.skuMapValue.set(this.getOfferCopyKey(currentSku), {
+        sku: currentSku,
+      });
+    }
+    return sku ?? currentSku;
   };
 
   private getImageUrl = ({
@@ -288,7 +329,7 @@ export class StoreRecommendationProvider {
     const payer = '1'; // Fix value
     const type = 'ot';
 
-    const date = new Date(this.baseDate + day * 24 * 60 * 60 * 1000);
+    const date = new Date(this.baseDate.getTime() + day * 24 * 60 * 60 * 1000);
     const term = UTILS.formatDDMMYY(date); // DDMMYY
     const campaign = UTILS.campaignToString({
       cityId: UTILS.getCityId(locationId),
@@ -314,4 +355,43 @@ export class StoreRecommendationProvider {
       campaignMedium: medium,
     };
   };
+
+  public async generateOfferCopyMap(): Promise<Map<string, string>> {
+    for (const [, skuOffer] of this.skuMapValue.entries()) {
+      skuOffer.copy =
+        skuOffer.sku.skuType === OFFER_TYPE.storeReference
+          ? `${skuOffer.sku.reference} con ${skuOffer.sku.discountFormatted} dcto`
+          : skuOffer.sku.reference;
+    }
+    return Promise.resolve(this.skuCopyMap);
+  }
+
+  public getOfferCopyKey(sku: TypeSku): string {
+    return `${sku.skuType}-${
+      sku.storeReferenceId ?? sku.referencePromotionId
+    }-${
+      sku.skuType === OFFER_TYPE.storeReference ? sku.discountFormatted : ''
+    }`;
+  }
+
+  // Getting function
+
+  public get storeMap(): Map<string, IStoreRecommendation> {
+    return this.storeMapValue;
+  }
+  public get skuMap(): Map<string, { sku: TypeSku; copy?: string }> {
+    return this.skuMapValue;
+  }
+
+  public get skuCopyMap(): Map<string, string> {
+    return Array.from(this.skuMapValue.values()).reduce(
+      (acc, { sku, copy }) => {
+        if (copy) {
+          acc.set(this.getOfferCopyKey(sku), copy);
+        }
+        return acc;
+      },
+      new Map<string, string>(),
+    );
+  }
 }
