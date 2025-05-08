@@ -45,7 +45,7 @@ export class GenAiProvider {
       promises.push(
         communication.campaignService
           ? communication.campaignService
-              .setMessagesVariables()
+              .setMessagesVariables(includeGenAi)
               .catch((error) => {
                 this.logger.error({
                   message: 'Error Generating AI messages',

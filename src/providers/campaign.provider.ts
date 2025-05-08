@@ -29,7 +29,7 @@ export abstract class CampaignProvider {
 
   public abstract setPathVariables(shortLinks: ICallToActionLink[]): this;
 
-  public abstract setMessagesVariables(): Promise<this>;
+  public abstract setMessagesVariables(includeGenAi: boolean): Promise<this>;
 
   public abstract getMessageName(): string;
 

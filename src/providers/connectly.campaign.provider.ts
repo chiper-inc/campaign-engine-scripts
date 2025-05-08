@@ -1,10 +1,13 @@
+import * as UTILS from '../utils/index.ts';
+import * as MOCKS from '../mocks/connectly-greetings.mock.ts';
+
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import { IUtm, ICallToActionLink, IUtmCallToAction } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
-import { OFFER_TYPE } from '../repositories/interfaces.ts';
 import { MessageMetadata } from './message.metadata.ts';
+import { STORE_STATUS } from '../enums.ts';
 
 export class ConnectlyCampaignProvider extends CampaignProvider {
   constructor(
@@ -23,24 +26,20 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
     );
   }
 
-  public async setMessagesVariables(): Promise<this> {
+  public async setMessagesVariables(includeGenAi: boolean): Promise<this> {
     const carouselContentGenerator =
       ConnectlyCarouselNotificationAI.getInstance();
-    const carouselContent = (await carouselContentGenerator.generateContent(
-      this.variableValues,
-    )) as unknown as { greeting: string; products: string[] };
-
-    const products: TypeCampaignVariables = {};
-    for (let i = 0; i < carouselContent.products.length; i++) {
-      const index = `sku_${i + 1}`;
-      products[index] = String(this.variableValues[index]);
-    }
+    const { greeting } = includeGenAi
+      ? ((await carouselContentGenerator.generateContent(
+          this.variableValues,
+        )) as { greeting: string; products: string[] })
+      : // products removed from here;
+        { greeting: this.generateGreeting(this.variableValues) };
 
     this.messageValues.forEach((message) => {
       message.setVariables({
         ...this.variableValues,
-        ...products,
-        greeting: carouselContent.greeting,
+        greeting,
       });
     });
 
@@ -91,5 +90,13 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
 
   public getMessageName(): string {
     return `${this.messageValues[0]?.messageName ?? ''}`;
+  }
+
+  private generateGreeting(variables: TypeCampaignVariables): string {
+    const greetings =
+      MOCKS.GREETINGS[variables.sgmt as STORE_STATUS] ||
+      MOCKS.GREETINGS[STORE_STATUS._default];
+    const greetingTemplate = UTILS.choose(greetings);
+    return UTILS.replaceParams(greetingTemplate, [variables.name]);
   }
 }

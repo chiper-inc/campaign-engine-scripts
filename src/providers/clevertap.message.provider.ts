@@ -100,4 +100,8 @@ export class ClevertapMessageProvider extends MessageProvider {
       // path: obj.path,
     };
   }
+
+  public get title(): string {
+    return this.titleTemplate;
+  }
 }
