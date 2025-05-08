@@ -45,6 +45,7 @@ export class ClevertapMessageProvider extends MessageProvider {
 
   public setVariables(vars: TypeCampaignVariables): this {
     const extenalTriggerVars = this.generateClevertapExternalTriger(vars);
+    console.error({ vars, extenalTriggerVars });
     for (const k in extenalTriggerVars) {
       this.variablesValues[k] = extenalTriggerVars[k];
     }

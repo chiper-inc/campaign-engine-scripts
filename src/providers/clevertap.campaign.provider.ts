@@ -4,7 +4,6 @@ import { CampaignProvider } from './campaign.provider.ts';
 import { ClevertapMessageProvider } from './clevertap.message.provider.ts';
 import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
-import { OFFER_TYPE } from '../repositories/interfaces.ts';
 import { MessageMetadata } from './message.metadata.ts';
 
 export class ClevertapCampaignProvider extends CampaignProvider {
@@ -61,17 +60,16 @@ export class ClevertapCampaignProvider extends CampaignProvider {
     const pushNotificationGenerator = ClevertapPushNotificationAI.getInstance();
 
     // console.error({ variables: this.variableValues });
-    const pushNotificationContent =
+    const notificationContent =
       (await pushNotificationGenerator.generateContent(
         this.variableValues,
       )) as unknown as { titles: string[]; products: string[] };
 
     const splitedVars = this.splitVariables(this.variables);
-    this.mergeVariablesTitleAndProduct(
-      splitedVars,
-      pushNotificationContent.titles,
-      pushNotificationContent.products,
-    );
+    splitedVars.forEach((_var, i) => {
+      _var.title = this.getTitle(notificationContent.titles, i);
+      _var.message = this.getReferenceMessage(notificationContent.products, i);
+    });
 
     this.messageValues.forEach((message, index) => {
       message.setVariables(splitedVars[index]);
@@ -79,24 +77,6 @@ export class ClevertapCampaignProvider extends CampaignProvider {
     return Promise.resolve(this);
   }
 
-  private mergeVariablesTitleAndProduct(
-    variables: TypeCampaignVariables[],
-    titles: string[],
-    products: string[],
-  ): void {
-    const getTitle = (titles: string[], i: number): string =>
-      titles[i % titles.length];
-
-    variables.forEach((variable, i) => {
-      variable.title = getTitle(titles, i);
-      variable.message =
-        this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
-          ? this.getReferenceMessage(products, i)
-          : this.getPromotionMessage(
-              String(this.variableValues[`sku_${i + 1}`]),
-            );
-    });
-  }
   private splitVariables(
     variables: TypeCampaignVariables,
   ): TypeCampaignVariables[] {
@@ -127,4 +107,7 @@ export class ClevertapCampaignProvider extends CampaignProvider {
   public getMessageName(): string {
     return MOCKS.version === 'v2' ? 'GenAI' : 'Random';
   }
+
+  private getTitle = (titles: string[], i: number): string =>
+    titles[i % titles.length];
 }
