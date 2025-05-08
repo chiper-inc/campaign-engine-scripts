@@ -63,6 +63,10 @@ export abstract class CampaignProvider {
     return { ...common, ...obj };
   }
 
+  protected getReferenceMessage(products: string[], index: number): string {
+    return products[index % products.length];
+  }
+
   protected getPromotionMessage(description: string): string {
     const emojis = [
       '🛍️',

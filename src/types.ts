@@ -41,6 +41,7 @@ export type TypeStore = {
 export type TypeSku = {
   storeReferenceId: number | null;
   reference: string;
+  copy: string;
   referencePromotionId: number | null;
   skuType: OFFER_TYPE;
   discountFormatted: string;

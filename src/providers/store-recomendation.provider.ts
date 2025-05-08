@@ -25,7 +25,7 @@ export class StoreRecommendationProvider {
   private static storeReferenceMap = StoreReferenceMap;
 
   private readonly baseDate: Date;
-  private readonly skuMapValue: Map<string, { sku: TypeSku; copy?: string }>;
+  private readonly skuMapValue: Map<string, TypeSku>;
   private storeMapValue: Map<string, IStoreRecommendation>;
 
   constructor({ baseDate }: { baseDate: Date }) {
@@ -207,15 +207,14 @@ export class StoreRecommendationProvider {
       storeReferenceId,
       referencePromotionId,
       reference: row.reference,
+      copy: `--- ${row.reference} ---`,
       discountFormatted: row.discountFormatted,
       image: this.getImageUrl(row),
     };
 
-    const sku = this.skuMapValue.get(this.getOfferCopyKey(currentSku))?.sku;
+    const sku = this.skuMapValue.get(this.getOfferCopyKey(currentSku));
     if (!sku) {
-      this.skuMapValue.set(this.getOfferCopyKey(currentSku), {
-        sku: currentSku,
-      });
+      this.skuMapValue.set(this.getOfferCopyKey(currentSku), currentSku);
     }
     return sku ?? currentSku;
   };
@@ -356,15 +355,38 @@ export class StoreRecommendationProvider {
     };
   };
 
-  public async generateOfferCopyMap(): Promise<Map<string, string>> {
-    for (const [, skuOffer] of this.skuMapValue.entries()) {
-      skuOffer.copy =
-        skuOffer.sku.skuType === OFFER_TYPE.storeReference
-          ? `${skuOffer.sku.reference} con ${skuOffer.sku.discountFormatted} dcto`
-          : skuOffer.sku.reference;
+  public async generateOfferCopyMap(
+    includeGenAi: boolean,
+  ): Promise<Map<string, string>> {
+    for (const [, sku] of this.skuMapValue.entries()) {
+      sku.copy =
+        sku.skuType === OFFER_TYPE.storeReference
+          ? `${this.getPromotionMessage(sku.reference)} con ${sku.discountFormatted} dcto`
+          : this.getPromotionMessage(sku.reference);
     }
     return Promise.resolve(this.skuCopyMap);
   }
+
+  private getPromotionMessage(description: string): string {
+    const emojis = [
+      '🛍️',
+      '🔥',
+      '📣',
+      '🚨',
+      '💥',
+      '🔔',
+      '💰',
+      '🤑',
+      '💲',
+      '🛎️',
+      '🛒',
+    ];
+    const prefix = UTILS.choose(emojis);
+    const sufix = UTILS.choose(emojis);
+    return String(prefix + ` ${description} ` + sufix);
+  }
+
+  //
 
   public getOfferCopyKey(sku: TypeSku): string {
     return `${sku.skuType}-${
@@ -379,19 +401,16 @@ export class StoreRecommendationProvider {
   public get storeMap(): Map<string, IStoreRecommendation> {
     return this.storeMapValue;
   }
-  public get skuMap(): Map<string, { sku: TypeSku; copy?: string }> {
+  public get skuMap(): Map<string, TypeSku> {
     return this.skuMapValue;
   }
 
   public get skuCopyMap(): Map<string, string> {
-    return Array.from(this.skuMapValue.values()).reduce(
-      (acc, { sku, copy }) => {
-        if (copy) {
-          acc.set(this.getOfferCopyKey(sku), copy);
-        }
-        return acc;
-      },
-      new Map<string, string>(),
-    );
+    return Array.from(this.skuMapValue.values()).reduce((acc, sku) => {
+      if (sku.copy) {
+        acc.set(this.getOfferCopyKey(sku), sku.copy);
+      }
+      return acc;
+    }, new Map<string, string>());
   }
 }

@@ -104,7 +104,7 @@ export class CommunicationProvider {
     const subTypeMap: { [k: string]: string } = {
       name: 'name',
       sgmt: 'storeStatus',
-      sku: 'reference',
+      sku: 'copy',
       dsct: 'discountFormatted',
       img: 'image',
     };

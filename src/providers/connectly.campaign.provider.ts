@@ -35,7 +35,7 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
       const index = `sku_${i + 1}`;
       products[index] =
         this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
-          ? carouselContent.products[i]
+          ? this.getReferenceMessage(carouselContent.products, i)
           : this.getPromotionMessage(String(this.variableValues[index]));
     }
 

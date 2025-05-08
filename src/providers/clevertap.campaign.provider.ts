@@ -60,6 +60,7 @@ export class ClevertapCampaignProvider extends CampaignProvider {
   public async setMessagesVariables(): Promise<this> {
     const pushNotificationGenerator = ClevertapPushNotificationAI.getInstance();
 
+    // console.error({ variables: this.variableValues });
     const pushNotificationContent =
       (await pushNotificationGenerator.generateContent(
         this.variableValues,
@@ -86,20 +87,16 @@ export class ClevertapCampaignProvider extends CampaignProvider {
     const getTitle = (titles: string[], i: number): string =>
       titles[i % titles.length];
 
-    const getProductMessage = (products: string[], i: number): string =>
-      products[i % products.length];
-
     variables.forEach((variable, i) => {
       variable.title = getTitle(titles, i);
       variable.message =
         this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
-          ? getProductMessage(products, i)
+          ? this.getReferenceMessage(products, i)
           : this.getPromotionMessage(
               String(this.variableValues[`sku_${i + 1}`]),
             );
     });
   }
-
   private splitVariables(
     variables: TypeCampaignVariables,
   ): TypeCampaignVariables[] {

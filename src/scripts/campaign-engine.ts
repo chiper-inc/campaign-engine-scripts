@@ -2,11 +2,7 @@ import { v4 as uuid } from 'uuid';
 import * as UTILS from '../utils/index.ts';
 import { BASE_DATE, CHANNEL_PROVIDER } from '../constants.ts';
 
-import {
-  getLocationStatusRangeKey,
-  frequencyMap,
-  frequencyByLocationAndStatusAndRange,
-} from '../parameters.ts';
+import { getLocationStatusRangeKey } from '../parameters.ts';
 
 import {
   IConnectlyEvent,
@@ -16,7 +12,6 @@ import { IStoreSuggestion } from '../repositories/interfaces.ts';
 import { ICommunication } from '../providers/interfaces.ts';
 
 import { CHANNEL } from '../enums.ts';
-import { BigQueryRepository } from '../repositories/big-query.ts';
 import { ConnectlyCampaignProvider } from '../providers/connectly.campaign.provider.ts';
 import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provider.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
@@ -56,7 +51,7 @@ async function main({
     baseDate: new Date(BASE_DATE),
   });
   await storeReferenceProvider.load({ limit, offset, day, filter: filterData });
-  await storeReferenceProvider.generateOfferCopyMap();
+  await storeReferenceProvider.generateOfferCopyMap(includeGenAi);
 
   const communications = new CommunicationProvider().generateEntries(
     Array.from(storeReferenceProvider.storeMap.values()),
