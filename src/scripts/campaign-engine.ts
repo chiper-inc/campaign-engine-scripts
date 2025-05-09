@@ -32,8 +32,8 @@ const UUID = uuid();
 
 async function main({
   day,
-  limit = 13750, // default 1500,
-  offset = 12500, // = default 7500,
+  limit = undefined, // default 1500,
+  offset = undefined, // = default 7500,
   includeShortlinks = false,
   sendToConnectly = false,
   sendToClevertap = false,
