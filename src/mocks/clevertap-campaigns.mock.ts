@@ -282,7 +282,6 @@ export const subtitles: string[] = [
   '🍀 Hola hola {{0}}'
 ];
 
-
 export const offers: { [k: string]: string[] } = {
   'API_Lead': [
     '🎉 {{0}} con {{1}} de dcto para tu tienda.\n¡Haz tu compra hoy!',

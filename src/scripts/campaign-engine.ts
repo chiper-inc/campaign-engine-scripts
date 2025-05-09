@@ -32,8 +32,8 @@ const UUID = uuid();
 
 async function main({
   day,
-  limit, // default 1500,
-  offset, // = default 7500,
+  limit = undefined, // default 1500,
+  offset = undefined, // = default 7500,
   includeShortlinks = false,
   sendToConnectly = false,
   sendToClevertap = false,
@@ -108,21 +108,40 @@ const outputIntegrationMessages = async <T>(
   channel: CHANNEL,
   communications: ICommunication[],
 ): Promise<MessageMetadataList<T>[]> => {
+  if (communications.length === 0) {
+    console.error(
+      `Campaign ${UUID} Did Not any messages to send for ${channel}`,
+    );
+    return Promise.resolve([]);
+  }
+
+  const formattedToday = UTILS.formatYYYYMMDD(TODAY);
+
   const entries: MessageMetadataList<T>[] = communications.map(
     (communication) =>
       communication.campaignService
         ?.integrationBody as unknown as MessageMetadataList<T>,
   );
 
-  const formattedToday = UTILS.formatYYYYMMDD(TODAY);
-  await UTILS.uploadJsonToGoogleCloudStorage(
-    `sender/${formattedToday.slice(0, 7)}/${(
-      CHANNEL_PROVIDER[channel] ?? 'Unknown'
-    ).toLowerCase()}/${channel}.${formattedToday}.${UUID}.json`,
-    entries,
+  const entriesPerFile = Math.ceil(
+    entries.length /
+      Math.ceil(entries.length / ((UTILS.isProduction() ? 256 : 1) * 256)),
   );
+
+  const promises = [];
+  for (let index = 0; index < entries.length; index += entriesPerFile) {
+    promises.push(
+      UTILS.uploadJsonToGoogleCloudStorage(
+        `sender/${formattedToday.slice(0, 7)}/${(
+          CHANNEL_PROVIDER[channel] ?? 'Unknown'
+        ).toLowerCase()}/${channel}.${formattedToday}.${UUID}.${index / entriesPerFile}.json`,
+        entries.slice(index, index + entriesPerFile),
+      ),
+    );
+  }
+  await Promise.all(promises);
   console.error(
-    `Campaing ${UUID} generated for ${entries.length} stores as ${channel}`,
+    `Campaing ${UUID} generated for ${entries.length} messagges for ${channel}`,
   );
   return Promise.resolve(entries);
 };
