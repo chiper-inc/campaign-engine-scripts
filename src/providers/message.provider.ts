@@ -1,3 +1,4 @@
+import { STORE_STATUS } from '../enums.ts';
 import {
   IClevertapEvent,
   IConnectlyEvent,
@@ -5,6 +6,8 @@ import {
 } from '../integrations/interfaces.ts';
 import { TypeCampaignVariables } from '../types.ts';
 import { IMessageMetadata, MessageMetadata } from './message.metadata.ts';
+import * as MOCKS from '../mocks/connectly-greetings.mock.ts';
+import * as UTILS from '../utils/index.ts';
 
 export abstract class MessageProvider {
   protected utmValue: Partial<IUtm>;

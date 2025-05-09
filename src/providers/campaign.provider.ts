@@ -29,7 +29,7 @@ export abstract class CampaignProvider {
 
   public abstract setPathVariables(shortLinks: ICallToActionLink[]): this;
 
-  public abstract setMessagesVariables(): Promise<this>;
+  public abstract setMessagesVariables(includeGenAi: boolean): Promise<this>;
 
   public abstract getMessageName(): string;
 
@@ -61,6 +61,10 @@ export abstract class CampaignProvider {
       if (i === n) obj[key] = value;
     }
     return { ...common, ...obj };
+  }
+
+  protected getReferenceMessage(products: string[], index: number): string {
+    return products[index % products.length];
   }
 
   protected getPromotionMessage(description: string): string {

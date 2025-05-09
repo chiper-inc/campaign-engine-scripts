@@ -15,6 +15,7 @@ export class GenAiProvider {
 
   public async generateCampaignMessages(
     communications: ICommunication[],
+    includeGenAi: boolean,
   ): Promise<number[]> {
     const functionName = this.generateCampaignMessages.name;
 
@@ -44,7 +45,7 @@ export class GenAiProvider {
       promises.push(
         communication.campaignService
           ? communication.campaignService
-              .setMessagesVariables()
+              .setMessagesVariables(includeGenAi)
               .catch((error) => {
                 this.logger.error({
                   message: 'Error Generating AI messages',

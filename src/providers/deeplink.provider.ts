@@ -1,10 +1,17 @@
-import { LbApiOperacionesIntegration } from '../integrations/lb-api-operaciones.ts';
 import { ICallToAction, IUtm } from '../integrations/interfaces.ts';
 import { ICommunication, IUtmCallToAction } from './interfaces.ts';
 import { LoggingProvider } from './logging.provider.ts';
 import { ICallToActionLink } from './interfaces.ts';
+import { LbApiOperacionesIntegration } from '../integrations/lb-api-operaciones.ts';
+import { Config } from '../config.ts';
 
 export class DeeplinkProvider {
+  private static readonly DETAULT_SHORT_LINK = {
+    fullUrl:
+      'https://tienda.chiper.co/pedir/dashboard?utm_content=6d33dcc3-67a1-4729-a7ca-81455dde4839&utm_term=050525&utm_source=connectly-campaign&utm_medium=164&utm_campaign=default',
+    shortenUrl: 'https://sl.chiper.co/g4eA',
+    campaignContent: '6d33dcc3-67a1-4729-a7ca-81455dde4839',
+  };
   private readonly lbApiOperacionesIntegration: LbApiOperacionesIntegration;
   private readonly logger: LoggingProvider;
   constructor() {
@@ -33,10 +40,11 @@ export class DeeplinkProvider {
           const key = this.getUtmAndCallToActionKey(utmCallToAction);
           acc.set(key, utmCallToAction);
         }
-        acc.set(
-          this.getUtmAndCallToActionKey(communication.utmCallToAction),
-          communication.utmCallToAction,
-        );
+        // TODO Logic for Offer List Short Link
+        // acc.set(
+        //   this.getUtmAndCallToActionKey(communication.utmCallToAction),
+        //   communication.utmCallToAction,
+        // );
         return acc;
       },
       new Map() as Map<string, IUtmCallToAction>,
@@ -97,15 +105,18 @@ export class DeeplinkProvider {
     preMap: Map<string, IUtmCallToAction>,
   ): Promise<Map<string, ICallToActionLink>> {
     const responses = await this.lbApiOperacionesIntegration.createAllShortLink(
-      Array.from(preMap.entries()).map(([key, value]) => ({
-        key,
-        value: {
-          utm: value.utm,
-          callToAction: value.callToAction,
-          includeShortLink: false, // TODO set it base on the communication channel false only for Push Notification
-        },
-        storeId: value.storeId,
-      })),
+      Array.from(preMap.entries()).map(
+        ([key, { storeId, utm, callToAction }]) => ({
+          key,
+          value: {
+            utm,
+            callToAction,
+            // The Push Notification (PN) does not need to be shortened
+            includeShortLink: utm.campaignMedium !== 'PN',
+          },
+          storeId,
+        }),
+      ),
     );
     return responses.reduce((acc, obj) => {
       const { key, response } = obj;
@@ -134,7 +145,10 @@ export class DeeplinkProvider {
     const functionName = this.shortLinkLookup.name;
 
     const key = this.getUtmAndCallToActionKey(utmCallToAction);
-    const shortLink = shortLinkMap.get(key);
+    let shortLink = shortLinkMap.get(key);
+    if (this.isOfferListLink(utmCallToAction)) {
+      shortLink = DeeplinkProvider.DETAULT_SHORT_LINK;
+    }
     if (this.isEmptyLink(shortLink)) {
       this.logger.error({
         message: 'Error creating short link',
@@ -146,6 +160,13 @@ export class DeeplinkProvider {
     }
     return shortLink as ICallToActionLink;
   };
+
+  private isOfferListLink({ callToAction }: IUtmCallToAction): boolean {
+    return (
+      callToAction.actionTypeId ===
+      Config.lbApiOperaciones.callToAction.offerList
+    );
+  }
 
   private isEmptyLink(link: ICallToActionLink | undefined): boolean {
     return !link || link.fullUrl === '' || link.shortenUrl === '';

@@ -4,7 +4,6 @@ import { CampaignProvider } from './campaign.provider.ts';
 import { ClevertapMessageProvider } from './clevertap.message.provider.ts';
 import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.provider.ts';
 import * as MOCKS from '../mocks/clevertap-campaigns.mock.ts';
-import { OFFER_TYPE } from '../repositories/interfaces.ts';
 import { MessageMetadata } from './message.metadata.ts';
 
 export class ClevertapCampaignProvider extends CampaignProvider {
@@ -57,47 +56,37 @@ export class ClevertapCampaignProvider extends CampaignProvider {
     return url;
   }
 
-  public async setMessagesVariables(): Promise<this> {
+  public async setMessagesVariables(includeGenAi: boolean): Promise<this> {
     const pushNotificationGenerator = ClevertapPushNotificationAI.getInstance();
 
-    const pushNotificationContent =
-      (await pushNotificationGenerator.generateContent(
-        this.variableValues,
-      )) as unknown as { titles: string[]; products: string[] };
+    const { titles } = includeGenAi
+      ? ((await pushNotificationGenerator.generateContent(
+          this.variableValues,
+        )) as unknown as { titles: string[]; products: string[] })
+      : // products removed from here;
+        {
+          titles: this.messageValues.map(
+            (message) => (message as ClevertapMessageProvider).title,
+          ),
+        };
+
+    const products: string[] = [];
+    for (const key in this.variableValues) {
+      if (key.startsWith('sku')) {
+        products.push(String(this.variableValues[key]));
+      }
+    }
 
     const splitedVars = this.splitVariables(this.variables);
-    this.mergeVariablesTitleAndProduct(
-      splitedVars,
-      pushNotificationContent.titles,
-      pushNotificationContent.products,
-    );
+    splitedVars.forEach((_var, i) => {
+      _var.title = this.getTitle(titles, i);
+      _var.message = this.getReferenceMessage(products, i);
+    });
 
     this.messageValues.forEach((message, index) => {
       message.setVariables(splitedVars[index]);
     });
     return Promise.resolve(this);
-  }
-
-  private mergeVariablesTitleAndProduct(
-    variables: TypeCampaignVariables[],
-    titles: string[],
-    products: string[],
-  ): void {
-    const getTitle = (titles: string[], i: number): string =>
-      titles[i % titles.length];
-
-    const getProductMessage = (products: string[], i: number): string =>
-      products[i % products.length];
-
-    variables.forEach((variable, i) => {
-      variable.title = getTitle(titles, i);
-      variable.message =
-        this.variableValues[`type_${i + 1}`] === OFFER_TYPE.storeReference
-          ? getProductMessage(products, i)
-          : this.getPromotionMessage(
-              String(this.variableValues[`sku_${i + 1}`]),
-            );
-    });
   }
 
   private splitVariables(
@@ -130,4 +119,7 @@ export class ClevertapCampaignProvider extends CampaignProvider {
   public getMessageName(): string {
     return MOCKS.version === 'v2' ? 'GenAI' : 'Random';
   }
+
+  private getTitle = (titles: string[], i: number): string =>
+    titles[i % titles.length];
 }

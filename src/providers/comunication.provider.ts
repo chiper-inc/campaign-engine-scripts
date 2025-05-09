@@ -14,10 +14,10 @@ import * as UTILS from '../utils/index.ts';
 
 export class CommunicationProvider {
   public generateEntries(
-    storesMap: Map<string, IStoreRecommendation>,
+    storesRecomendations: IStoreRecommendation[],
   ): ICommunication[] {
     const entries: ICommunication[] = [];
-    for (const data of Array.from(storesMap.values())) {
+    for (const data of storesRecomendations) {
       const {
         store,
         campaign,
@@ -104,7 +104,7 @@ export class CommunicationProvider {
     const subTypeMap: { [k: string]: string } = {
       name: 'name',
       sgmt: 'storeStatus',
-      sku: 'reference',
+      sku: 'copy',
       dsct: 'discountFormatted',
       img: 'image',
     };
