@@ -32,8 +32,8 @@ const UUID = uuid();
 
 async function main({
   day,
-  limit = 1500, // default 1500,
-  offset = 0, // = default 7500,
+  limit, // default 1500,
+  offset, // = default 7500,
   includeShortlinks = false,
   sendToConnectly = false,
   sendToClevertap = false,
@@ -98,7 +98,7 @@ async function main({
     sendToClevertap,
   );
   console.error(
-    `Campaing ${UUID} send from ${offset + 1} to ${offset + limit}`,
+    `Campaing ${UUID} send from ${(offset ?? 0) + 1} to ${(offset ?? 0) + (limit ?? 10000000)}`,
   );
 }
 
