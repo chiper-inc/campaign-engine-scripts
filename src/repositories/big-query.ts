@@ -14,8 +14,6 @@ export class BigQueryRepository {
     messagesPerCampaign[CHANNEL.WhatsApp].max
       ? messagesPerCampaign[CHANNEL.PushNotification].max
       : messagesPerCampaign[CHANNEL.WhatsApp].max;
-  private readonly offset?: number;
-  private readonly limit?: number;
   private readonly storeValueSegment = `
     IF (MG.storeStatus = 'New', 
       CASE
@@ -28,7 +26,16 @@ export class BigQueryRepository {
       MG.lastValueSegmentation
     )`;
 
-  private locationList = [LOCATION.CMX, LOCATION.CLO].join(',');
+  private locationList = [
+    LOCATION.CMX,
+    LOCATION.CLO,
+    LOCATION.BAQ,
+    LOCATION.BOG,
+    LOCATION.MDE,
+    LOCATION.BGA,
+    LOCATION.SCL,
+    LOCATION.VLN,
+  ].join(',');
   private readonly communicationChannel = `IF(MG.locationId IN (${this.locationList}), 'Push Notification', MG.communicationChannel)`;
   private readonly masterQuery = `
     SELECT DISTINCT
@@ -59,13 +66,11 @@ export class BigQueryRepository {
       AND MG.phone NOT LIKE '5_9223372%'
   `;
 
-  constructor({ offset, limit }: { offset?: number; limit?: number }) {
+  constructor() {
     this.bigquery = new BigQuery();
     this.defaultOptions = {
       location: 'US',
     };
-    this.offset = offset;
-    this.limit = limit;
     this.logger = new LoggingProvider({
       context: BigQueryRepository.name,
       levels: LoggingProvider.WARN | LoggingProvider.ERROR,
@@ -73,14 +78,24 @@ export class BigQueryRepository {
   }
 
   public selectStoreSuggestions(
-    churnRanges: IFrequencyParameter[],
-    channels = [CHANNEL.WhatsApp, CHANNEL.PushNotification],
-    storeStatus = [
-      STORE_STATUS.Hibernating,
-      STORE_STATUS.Resurrected,
-      STORE_STATUS.Retained,
-      STORE_STATUS.New,
-    ],
+    {
+      churnRanges,
+      channels = [CHANNEL.WhatsApp, CHANNEL.PushNotification],
+      storeStatus = [
+        STORE_STATUS.Hibernating,
+        STORE_STATUS.Resurrected,
+        STORE_STATUS.Retained,
+        STORE_STATUS.New,
+      ],
+    }: {
+      churnRanges: IFrequencyParameter[];
+      channels?: CHANNEL[];
+      storeStatus?: STORE_STATUS[];
+    },
+    {
+      limit = undefined,
+      offset = undefined,
+    }: { limit?: number; offset?: number } = {},
   ): Promise<IStoreSuggestion[]> {
     const query = `
       WITH LSR AS (
@@ -107,8 +122,8 @@ export class BigQueryRepository {
         -- AND QRY.communicationChannel = 'Push Notification'
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      ${!this.limit ? '' : `LIMIT ${this.limit}`}
-      ${!this.offset ? '' : `OFFSET ${this.offset}`}
+      ${!limit ? '' : `LIMIT ${limit}`}
+      ${!offset ? '' : `OFFSET ${offset}`}
     `;
 
     this.logger.log({
