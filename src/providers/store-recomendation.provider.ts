@@ -3,6 +3,7 @@ import { IStoreSuggestion, OFFER_TYPE } from '../repositories/interfaces.ts';
 import { IStoreRecommendation } from './interfaces.ts';
 import {
   TypeCampaignEntry,
+  TypeCampaignVariables,
   TypeSku,
   TypeStore,
   TypeStoreParams,
@@ -18,6 +19,8 @@ import { v4 as uuid } from 'uuid';
 import { Config } from '../config.ts';
 import { BigQueryRepository } from '../repositories/big-query.ts';
 import { frequencyByLocationAndStatusAndRange } from '../parameters.ts';
+import { ClevertapPushNotificationAI } from './clevertap.vertex-ai.provider.ts';
+import { LoggingProvider } from './logging.provider.ts';
 
 export class StoreRecommendationProvider {
   private static oldHostName = Config.catalogue.oldImageUrl;
@@ -27,11 +30,16 @@ export class StoreRecommendationProvider {
   private readonly baseDate: Date;
   private readonly skuMapValue: Map<string, TypeSku>;
   private storeMapValue: Map<string, IStoreRecommendation>;
+  private readonly logger: LoggingProvider;
 
   constructor({ baseDate }: { baseDate: Date }) {
     this.baseDate = baseDate;
     this.skuMapValue = new Map();
     this.storeMapValue = new Map();
+    this.logger = new LoggingProvider({
+      context: StoreRecommendationProvider.name,
+      levels: LoggingProvider.WARN | LoggingProvider.ERROR,
+    });
   }
 
   public async load({
@@ -358,13 +366,86 @@ export class StoreRecommendationProvider {
   public async generateOfferCopyMap(
     includeGenAi: boolean,
   ): Promise<Map<string, string>> {
-    for (const [, sku] of this.skuMapValue.entries()) {
-      sku.copy =
-        sku.skuType === OFFER_TYPE.storeReference
-          ? `${this.getPromotionMessage(sku.reference)} con ${sku.discountFormatted} dcto`
-          : this.getPromotionMessage(sku.reference);
+    const functionName = this.generateOfferCopyMap.name;
+
+    const skuValues = Array.from(this.skuMapValue.values());
+    const numberOfSkus = skuValues.length;
+    let currentSku = 0;
+
+    this.logger.warn({
+      functionName,
+      message: 'Offer Copy Generation Started',
+      data: { numberOfSkus: skuValues.length },
+    });
+
+    for (const sku of skuValues.filter(
+      (sku) => sku.skuType === OFFER_TYPE.referencePromotion,
+    )) {
+      sku.copy = this.getPromotionMessage(sku.reference);
+      if (++currentSku % 16 === 0) {
+        this.logger.warn({
+          functionName,
+          message: `Offer Copy Generation in Progress ${currentSku} of ${numberOfSkus} - ReferencePromotion`,
+          data: { numberOfSkus: skuValues.length, currentSku },
+        });
+      }
     }
+
+    let promises = [];
+    let skus = [];
+    for (const sku of skuValues.filter(
+      (sku) => sku.skuType === OFFER_TYPE.storeReference,
+    )) {
+      if (++currentSku % 16 === 0) {
+        this.logger.warn({
+          functionName,
+          message: `Offer Copy Generation in Progress ${currentSku} of ${numberOfSkus} - StoreReference`,
+          data: { numberOfSkus: skuValues.length, currentSku },
+        });
+      }
+      if (!includeGenAi) {
+        if (skus.length >= 4) {
+          promises.push(this.generateOfferCopyWithGenAi(skus));
+          skus = [];
+        }
+        skus.push(sku);
+        if (promises.length >= 16) {
+          await Promise.all(promises);
+          promises = [];
+        }
+      } else {
+        sku.copy = `${this.getPromotionMessage(sku.reference)} con ${sku.discountFormatted} dcto`;
+      }
+    }
+    if (skus.length) promises.push(this.generateOfferCopyWithGenAi(skus));
+    if (promises.length) await Promise.all(promises);
+
+    this.logger.warn({
+      functionName,
+      message: 'Offer Copy Generation Eneded',
+      data: { numberOfSkus: skuValues.length },
+    });
     return Promise.resolve(this.skuCopyMap);
+  }
+
+  private async generateOfferCopyWithGenAi(
+    skus: TypeSku[],
+  ): Promise<TypeSku[]> {
+    const variables: TypeCampaignVariables = { name: 'John Doe' };
+
+    skus.forEach((sku, index) => {
+      variables[`sku_${index + 1}`] = sku.reference;
+      variables[`dcto_${index + 1}`] = sku.discountFormatted;
+    });
+
+    const copyGenerator = ClevertapPushNotificationAI.getInstance();
+    const { products } = (await copyGenerator.generateContent(
+      variables,
+    )) as unknown as { products: string[] };
+    skus.forEach((sku, index) => {
+      sku.copy = products[index % products.length];
+    });
+    return Promise.resolve(skus);
   }
 
   private getPromotionMessage(description: string): string {
@@ -383,7 +464,7 @@ export class StoreRecommendationProvider {
     ];
     const prefix = UTILS.choose(emojis);
     const sufix = UTILS.choose(emojis);
-    return String(prefix + ` ${description} ` + sufix);
+    return String(UTILS.removeExtraSpaces(prefix + ` ${description} ` + sufix));
   }
 
   //

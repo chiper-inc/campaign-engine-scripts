@@ -269,6 +269,20 @@ export const titles: { [k: string]: string[] } = {
   ],
 };
 
+export const subtitles: string[] = [
+  '👋 Hola {{0}}',
+  '😊 Buen día {{0}}',
+  '🌞 Qué tal {{0}}',
+  '✨ Saludos {{0}}',
+  '😃 Ey hola {{0}}',
+  '💫 Buenas {{0}}',
+  '🐣 Hola {{0}}',
+  '🌈 Hey {{0}}',
+  '🚀 Saludos {{0}}',
+  '🍀 Hola hola {{0}}'
+];
+
+
 export const offers: { [k: string]: string[] } = {
   'API_Lead': [
     '🎉 {{0}} con {{1}} de dcto para tu tienda.\n¡Haz tu compra hoy!',
