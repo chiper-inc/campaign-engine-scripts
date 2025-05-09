@@ -121,7 +121,7 @@ export const uploadJsonToGoogleCloudStorage = (
 
     resolve(
       blobFile
-        .save(JSON.stringify(data, null, 2), {
+        .save(JSON.stringify(data), {
           contentType: 'application/json',
         })
         .then((response: unknown) => {

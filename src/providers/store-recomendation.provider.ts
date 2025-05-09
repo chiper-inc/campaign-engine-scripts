@@ -57,10 +57,13 @@ export class StoreRecommendationProvider {
       day: number,
     ) => boolean;
   }): Promise<void> {
-    const bigQueryRepository = new BigQueryRepository({ offset, limit });
+    const bigQueryRepository = new BigQueryRepository();
     const data = await bigQueryRepository.selectStoreSuggestions(
-      frequencyByLocationAndStatusAndRange,
-      [CHANNEL.WhatsApp, CHANNEL.PushNotification],
+      {
+        churnRanges: frequencyByLocationAndStatusAndRange,
+        channels: [CHANNEL.WhatsApp, CHANNEL.PushNotification],
+      },
+      { limit, offset },
     );
     this.storeMapValue = this.assignCampaignAndUtm(
       this.generateMap(
