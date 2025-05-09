@@ -14,6 +14,8 @@ export class BigQueryRepository {
     messagesPerCampaign[CHANNEL.WhatsApp].max
       ? messagesPerCampaign[CHANNEL.PushNotification].max
       : messagesPerCampaign[CHANNEL.WhatsApp].max;
+  private readonly offset?: number;
+  private readonly limit?: number;
   private readonly storeValueSegment = `
     IF (MG.storeStatus = 'New', 
       CASE
@@ -57,11 +59,13 @@ export class BigQueryRepository {
       AND MG.phone NOT LIKE '5_9223372%'
   `;
 
-  constructor() {
+  constructor({ offset, limit }: { offset?: number; limit?: number }) {
     this.bigquery = new BigQuery();
     this.defaultOptions = {
       location: 'US',
     };
+    this.offset = offset;
+    this.limit = limit;
     this.logger = new LoggingProvider({
       context: BigQueryRepository.name,
       levels: LoggingProvider.WARN | LoggingProvider.ERROR,
@@ -103,8 +107,8 @@ export class BigQueryRepository {
         -- AND QRY.communicationChannel = 'Push Notification'
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
-      -- LIMIT 15000
-      -- OFFSET 5750
+      ${!this.limit ? '' : `LIMIT ${this.limit}`}
+      ${!this.offset ? '' : `OFFSET ${this.offset}`}
     `;
 
     this.logger.log({

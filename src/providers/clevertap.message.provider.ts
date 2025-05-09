@@ -72,14 +72,18 @@ export class ClevertapMessageProvider extends MessageProvider {
   private generateClevertapExternalTriger(
     obj: TypeCampaignVariables,
   ): TypeCampaignVariables {
+    const subtitle = UTILS.replaceParams(UTILS.choose(MOCKS.subtitles), [
+      obj.name,
+    ]);
+
     if (MOCKS.version === 'v2') {
       const image = UTILS.addQueryParams(
         obj.img as string,
         ClevertapMessageProvider.imageQueryParams,
       );
       return {
-        name: obj.name,
         title: obj.title ?? UTILS.replaceParams(this.titleTemplate, []),
+        subtitle,
         message:
           obj.message ??
           UTILS.replaceParams(this.offerTemplate, [
@@ -90,13 +94,17 @@ export class ClevertapMessageProvider extends MessageProvider {
       };
     }
     return {
-      name: obj.name,
       title: UTILS.replaceParams(this.titleTemplate, []),
+      subtitle,
       message: UTILS.replaceParams(this.offerTemplate, [
         obj.sku ?? '',
         obj.dsct ?? '',
       ]),
       // path: obj.path,
     };
+  }
+
+  public get title(): string {
+    return this.titleTemplate;
   }
 }
