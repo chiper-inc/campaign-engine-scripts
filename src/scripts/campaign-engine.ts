@@ -47,11 +47,7 @@ async function main({
   const storeReferenceProvider = new StoreRecommendationProvider({
     baseDate: new Date(BASE_DATE),
   });
-  await storeReferenceProvider.load({
-    limit,
-    offset,
-    day /* filter: filterData */,
-  });
+  await storeReferenceProvider.load({ limit, offset, day });
   await storeReferenceProvider.generateOfferCopyMap(includeGenAi);
 
   const communications = new CommunicationProvider().generateEntries(
@@ -205,24 +201,6 @@ const splitcommunications = (
       [[], []] as [ICommunication[], ICommunication[]],
     );
 };
-
-// function getFrequency(
-//   row: IStoreSuggestion,
-//   frequencyMap: Map<string, number>,
-// ): number {
-//   const key = getLocationStatusRangeKey(row as Partial<IFrequencyParameter>);
-//   return frequencyMap.get(key) ?? 0;
-// }
-
-// function filterData(
-//   row: IStoreSuggestion,
-//   frequencyMap: Map<string, number>,
-//   day: number,
-// ) {
-//   const mod = getFrequency(row, frequencyMap);
-//   if (!mod) return false;
-//   return row.storeId % mod === day % mod;
-// }
 
 // Run Main Function
 
