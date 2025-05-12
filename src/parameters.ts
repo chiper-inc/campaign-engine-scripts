@@ -1,19 +1,9 @@
 import { STORE_STATUS } from './enums.ts';
 import { TypeCampaignByStatus } from './types.ts';
-import {
-  frequencyMap,
-  getLocationStatusRangeKey,
-  frequencyByLocationAndStatusAndRange,
-} from './parameters/frequencies.ts';
+import { frequencyByLocationAndStatusAndRange } from './parameters/frequencies.ts';
 import { campaignMap, getCampaignKey } from './parameters/campaigns.ts';
 
-export {
-  frequencyMap,
-  frequencyByLocationAndStatusAndRange,
-  getLocationStatusRangeKey,
-  campaignMap,
-  getCampaignKey,
-};
+export { frequencyByLocationAndStatusAndRange, campaignMap, getCampaignKey };
 
 const generateParams = (params: string[], length: number) =>
   Array.from({ length }, (_, i) => params.map((p) => `${p}_${i + 1}`)).flat();

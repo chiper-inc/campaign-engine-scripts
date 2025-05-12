@@ -2,15 +2,11 @@ import { v4 as uuid } from 'uuid';
 import * as UTILS from '../utils/index.ts';
 import { BASE_DATE, CHANNEL_PROVIDER } from '../constants.ts';
 
-import { getLocationStatusRangeKey } from '../parameters.ts';
-
 import {
   IConnectlyEvent,
   IClevertapEvent,
 } from '../integrations/interfaces.ts';
-import { IStoreSuggestion } from '../repositories/interfaces.ts';
 import { ICommunication } from '../providers/interfaces.ts';
-
 import { CHANNEL } from '../enums.ts';
 import { ConnectlyCampaignProvider } from '../providers/connectly.campaign.provider.ts';
 import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provider.ts';
@@ -47,10 +43,15 @@ async function main({
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
+  console.error('Day = ', day);
   const storeReferenceProvider = new StoreRecommendationProvider({
     baseDate: new Date(BASE_DATE),
   });
-  await storeReferenceProvider.load({ limit, offset, day, filter: filterData });
+  await storeReferenceProvider.load({
+    limit,
+    offset,
+    day /* filter: filterData */,
+  });
   await storeReferenceProvider.generateOfferCopyMap(includeGenAi);
 
   const communications = new CommunicationProvider().generateEntries(
@@ -205,23 +206,23 @@ const splitcommunications = (
     );
 };
 
-function getFrequency(
-  row: IStoreSuggestion,
-  frequencyMap: Map<string, number>,
-): number {
-  const key = getLocationStatusRangeKey(row);
-  return frequencyMap.get(key) ?? 0;
-}
+// function getFrequency(
+//   row: IStoreSuggestion,
+//   frequencyMap: Map<string, number>,
+// ): number {
+//   const key = getLocationStatusRangeKey(row as Partial<IFrequencyParameter>);
+//   return frequencyMap.get(key) ?? 0;
+// }
 
-function filterData(
-  row: IStoreSuggestion,
-  frequencyMap: Map<string, number>,
-  day: number,
-) {
-  const mod = getFrequency(row, frequencyMap);
-  if (!mod) return false;
-  return row.storeId % mod === day % mod;
-}
+// function filterData(
+//   row: IStoreSuggestion,
+//   frequencyMap: Map<string, number>,
+//   day: number,
+// ) {
+//   const mod = getFrequency(row, frequencyMap);
+//   if (!mod) return false;
+//   return row.storeId % mod === day % mod;
+// }
 
 // Run Main Function
 

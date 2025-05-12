@@ -79,7 +79,7 @@ export class BigQueryRepository {
 
   public selectStoreSuggestions(
     {
-      churnRanges,
+      frequencyParameters,
       channels = [CHANNEL.WhatsApp, CHANNEL.PushNotification],
       storeStatus = [
         STORE_STATUS.Hibernating,
@@ -87,10 +87,12 @@ export class BigQueryRepository {
         STORE_STATUS.Retained,
         STORE_STATUS.New,
       ],
+      day,
     }: {
-      churnRanges: IFrequencyParameter[];
+      frequencyParameters: IFrequencyParameter[];
       channels?: CHANNEL[];
       storeStatus?: STORE_STATUS[];
+      day: number;
     },
     {
       limit = undefined,
@@ -99,7 +101,7 @@ export class BigQueryRepository {
   ): Promise<IStoreSuggestion[]> {
     const query = `
       WITH LSR AS (
-        ${this.queryLocationStatusRange(churnRanges)}),
+        ${this.queryLocationStatusRange(frequencyParameters)}),
       QRY AS (
         ${this.masterQuery} AND MG.communicationChannel in ('${channels.join("','")}')
       )
@@ -111,14 +113,20 @@ export class BigQueryRepository {
         ) AS storeValue,
         LSR.fromDays AS \`from\`,
         LSR.toDays AS \`to\`,
-        LSR.rangeName
+        LSR.rangeName,
+        LSR.valueName
       FROM QRY
       INNER JOIN LSR
          ON QRY.daysSinceLastOrderDelivered
             BETWEEN IFNULL(LSR.fromDays, QRY.daysSinceLastOrderDelivered)
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
+        AND IFNULL(LSR.storeValue, QRY.lastValueSegmentation) = QRY.lastValueSegmentation
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
+        AND QRY.communicationChannel = LSR.communicationChannel
+      WHERE 1 = 1
+        -- Select only the stores that match the frequency
+        AND MOD(QRY.storeId, LSR.frequency) = MOD(${day}, LSR.frequency) 
         -- AND QRY.communicationChannel = 'Push Notification'
         -- AND QRY.recommendationId IS NOT NULL
       ORDER BY QRY.storeId, QRY.ranking
@@ -133,7 +141,7 @@ export class BigQueryRepository {
         query,
         channels,
         storeStatus,
-        churnRanges,
+        frequencyParameters,
       },
     });
     return this.executeQueryBigQuery(query) as Promise<IStoreSuggestion[]>;
@@ -145,6 +153,8 @@ export class BigQueryRepository {
       ...this.defaultOptions,
       query,
     };
+
+    console.error('<Query>', query, '</Query>');
 
     try {
       this.logger.warn({
@@ -175,30 +185,39 @@ export class BigQueryRepository {
   }
 
   private queryLocationStatusRange(
-    locationRanges: IFrequencyParameter[],
+    frequencyParameters: IFrequencyParameter[],
   ): string {
     const select = ({
+      communicationChannel,
       from,
       to,
       locationId,
       storeStatus,
-    }: Partial<IFrequencyParameter>): string => {
+      storeValue,
+      frequency,
+    }: IFrequencyParameter): string => {
       const name = from || to ? `'${from ?? 'Any'}to${to ?? 'Any'}'` : 'NULL';
       return `SELECT ${locationId} AS locationId, '${
         storeStatus
-      }' AS storeStatus, ${from ?? 'NULL'} AS fromDays, ${to ?? 'NULL'} AS toDays, ${
+      }' AS storeStatus, CAST(${from ?? 'NULL'} AS INT64) AS fromDays, CAST(${to ?? 'NULL'} AS INT64) AS toDays, ${
         name
-      } AS rangeName`;
+      } AS rangeName, CAST(${storeValue ?? 'NULL'} AS STRING) AS storeValue, '${storeValue ?? 'Any'}' AS valueName, CAST(${
+        frequency
+      } AS INT64) AS frequency, 
+        '${communicationChannel}' AS communicationChannel`;
     };
 
-    if (!locationRanges.length)
+    if (!frequencyParameters.length)
       return select({
         locationId: LOCATION._default,
         storeStatus: STORE_STATUS._default,
+        frequency: 1,
+        communicationChannel: CHANNEL.WhatsApp,
       });
 
-    return locationRanges
-      .map((locationRange) => select(locationRange))
+    return frequencyParameters
+      .filter(({ frequency }) => frequency) // Filter out undefined or cero frequencies
+      .map((frequencyParameter) => select(frequencyParameter))
       .join(' UNION DISTINCT ');
   }
 }
