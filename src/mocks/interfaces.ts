@@ -5,6 +5,7 @@ export interface IFrequencyParameter {
   storeStatus: STORE_STATUS;
   communicationChannel: CHANNEL;
   frequency: number;
+  storeValue?: STORE_STATUS | null;
   from?: number | null;
   to?: number | null;
 }
