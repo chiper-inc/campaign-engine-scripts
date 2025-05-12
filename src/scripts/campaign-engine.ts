@@ -43,7 +43,6 @@ async function main({
   sendToConnectly?: boolean;
   sendToClevertap?: boolean;
 }) {
-  console.error('Day = ', day);
   const storeReferenceProvider = new StoreRecommendationProvider({
     baseDate: new Date(BASE_DATE),
   });
