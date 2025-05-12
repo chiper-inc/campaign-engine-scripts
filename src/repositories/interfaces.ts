@@ -22,5 +22,6 @@ export interface IStoreSuggestion {
   from?: number | null;
   to?: number | null;
   rangeName: string;
+  valueName: string;
   communicationChannel: CHANNEL;
 }

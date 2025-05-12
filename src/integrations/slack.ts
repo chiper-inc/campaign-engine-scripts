@@ -117,7 +117,9 @@ export class SlackIntegration {
       text: this.slackTextMarkdown(
         `📣 Campaign Engine *${channel}*'s Sendout Report for *${
           city
-        }* on *${this.today}* :calendar:\n\n*📊 Number of ${channel} Messages*: ${qty}\n\nDetails per segment:`,
+        }* on *${this.today}* :calendar:\n\n📊 *${qty}* Stores Targeted with *${
+          channel
+        }*\n\nDetails per segment:`,
       ),
     });
 
@@ -172,7 +174,11 @@ export class SlackIntegration {
     const blockHeader = (channel: CHANNEL, qty: number): unknown => ({
       type: 'section',
       text: this.slackTextMarkdown(
-        `📣 Campaign Engine *${channel}*'s Sendout Report Summary on *${this.today}* :calendar:\n\n*🧾 Total Number of ${channel} Messages*: ${qty} 📈\n\nDetails per Campaign Mesagge:`,
+        `📣 Campaign Engine *${channel}*'s Sendout Report Summary on *${
+          this.today
+        }* :calendar:\n\n🧾 *${qty}* Stores Targeted With *${
+          channel
+        }* 📈\n\nDetails per Segment:`,
       ),
     });
 

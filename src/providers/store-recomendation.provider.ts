@@ -11,7 +11,7 @@ import {
 import { IUtm } from '../integrations/interfaces.ts';
 import * as UTILS from '../utils/index.ts';
 import { CHANNEL_PROVIDER } from '../constants.ts';
-import { campaignMap, frequencyMap, getCampaignKey } from '../parameters.ts';
+import { campaignMap, getCampaignKey } from '../parameters.ts';
 import { StoreReferenceMap } from '../mocks/store-reference.mock.ts';
 import { getCampaignSegmentName } from '../parameters/campaigns.ts';
 import * as CAMPAING from '../parameters/campaigns.ts';
@@ -46,30 +46,22 @@ export class StoreRecommendationProvider {
     limit,
     offset,
     day,
-    filter,
   }: {
     limit?: number;
     offset?: number;
     day: number;
-    filter: (
-      row: IStoreSuggestion,
-      frequencyMap: Map<string, number>,
-      day: number,
-    ) => boolean;
   }): Promise<void> {
     const bigQueryRepository = new BigQueryRepository();
     const data = await bigQueryRepository.selectStoreSuggestions(
       {
-        churnRanges: frequencyByLocationAndStatusAndRange,
+        frequencyParameters: frequencyByLocationAndStatusAndRange,
         channels: [CHANNEL.WhatsApp, CHANNEL.PushNotification],
+        day,
       },
       { limit, offset },
     );
     this.storeMapValue = this.assignCampaignAndUtm(
-      this.generateMap(
-        data.filter((row) => filter(row, frequencyMap, day)),
-        day,
-      ),
+      this.generateMap(data, day),
       day,
     );
   }
