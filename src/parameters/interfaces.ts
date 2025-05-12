@@ -7,5 +7,5 @@ export interface IConnectlyDetailCampaignParameter {
   communicationChannel: CHANNEL;
   from?: number | null;
   to?: number | null;
-  storeValue?: STORE_VALUE;
+  storeValue: STORE_VALUE | null;
 }
