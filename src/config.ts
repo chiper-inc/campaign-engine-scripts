@@ -9,6 +9,21 @@ const configSchema = Joi.object({
   environment: Joi.string()
     .valid('develop', 'production', 'staging')
     .required(),
+  parameter: {
+    frequencies: Joi.array()
+      .items(
+        Joi.object({
+          communicationChannel: Joi.string().required(),
+          storeStatus: Joi.string().required(),
+          locationId: Joi.string().required(),
+          to: Joi.number().integer().min(1).allow(null),
+          from: Joi.number().integer().min(1).allow(null),
+          storeValue: Joi.string().allow(null),
+          frequency: Joi.number().integer().min(1).max(255).required(),
+        }),
+      )
+      .required(),
+  },
   logging: Joi.object({
     levels: Joi.array()
       .items(Joi.string().valid('error', 'warn', 'log'))
@@ -79,6 +94,9 @@ export const Config = {
           level.trim().toLowerCase(),
         )
       : [],
+  },
+  parameter: {
+    frequencies: JSON.parse(process.env.ENGINE_PARAMETER_FREQUENCIES ?? '[]'),
   },
   connectly: {
     apiKey: process.env.CONNECTLY_API_KEY ?? '',
