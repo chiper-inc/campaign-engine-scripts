@@ -35,6 +35,7 @@ export class BigQueryRepository {
     LOCATION.BGA,
     LOCATION.SCL,
     LOCATION.VLN,
+    LOCATION.SAO,
   ].join(',');
   private readonly communicationChannel = `IF(MG.locationId IN (${this.locationList}), 'Push Notification', MG.communicationChannel)`;
   private readonly masterQuery = `
@@ -153,8 +154,6 @@ export class BigQueryRepository {
       ...this.defaultOptions,
       query,
     };
-
-    console.error('<Query>', query, '</Query>');
 
     try {
       this.logger.warn({
