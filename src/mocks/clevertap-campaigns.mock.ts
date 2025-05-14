@@ -557,32 +557,12 @@ export const maxMessagesPerCampaign: number = 5;
 const MAX_LENGTH = 41;
 
 export const campaignIds: { [k: string]: string }= {
-  'API_Retained': '1742937356',
-  'API_Churn': '1742937199',
-  'API_Resurrected': '1742937099',
-  'API_Hibernating': '1742937080',
-  'API_Lead': '1742937053',
-  'API_New': '1742937015',
-  'API_Retained.High': '1742937356',
-  'API_Retained.MidHigh': '1742937356',
-  'API_Retained.MidLow': '1742937356',
-  'API_Retained.Low': '1742937356',
-  'API_Churn.90to119': '1742937199',
-  'API_Churn.120to149': '1742937199',
-  'API_Churn.150to179': '1742937199',
-  'API_Churn.180to209': '1742937199',
-  'API_Churn.210to359': '1742937199',
-  'API_Churn.360to449': '1742937199',
-  'API_Churn.450to539': '1742937199',
-  'API_Churn.540toAny': '1742937199',
-  'API_Resurrected.High': '1742937099',
-  'API_Resurrected.MidHigh': '1742937099',
-  'API_Resurrected.MidLow': '1742937099',
-  'API_Resurrected.Low': '1742937099',
-  'API_Hibernating.High': '1742937080',
-  'API_Hibernating.MidHigh': '1742937080',
-  'API_Hibernating.MidLow': '1742937080',
-  'API_Hibernating.Low': '1742937080',
+  'API_Retained': '1747239822', // '1742937356',
+  'API_Churn': '1747239750', // '1742937199',
+  'API_Resurrected': '1747239916', // '1742937099',
+  'API_Hibernating': '1747239994', // '1742937080',
+  'API_Lead': '1747240052',// '1742937053',
+  'API_New': '1747240120', // '1742937015',
 };
 
 for (const key in titles) {
