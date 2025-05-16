@@ -12,7 +12,7 @@ export class CloudTask {
   private static hostMap: { [key: string]: string } = {
     development: 'beta.api.chiper.co',
     staging: 'staging.api.chiper.co',
-    production: 'api.chiper.co',
+    production: 'staging.api.chiper.co',
   };
   private readonly injectorUrl: string;
 
