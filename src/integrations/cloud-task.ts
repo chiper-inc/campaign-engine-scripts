@@ -7,19 +7,14 @@ import { LoggingProvider } from '../providers/logging.provider.ts';
 export class CloudTask {
   // private readonly parent;
   private readonly client: v2.CloudTasksClient;
+  private readonly injector;
   private readonly queue: string;
   private logger: LoggingProvider;
-  private static hostMap: { [key: string]: string } = {
-    development: 'beta.api.chiper.co',
-    staging: 'staging.api.chiper.co',
-    production: 'api.chiper.co',
-  };
-  private readonly injectorUrl: string;
 
-  constructor(queue?: string) {
+  constructor(queue: string) {
     this.client = new v2.CloudTasksClient();
-    this.queue = queue ?? Config.google.cloudTask.queue;
-    this.injectorUrl = `https://${CloudTask.hostMap[Config.environment] ?? CloudTask.hostMap.development}/operaciones`;
+    this.queue = queue;
+    this.injector = Config.google.cloudInjector;
     this.logger = new LoggingProvider({
       context: CloudTask.name,
       levels: LoggingProvider.WARN | LoggingProvider.ERROR,
@@ -55,7 +50,7 @@ export class CloudTask {
     const parent = this.client.queuePath(
       Config.google.project,
       Config.google.location,
-      this.queue,
+      this.injector.queue,
     );
 
     const body = {
@@ -67,10 +62,10 @@ export class CloudTask {
     const task: google.cloud.tasks.v2.ITask = {
       httpRequest: {
         httpMethod: 'POST',
-        url: `${this.injectorUrl}/cloud-task-queues/${this.queue}/injector`,
+        url: `${this.injector.url}/queues/${this.queue}/injector`,
         body: Buffer.from(JSON.stringify(body)).toString('base64'),
         headers: {
-          Authorization: Config.lbApiOperaciones.apiKey as string,
+          'x-api-key': this.injector.key,
           'Content-Type': 'application/json',
         },
       },
