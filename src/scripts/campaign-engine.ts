@@ -106,7 +106,7 @@ const outputIntegrationMessages = async <T>(
 ): Promise<MessageMetadataList<T>[]> => {
   if (communications.length === 0) {
     console.error(
-      `Campaign ${UUID} Did Not any messages to send for ${channel}`,
+      `Campaign ${UUID} Did't generate any messages to send for ${channel}`,
     );
     return Promise.resolve([]);
   }

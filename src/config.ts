@@ -51,6 +51,7 @@ const configSchema = Joi.object({
     apiUrl: Joi.string().uri().required(),
     apiKey: Joi.string().allow(null),
     apiToken: Joi.string().allow(null),
+    token: Joi.string().allow(null),
     batchSize: Joi.number().integer().min(1).max(32).required(),
   }).required(),
   slack: Joi.object({
@@ -66,6 +67,11 @@ const configSchema = Joi.object({
     location: Joi.string().required(),
     cloudTask: Joi.object({
       queue: Joi.string().required(),
+    }).required(),
+    cloudInjector: Joi.object({
+      url: Joi.string().uri().required(),
+      queue: Joi.string().required(),
+      key: Joi.string().required(),
     }).required(),
     vertexAI: Joi.object({
       model: Joi.string().required(),
@@ -135,6 +141,11 @@ export const Config = {
     location: process.env.GOOGLE_LOCATION ?? '',
     cloudTask: {
       queue: process.env.GOOGLE_CLOUD_TASK_QUEUE ?? '',
+    },
+    cloudInjector: {
+      url: process.env.GOOGLE_CLOUD_TASK_INJECTOR_URL ?? '',
+      queue: process.env.GOOGLE_CLOUD_TASK_INJECTOR_QUEUE ?? '',
+      key: process.env.GOOGLE_CLOUD_TASK_INJECTOR_KEY ?? '',
     },
     vertexAI: {
       model: 'gemini-2.0-flash-001',
