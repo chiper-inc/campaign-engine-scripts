@@ -20,6 +20,7 @@ const script = async (filename: string): Promise<void> => {
           (md) =>
             new MessageMetadata({
               skus: md.skus ?? md.$skus,
+              rankings: md.rankings ?? md.$rankings,
               storeId: md.storeId,
               utm: md.utm ?? md.$utm,
               callToAction: md.callToAction ?? md.$callToAction,
