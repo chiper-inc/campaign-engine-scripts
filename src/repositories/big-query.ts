@@ -54,6 +54,8 @@ export class BigQueryRepository {
       MG.discountFormatted,
       MG.phone,
       MG.ranking,
+      IFNULL(MG.rankingStore, NULL) AS rankingStore,
+      IFNULL(MG.rankingSegment, NULL) AS rankingSegment,
       ${this.storeValueSegment} AS lastValueSegmentation,
       ${this.communicationChannel} AS communicationChannel,
       IFNULL(MG.daysSinceLastOrderDelivered, 0) AS daysSinceLastOrderDelivered,

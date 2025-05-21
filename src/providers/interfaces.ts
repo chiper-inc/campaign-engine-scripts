@@ -2,6 +2,7 @@ import { ICallToAction, IUtm } from '../providers/interfaces.ts';
 import { CampaignProvider } from '../providers/campaign.provider.ts';
 import {
   TypeCampaignEntry,
+  TypeRanking,
   TypeSku,
   TypeStore,
   TypeStoreParams,
@@ -15,6 +16,7 @@ export interface IUtmCallToAction {
   utm: IUtm;
   storeId: number;
   skus: TypeSku[];
+  rankings: TypeRanking[];
 }
 export interface ICommunication {
   storeId: number;
@@ -31,6 +33,7 @@ export interface IStoreRecommendation {
   params: TypeStoreParams;
   campaign: TypeCampaignEntry;
   skus: TypeSku[];
+  rankings: TypeRanking[];
   utm: IUtm;
 }
 
@@ -39,6 +42,8 @@ export interface IOffer {
   type: OFFER_TYPE;
   storeReferenceId?: number;
   referencePromotionId?: number;
+  rankingStore: number | null;
+  rankingSegment: number | null;
 }
 export interface ICallToActionLink {
   fullUrl: string;

@@ -4,7 +4,12 @@ import {
   IOffer,
   IStoreRecommendation,
 } from './interfaces.ts';
-import { TypeCampaignVariables, TypeSku, TypeStore } from '../types.ts';
+import {
+  TypeCampaignVariables,
+  TypeRanking,
+  TypeSku,
+  TypeStore,
+} from '../types.ts';
 import { CampaignFactory } from './campaign.factory.ts';
 import { MessageProvider } from './message.provider.ts';
 import { ICallToAction, IUtm } from './interfaces.ts';
@@ -22,6 +27,7 @@ export class CommunicationProvider {
         store,
         campaign,
         skus,
+        rankings,
         utm: coreUtm,
         params: { communicationChannel: channel },
       } = data;
@@ -35,6 +41,7 @@ export class CommunicationProvider {
       } = this.generateVariablesAndRecommendations(campaign.variables, {
         store,
         skus,
+        rankings,
       }) ?? {
         variables: undefined,
         offers: undefined,
@@ -88,6 +95,7 @@ export class CommunicationProvider {
     obj: {
       store: TypeStore;
       skus: TypeSku[];
+      rankings: TypeRanking[];
     },
   ): {
     variables: TypeCampaignVariables;
@@ -112,9 +120,9 @@ export class CommunicationProvider {
     let variables: TypeCampaignVariables = {};
     for (const variable of variablesList) {
       const [varName, varIndex] = variable.split('_');
-      const property = (obj as { [k: string]: TypeStore | TypeSku[] })[
-        typeMap[varName]
-      ];
+      const property = (
+        obj as { [k: string]: TypeStore | TypeSku[] | TypeRanking[] }
+      )[typeMap[varName]];
 
       if (!property) {
         variables = { ...variables, [variable]: `Variable[${variable}]` };
@@ -122,6 +130,7 @@ export class CommunicationProvider {
         const resp = this.getVariableFromSku(
           variable,
           property as TypeSku[],
+          obj.rankings,
           Number(varIndex) - 1,
           subTypeMap[varName],
         );
@@ -160,16 +169,19 @@ export class CommunicationProvider {
       let callToAction: Partial<ICallToAction> = {};
       let utm: IUtm | undefined = undefined;
       let skus: TypeSku[] = [];
+      let rankings: TypeRanking[] = [];
       if (index && index !== 'dsct') {
         if (isNaN(Number(index))) {
           // path_n
           callToAction = this.generateCallToActionToOfferList(offers);
           skus = offers.map((offer) => offer.sku);
+          rankings = offers.map((offer) => this.generateRanking(offer));
           utm = messages[0]?.utm;
         } else {
           const i = Number(index) - 1;
           callToAction = this.generateCallToActionToOfferDetail(offers[i]);
           skus = [offers[i].sku];
+          rankings = [this.generateRanking(offers[i])];
           utm = messages[i]?.utm ?? messages[0]?.utm;
         }
       } else {
@@ -179,6 +191,7 @@ export class CommunicationProvider {
       pathObj.push({
         storeId,
         skus,
+        rankings,
         utm: { ...utm },
         callToAction,
       });
@@ -194,6 +207,7 @@ export class CommunicationProvider {
   ): IUtmCallToAction {
     let callToAction: Partial<ICallToAction> = {};
     let skus: TypeSku[] = [];
+    let rankings: TypeRanking[] = [];
     if (offers.length === 1) {
       callToAction = this.generateCallToActionToOfferDetail(offers[0]);
       skus = [offers[0].sku];
@@ -202,6 +216,7 @@ export class CommunicationProvider {
 
       callToAction = this.generateCallToActionToOfferList(offers);
       skus = offers.map((offer) => offer.sku);
+      rankings = offers.map((offer) => this.generateRanking(offer));
     } else {
       // NO Sku included
       callToAction = this.generateCallToActionToDiscountList();
@@ -211,6 +226,17 @@ export class CommunicationProvider {
       utm,
       storeId,
       skus,
+      rankings,
+    };
+  }
+
+  private generateRanking(offer: IOffer): TypeRanking {
+    return {
+      skuType: offer.sku.skuType,
+      storeReferenceId: offer.storeReferenceId ?? null,
+      referencePromotionId: offer.referencePromotionId ?? null,
+      rankingStore: offer.rankingStore,
+      rankingSegment: offer.rankingSegment,
     };
   }
 
@@ -262,6 +288,7 @@ export class CommunicationProvider {
   private getVariableFromSku(
     variable: string,
     skus: TypeSku[],
+    rankings: TypeRanking[],
     index: number,
     varName: string = '_',
   ): {
@@ -286,6 +313,12 @@ export class CommunicationProvider {
       };
     }
 
+    const ranking = rankings.find(
+      ({ skuType, storeReferenceId, referencePromotionId }) =>
+        skuType === sku.skuType &&
+        storeReferenceId === sku.storeReferenceId &&
+        referencePromotionId === sku.referencePromotionId,
+    );
     const offer = {
       sku,
       type: sku.skuType,
@@ -295,6 +328,8 @@ export class CommunicationProvider {
         sku.referencePromotionId === null
           ? undefined
           : sku.referencePromotionId,
+      rankingStore: ranking?.rankingStore ?? null,
+      rankingSegment: ranking?.rankingSegment ?? null,
     };
     return {
       variable: {

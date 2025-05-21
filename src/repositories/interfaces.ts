@@ -19,6 +19,8 @@ export interface IStoreSuggestion {
   discountFormatted: string;
   phone: string;
   ranking: number;
+  rankingStore: number;
+  rankingSegment: number;
   from?: number | null;
   to?: number | null;
   rangeName: string;
