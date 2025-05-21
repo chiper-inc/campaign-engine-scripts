@@ -553,7 +553,7 @@ export const offers: { [k: string]: string[] } = {
 
 export const version: string = 'v2';
 export const minMessagesPerCampaign: number = 1;
-export const maxMessagesPerCampaign: number = 5;
+export const maxMessagesPerCampaign: number = 6;
 const MAX_LENGTH = 41;
 
 export const campaignIds: { [k: string]: string }= {
