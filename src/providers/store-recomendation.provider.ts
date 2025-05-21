@@ -4,6 +4,7 @@ import { IStoreRecommendation } from './interfaces.ts';
 import {
   TypeCampaignEntry,
   TypeCampaignVariables,
+  TypeRanking,
   TypeSku,
   TypeStore,
   TypeStoreParams,
@@ -87,7 +88,22 @@ export class StoreRecommendationProvider {
         params: { ...params, communicationChannel: channel },
         store: this.getStore(row),
         skus: [] as TypeSku[],
+        rankings: [] as TypeRanking[],
       };
+
+    const generateRanking = (row: IStoreSuggestion): TypeRanking => ({
+      skuType: row.recommendationType,
+      storeReferenceId:
+        row.recommendationType === OFFER_TYPE.storeReference
+          ? row.recommendationId
+          : null,
+      referencePromotionId:
+        row.recommendationType === OFFER_TYPE.referencePromotion
+          ? row.recommendationId
+          : null,
+      rankingStore: row.rankingStore,
+      rankingSegment: row.rankingSegment,
+    });
 
     const getRecomendationPerChannel = ({
       channels,
@@ -104,8 +120,10 @@ export class StoreRecommendationProvider {
         if (channels.length === 1) {
           // Only WhatsApp
           recommendation.skus?.push(this.getSku(row));
+          recommendation.rankings?.push(generateRanking(row));
         } else if (isTurn) {
           recommendation.skus?.push(this.getSku(row));
+          recommendation.rankings?.push(generateRanking(row));
         }
       }
       return recommendation;

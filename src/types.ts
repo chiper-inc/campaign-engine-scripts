@@ -48,6 +48,14 @@ export type TypeSku = {
   image: string;
 };
 
+export type TypeRanking = {
+  skuType: OFFER_TYPE;
+  storeReferenceId: number | null;
+  referencePromotionId: number | null;
+  rankingStore: number | null;
+  rankingSegment: number | null;
+};
+
 export type TypeCampaignEntry = {
   name: string;
   variables: string[];

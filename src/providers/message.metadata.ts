@@ -1,4 +1,4 @@
-import { TypeSku } from '../types.ts';
+import { TypeRanking, TypeSku } from '../types.ts';
 import { ICallToAction, IUtm, IUtmCallToAction } from './interfaces.ts';
 import { Config } from '../config.ts';
 
@@ -20,15 +20,26 @@ export class MessageMetadata {
   };
 
   readonly $skus: TypeSku[];
+  readonly $rankings: TypeRanking[];
   readonly $utm: IUtm;
   readonly storeId: number;
   readonly $callToAction: Partial<ICallToAction>;
 
-  constructor({ skus, utm, storeId, callToAction }: IUtmCallToAction) {
+  constructor({
+    skus,
+    rankings,
+    utm,
+    storeId,
+    callToAction,
+  }: IUtmCallToAction) {
     this.$skus = skus;
+    this.$rankings = rankings;
     this.$utm = utm;
     this.storeId = storeId;
     this.$callToAction = callToAction;
+  }
+  public get rankings(): TypeRanking[] {
+    return this.$rankings;
   }
   public get skus(): TypeSku[] {
     return this.$skus;
@@ -51,7 +62,12 @@ export class MessageMetadata {
         ...callToAction,
         actionType: MessageMetadata.actionType[callToAction.actionTypeId],
       },
-      skus: skus.map((sku, j) => ({ ...sku, copy: f(i, j) })),
+      skus: skus.map((sku, j) => ({
+        ...sku,
+        copy: f(i, j),
+        rankingStore: this.rankings[j].rankingStore,
+        rankingSegment: this.rankings[j].rankingSegment,
+      })),
     };
   }
 }
