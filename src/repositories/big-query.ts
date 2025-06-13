@@ -23,7 +23,7 @@ export class BigQueryRepository {
         WHEN MG.numDeliveredOrders = 3 THEN 'MidHigh'
       ELSE 'High'
       END,
-      MG.lastValueSegmentation
+      IFNULL (MG.lastValueSegmentation, 'MidHigh')
     )`;
 
   private locationList = [
