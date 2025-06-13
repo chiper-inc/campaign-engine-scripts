@@ -23,7 +23,7 @@ export class BigQueryRepository {
         WHEN MG.numDeliveredOrders = 3 THEN 'MidHigh'
       ELSE 'High'
       END,
-      IFNULL (MG.lastValueSegmentation, 'MidHigh')
+      MG.lastValueSegmentation
     )`;
 
   private locationList = [
@@ -123,7 +123,8 @@ export class BigQueryRepository {
          ON QRY.daysSinceLastOrderDelivered
             BETWEEN IFNULL(LSR.fromDays, QRY.daysSinceLastOrderDelivered)
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
-        AND IFNULL(LSR.storeValue, QRY.lastValueSegmentation) = QRY.lastValueSegmentation
+        AND IFNULL(LSR.storeValue, IFNULL(QRY.lastValueSegmentation, 'NULL'))
+          = IFNULL(QRY.lastValueSegmentation, 'NULL')
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
         AND QRY.communicationChannel = LSR.communicationChannel
