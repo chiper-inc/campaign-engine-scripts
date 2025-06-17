@@ -62,7 +62,7 @@ export interface IMetaSimpleImage {
 }
 
 export interface IMetaButtonPath {
-  path: string
+  path: string;
 }
 export interface IMetaEvent {
   toPhoneNumber: string;
@@ -71,15 +71,15 @@ export interface IMetaEvent {
     name: string;
     carousel: {
       body: IMetaSimpleBody;
-      cards: { 
+      cards: {
         header: IMetaSimpleImage;
         body: IMetaSimpleBody;
         buttons: IMetaButtonPath[];
-      }[];  
-      };
+      }[];
     };
   };
 }
+
 export interface IClevertapEvent {
   to: { identity: string[] };
   campaign_id: string;

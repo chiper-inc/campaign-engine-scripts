@@ -28,18 +28,18 @@ export class MetaMessageProvider extends WhatsappMessageProvider {
     };
   }
 
-  private generateBody(): unknown {
-    return { '0': { text: this.variablesValues['greeting'] } };
+  private generateBody(): IMetaEvent['content']['carousel']['body'] {
+    return { '0': { text: this.variablesValues['greeting'] as string } };
   }
 
-  private generateCards(): unknown[] {
+  private generateCards(): IMetaEvent['content']['carousel']['cards'] {
     const skus = Object.keys(this.variablesValues)
       .filter((key) => key.startsWith('sku_'))
       .map((key) => key.replace('sku_', ''));
     return skus.map((sku) => ({
-      header: { image: { link: this.variablesValues[`img_${sku}`] } },
-      body: { '0': { text: this.variablesValues[`sku_${sku}`] } },
-      buttons: [{ path: this.variablesValues[`path_${sku}`] }],
+      header: { image: { link: this.variablesValues[`img_${sku}`] as string } },
+      body: { '0': { text: this.variablesValues[`sku_${sku}`] as string } },
+      buttons: [{ path: this.variablesValues[`path_${sku}`] as string }],
     }));
   }
 }
