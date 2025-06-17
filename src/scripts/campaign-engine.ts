@@ -5,6 +5,7 @@ import { BASE_DATE, CHANNEL_PROVIDER } from '../constants.ts';
 import {
   IConnectlyEvent,
   IClevertapEvent,
+  IMetaEvent,
 } from '../integrations/interfaces.ts';
 import { ICommunication } from '../providers/interfaces.ts';
 import { CHANNEL } from '../enums.ts';
@@ -12,6 +13,7 @@ import { WhatsappCampaignProvider } from '../providers/whatsapp.campaign.provide
 import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provider.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
+import { MetaGatewayIntegration } from '../integrations/meta-gateway.ts';
 import { Logger } from 'logging-chiper';
 import { GenAiProvider } from '../providers/gen-ai.provider.ts';
 import { DeeplinkProvider } from '../providers/deeplink.provider.ts';
@@ -33,6 +35,7 @@ async function main({
   includeShortlinks = false,
   sendToConnectly = false,
   sendToClevertap = false,
+  sendToMeta = false,
   includeGenAi = false,
 }: {
   day: number;
@@ -41,6 +44,7 @@ async function main({
   includeShortlinks?: boolean;
   includeGenAi?: boolean;
   sendToConnectly?: boolean;
+  sendToMeta?: boolean;
   sendToClevertap?: boolean;
 }) {
   const storeReferenceProvider = new StoreRecommendationProvider({
@@ -65,8 +69,8 @@ async function main({
 
   const slackProvider = new SlackProvider(TODAY);
 
-  const [connectlyCampaigns] = await Promise.all([
-    outputIntegrationMessages<IConnectlyEvent>(
+  const [whatsappCampaigns] = await Promise.all([
+    outputIntegrationMessages<IConnectlyEvent | IMetaEvent>(
       CHANNEL.WhatsApp,
       connectlyEvents,
     ),
@@ -88,10 +92,11 @@ async function main({
     ),
   ]);
   await sendCampaingsToIntegrations(
-    connectlyCampaigns,
+    whatsappCampaigns,
     clevertapCampaigns,
     sendToConnectly,
     sendToClevertap,
+    sendToMeta,
   );
   console.error(
     `Campaing ${UUID} send from ${(offset ?? 0) + 1} to ${(offset ?? 0) + (limit ?? 10000000)}`,
@@ -143,16 +148,29 @@ const outputIntegrationMessages = async <T>(
 };
 
 const sendCampaingsToIntegrations = async (
-  connectlyEvents: MessageMetadataList<IConnectlyEvent>[],
+  whatsappEvents: MessageMetadataList<IConnectlyEvent | IMetaEvent>[],
   clevertapEvents: MessageMetadataList<IClevertapEvent>[],
   sendToConnectly: boolean,
   sendToClevertap: boolean,
+  sendToMeta: boolean,
 ) => {
   const connectlyIntegration = new ConnectlyIntegration();
+  const metaGatewayIntegration = new MetaGatewayIntegration();
   const clevertapIntegration = new ClevertapIntegration();
   const promises: Promise<void>[] = [];
   if (sendToConnectly) {
-    promises.push(connectlyIntegration.sendAllCampaigns(connectlyEvents));
+    promises.push(
+      connectlyIntegration.sendAllCampaigns(
+        whatsappEvents as unknown[] as MessageMetadataList<IConnectlyEvent>[],
+      ),
+    );
+  }
+  if (sendToMeta) {
+    promises.push(
+      metaGatewayIntegration.sendAllCampaigns(
+        whatsappEvents as unknown[] as MessageMetadataList<IMetaEvent>[],
+      ),
+    );
   }
   if (sendToClevertap) {
     promises.push(clevertapIntegration.sendAllCampaigns(clevertapEvents));
@@ -219,6 +237,7 @@ const includeParam = (args: string[], param: string) =>
     includeShortlinks: includeParam(args, 'link'),
     sendToClevertap: includeParam(args, 'clevertap'),
     sendToConnectly: includeParam(args, 'connectly'),
+    sendToMeta: includeParam(args, 'meta'),
   });
 })()
   .then(() => {

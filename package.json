@@ -35,6 +35,7 @@
     "script:engine": "npm run build && node dist/scripts/campaign-engine.js",
     "script:connectly": "npm run build && node dist/scripts/send-connectly.js",
     "script:clevertap": "npm run build && node dist/scripts/send-clevertap.js",
+    "script:meta": "npm run build && node dist/scripts/send-meta.js",
     "debug:engine": "npm run build && node --inspect-brk dist/scripts/campaign-engine.js",
     "lint": "eslint ./src --ext .ts",
     "lint:fix": "eslint ./src --ext .ts --fix",
