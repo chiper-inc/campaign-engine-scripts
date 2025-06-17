@@ -48,6 +48,18 @@ export interface IConnectlyEvent {
   campaignName: string;
   variables: TypeCampaignVariables;
 }
+
+export interface IMetaEvent {
+  toPhoneNumber: string;
+  content: {
+    language: string;
+    name: string;
+    carousel: {
+      body: unknown;
+      cards: unknown[];
+    };
+  };
+}
 export interface IClevertapEvent {
   to: { identity: string[] };
   campaign_id: string;

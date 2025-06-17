@@ -8,7 +8,7 @@ import {
 } from '../integrations/interfaces.ts';
 import { ICommunication } from '../providers/interfaces.ts';
 import { CHANNEL } from '../enums.ts';
-import { ConnectlyCampaignProvider } from '../providers/connectly.campaign.provider.ts';
+import { WhatsappCampaignProvider } from '../providers/whatsapp.campaign.provider.ts';
 import { ClevertapCampaignProvider } from '../providers/clevertap.campaign.provider.ts';
 import { ConnectlyIntegration } from '../integrations/connectly.ts';
 import { ClevertapIntegration } from '../integrations/clevertap.ts';
@@ -186,9 +186,7 @@ const splitcommunications = (
         // console.error(
         //   `${term},${asset},${cityId},${segment},${storeId},${products.join(',')}`,
         // );
-        if (
-          communication.campaignService instanceof ConnectlyCampaignProvider
-        ) {
+        if (communication.campaignService instanceof WhatsappCampaignProvider) {
           acc[0].push(communication);
         } else if (
           communication.campaignService instanceof ClevertapCampaignProvider

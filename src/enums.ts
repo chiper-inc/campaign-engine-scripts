@@ -36,4 +36,5 @@ export enum CHANNEL {
 export enum SERVICE_PROVIDER {
   Connectly = 'Connectly',
   Clevertap = 'Clevertap',
+  Meta = 'Meta',
 }
