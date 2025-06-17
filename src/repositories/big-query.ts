@@ -37,7 +37,7 @@ export class BigQueryRepository {
     LOCATION.VLN,
     LOCATION.SAO,
   ].join(',');
-  private readonly communicationChannel = `IF(MG.locationId IN (${this.locationList}), 'Push Notification', MG.communicationChannel)`;
+  private readonly communicationChannel = `IF(MG.locationId IN (${this.locationList}), 'Whatsapp', MG.communicationChannel)`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
@@ -123,7 +123,8 @@ export class BigQueryRepository {
          ON QRY.daysSinceLastOrderDelivered
             BETWEEN IFNULL(LSR.fromDays, QRY.daysSinceLastOrderDelivered)
                 AND IFNULL(LSR.toDays, QRY.daysSinceLastOrderDelivered)
-        AND IFNULL(LSR.storeValue, QRY.lastValueSegmentation) = QRY.lastValueSegmentation
+        AND IFNULL(LSR.storeValue, IFNULL(QRY.lastValueSegmentation, 'NULL'))
+          = IFNULL(QRY.lastValueSegmentation, 'NULL')
         AND QRY.locationId = LSR.locationId
         AND QRY.storeStatus = LSR.storeStatus
         AND QRY.communicationChannel = LSR.communicationChannel

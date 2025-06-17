@@ -54,7 +54,7 @@ export class MessageMetadata {
     return this.$callToAction as ICallToAction;
   }
 
-  public expand(i: number, f: (i?: number, j?: number) => string): unknown {
+  public expand(i: number, fn: (i?: number, j?: number) => string): unknown {
     const { callToAction, skus, utm } = this;
     return {
       utm,
@@ -64,7 +64,7 @@ export class MessageMetadata {
       },
       skus: skus.map((sku, j) => ({
         ...sku,
-        copy: f(i, j),
+        copy: fn(i, j),
         rankingStore: this.rankings[j].rankingStore,
         rankingSegment: this.rankings[j].rankingSegment,
       })),

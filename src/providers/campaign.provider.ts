@@ -5,6 +5,7 @@ import { MessageProvider } from './message.provider.ts';
 import {
   IClevertapEvent,
   IConnectlyEvent,
+  IMetaEvent,
 } from '../integrations/interfaces.ts';
 import { IMessageMetadata } from './message.metadata.ts';
 
@@ -37,6 +38,7 @@ export abstract class CampaignProvider {
 
   public get integrationBody(): (
     | IMessageMetadata<IConnectlyEvent>
+    | IMessageMetadata<IMetaEvent>
     | IMessageMetadata<IClevertapEvent>
   )[] {
     return this.messageValues.map((message) => message.integrationBody);

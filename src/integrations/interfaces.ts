@@ -48,6 +48,38 @@ export interface IConnectlyEvent {
   campaignName: string;
   variables: TypeCampaignVariables;
 }
+
+export interface IMetaSimpleText {
+  text: string;
+}
+
+export interface IMetaSimpleBody {
+  [key: string]: IMetaSimpleText;
+}
+
+export interface IMetaSimpleImage {
+  image: { link: string };
+}
+
+export interface IMetaButtonPath {
+  path: string;
+}
+export interface IMetaEvent {
+  toPhoneNumber: string;
+  content: {
+    language: string;
+    name: string;
+    carousel: {
+      body: IMetaSimpleBody;
+      cards: {
+        header: IMetaSimpleImage;
+        body: IMetaSimpleBody;
+        buttons: IMetaButtonPath[];
+      }[];
+    };
+  };
+}
+
 export interface IClevertapEvent {
   to: { identity: string[] };
   campaign_id: string;
