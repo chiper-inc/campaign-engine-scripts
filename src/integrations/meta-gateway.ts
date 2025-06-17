@@ -19,7 +19,7 @@ export class MetaGatewayIntegration {
   constructor() {
     this.url = `${Config.metaGateway.apiUrl}/waba/${Config.metaGateway.appId}/messages/${Config.metaGateway.sourcePhoneId}/carousels`;
     this.apiKey = Config.metaGateway.apiKey; // Replace with a real token if needed
-    this.batchSize = Config.connectly.batchSize;
+    this.batchSize = Config.metaGateway.batchSize;
     this.headers = {
       'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
@@ -172,8 +172,7 @@ export class MetaGatewayIntegration {
     const { data, metadata } = event;
 
     const cards: string[] = data.content.carousel.cards.map(
-      (card) =>
-        (card as { body: { [k: string]: { text: string } } }).body['0'].text,
+      (card) => card.body['0'].text,
     );
     const recommendations = metadata.map((metadataItem, i) => {
       return metadataItem.expand(i, (i) => `${cards[i ?? 0]}`);
