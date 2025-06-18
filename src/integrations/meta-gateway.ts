@@ -24,7 +24,7 @@ export class MetaGatewayIntegration {
   private readonly WAITING_TIME: number = 1250;
 
   constructor() {
-    this.url = `${Config.metaGateway.apiUrl}/waba/${Config.metaGateway.appId}/messages/${Config.metaGateway.sourcePhoneId}/carousels`;
+    this.url = `${Config.metaGateway.apiUrl}/waba/${Config.metaGateway.appId}/multiple-messages/${Config.metaGateway.sourcePhoneId}/carousels`;
     this.apiKey = Config.metaGateway.apiKey; // Replace with a real token if needed
     this.batchSize = Config.metaGateway.batchSize;
     this.headers = {
