@@ -4,12 +4,13 @@ import * as MOCKS from '../mocks/connectly-greetings.mock.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 import { IUtm, ICallToActionLink, IUtmCallToAction } from './interfaces.ts';
 import { CampaignProvider } from './campaign.provider.ts';
-import { ConnectlyMessageProvider } from './connectly.message.provider.ts';
 import { ConnectlyCarouselNotificationAI } from './connectly.vertex-ai.provider.ts';
 import { MessageMetadata } from './message.metadata.ts';
-import { STORE_STATUS } from '../enums.ts';
+import { CHANNEL, STORE_STATUS } from '../enums.ts';
+import { WhatsappMessageFactory } from './whatsapp.message.factory.ts';
+import { CHANNEL_PROVIDER } from '../constants.ts';
 
-export class ConnectlyCampaignProvider extends CampaignProvider {
+export class WhatsappCampaignProvider extends CampaignProvider {
   constructor(
     store: TypeStore,
     campaignName: string,
@@ -19,10 +20,17 @@ export class ConnectlyCampaignProvider extends CampaignProvider {
   ) {
     super(variables, lng);
     this.messageValues.push(
-      new ConnectlyMessageProvider(store, campaignName, {
-        ...utm,
-        campaignContent: undefined,
-      }),
+      WhatsappMessageFactory.createWhatsappMessageProvider(
+        CHANNEL_PROVIDER[CHANNEL.WhatsApp],
+        {
+          store,
+          campaignName,
+          utm: {
+            ...utm,
+            campaignContent: undefined,
+          },
+        },
+      ),
     );
   }
 

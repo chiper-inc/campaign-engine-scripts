@@ -105,11 +105,13 @@ export const MONEY_FORMATTER = {
 };
 
 export const PROVIDER_CHANNEL: { [k in SERVICE_PROVIDER]: CHANNEL } = {
+  [SERVICE_PROVIDER.Meta]: CHANNEL.WhatsApp,
   [SERVICE_PROVIDER.Connectly]: CHANNEL.WhatsApp,
   [SERVICE_PROVIDER.Clevertap]: CHANNEL.PushNotification,
 };
 
 export const CHANNEL_PROVIDER: { [k in CHANNEL]: SERVICE_PROVIDER } = {
-  [CHANNEL.WhatsApp]: SERVICE_PROVIDER.Connectly,
+  // [CHANNEL.WhatsApp]: SERVICE_PROVIDER.Connectly, // TODO Switching between Connectly and Meta
+  [CHANNEL.WhatsApp]: SERVICE_PROVIDER.Meta,
   [CHANNEL.PushNotification]: SERVICE_PROVIDER.Clevertap,
 };
