@@ -5,9 +5,16 @@ import { IMetaEvent } from './interfaces.ts';
 import * as UTILS from '../utils/index.ts';
 import {
   IMessageMetadata,
+  MessageMetadata,
   MessageMetadataList,
 } from '../providers/message.metadata.ts';
 
+interface IMetaGatewayRequest {
+  metadataArray: MessageMetadata[][];
+  messages: IMetaEvent[];
+  namePrefix: string;
+  scheduledAt?: string;
+}
 export class MetaGatewayIntegration {
   private readonly url: string;
   private readonly apiKey: string;
@@ -17,7 +24,7 @@ export class MetaGatewayIntegration {
   private readonly WAITING_TIME: number = 1250;
 
   constructor() {
-    this.url = `${Config.metaGateway.apiUrl}/waba/${Config.metaGateway.appId}/messages/${Config.metaGateway.sourcePhoneId}/carousels`;
+    this.url = `${Config.metaGateway.apiUrl}/waba/${Config.metaGateway.appId}/multiple-messages/${Config.metaGateway.sourcePhoneId}/carousels`;
     this.apiKey = Config.metaGateway.apiKey; // Replace with a real token if needed
     this.batchSize = Config.metaGateway.batchSize;
     this.headers = {
@@ -26,8 +33,8 @@ export class MetaGatewayIntegration {
     };
     this.logger = new LoggingProvider({
       context: MetaGatewayIntegration.name,
-      levels:
-        LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
+      levels: LoggingProvider.ERROR,
+      // LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'MeteGateway Integration initialized',
@@ -39,17 +46,25 @@ export class MetaGatewayIntegration {
     });
   }
 
-  public async sendOneEvent(entry: IMessageMetadata<IMetaEvent>): Promise<{
+  public async sendOneEvent(payload: IMetaGatewayRequest): Promise<{
     status: number;
     statusText: string;
     data?: unknown;
   }> {
-    const payload = { ...entry.data, toPhoneNumber: '+573153108376' };
+    payload.messages.forEach(
+      (message) => (message.toPhoneNumbers = ['+573153108376']),
+    ); // Example phone number, replace with actual
+
+    const body = {
+      namePrefix: payload.namePrefix,
+      scheduledAt: payload.scheduledAt,
+      messages: payload.messages,
+    };
 
     return fetch(this.url, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     })
       .then(async (response) => {
         return {
@@ -65,15 +80,13 @@ export class MetaGatewayIntegration {
           functionName: this.sendOneEvent.name,
           message: 'Error Sending Meta Entry',
           error,
-          data: { payload, url: this.url, headers: this.headers },
+          data: { body, url: this.url, headers: this.headers },
         });
         throw error;
       });
   }
 
-  public async sendAllEvents(
-    events: MessageMetadataList<IMetaEvent>,
-  ): Promise<void> {
+  public async sendAllEvents(events: IMetaGatewayRequest[]): Promise<void> {
     const functionName = this.sendAllEvents.name;
 
     const batches = this.splitIntoBatches(events, this.batchSize);
@@ -86,16 +99,15 @@ export class MetaGatewayIntegration {
     const statuses: { [key: string]: number } = {};
     for (const batch of batches) {
       await Promise.all(
-        batch.map(async (entry) => {
-          const payload = entry.data;
-          return this.sendOneEvent(entry)
+        batch.map(async (event) => {
+          return this.sendOneEvent(event)
             .then((response) => {
               statuses[response.status as unknown as string] =
                 (statuses[response.status as unknown as string] || 0) + 1;
 
               if (!response.data) {
                 rejected += 1;
-                rejections.push({ request: payload, response });
+                rejections.push({ request: event, response });
                 return;
               }
 
@@ -103,21 +115,21 @@ export class MetaGatewayIntegration {
               const data = response.data as unknown as {
                 content: unknown;
               };
-              this.logger.log({
-                message: 'event.messageRequest.metaGateway',
-                functionName,
-                data: this.generateMetadata(entry, data),
-              });
+              this.logEvent(event.messages, event.metadataArray, data);
             })
             .catch((error) => {
-              rejections.push({ request: payload, response: error.response });
-              rejected += 1;
-              this.logger.error({
-                functionName,
-                message: 'Error Sending Meta Entries',
-                error,
-                data: { payload, error },
+              const { messages, namePrefix, scheduledAt } = event;
+              rejections.push({
+                request: { messages, namePrefix, scheduledAt },
+                response: error.response,
               });
+              rejected += 1;
+              // this.logger.error({
+              //   functionName,
+              //   message: 'Error Sending Meta Entries',
+              //   error,
+              //   data: { request: { messages, namePrefix, scheduledAt }, error },
+              // });
             });
         }),
       ).finally(async () => {
@@ -150,19 +162,64 @@ export class MetaGatewayIntegration {
   public async sendAllCampaigns(
     campaigns: MessageMetadataList<IMetaEvent>[],
   ): Promise<void> {
-    return this.sendAllEvents(campaigns.flat());
+    const batchSize = 128;
+    const list = campaigns.flat();
+
+    const events = list.reduce((acc, _, i) => {
+      if (i % batchSize === 0) {
+        const slicedList = list.slice(i, i + batchSize);
+        acc.push({
+          messages: slicedList.map(({ data }) => ({
+            toPhoneNumbers: [data.toPhoneNumber ?? ''],
+            content: data.content,
+            metadata: data.metadata,
+          })),
+          namePrefix: 'skdka',
+          metadataArray: slicedList.map(({ metadata }) => metadata),
+        });
+      }
+      return acc;
+    }, [] as IMetaGatewayRequest[]);
+    return this.sendAllEvents(events);
   }
 
   private splitIntoBatches(
-    list: MessageMetadataList<IMetaEvent>,
+    list: IMetaGatewayRequest[],
     batchSize: number,
-  ): MessageMetadataList<IMetaEvent>[] {
+  ): IMetaGatewayRequest[][] {
     return list.reduce((acc, _, i) => {
       if (i % batchSize === 0) {
         acc.push(list.slice(i, i + batchSize));
       }
       return acc;
-    }, [] as MessageMetadataList<IMetaEvent>[]);
+    }, [] as IMetaGatewayRequest[][]);
+  }
+
+  private logEvent(
+    messages: IMetaEvent[],
+    metadataArray: MessageMetadata[][],
+    data: { [k: string]: unknown },
+  ): void {
+    const functionName = this.logEvent.name;
+
+    messages.forEach((message, i) => {
+      const { content, toPhoneNumbers = [], metadata } = message;
+      this.logger.log({
+        message: 'event.messageRequest.metaGateway',
+        functionName,
+        data: this.generateMetadata(
+          {
+            data: {
+              content,
+              toPhoneNumber: toPhoneNumbers[0],
+              metadata,
+            },
+            metadata: metadataArray[i] || [],
+          },
+          data,
+        ),
+      });
+    });
   }
 
   private generateMetadata(

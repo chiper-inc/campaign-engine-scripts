@@ -5,10 +5,12 @@ import { WhatsappMessageProvider } from './whatsapp-message.provider.ts';
 
 export class MetaMessageProvider extends WhatsappMessageProvider {
   private readonly toPhoneNumber: string;
+  private readonly storeId: number;
 
   constructor(store: TypeStore, campaignName: string, utm: Partial<IUtm>) {
     super(store, campaignName, utm);
     this.toPhoneNumber = `+${store.phone}`;
+    this.storeId = store.storeId;
   }
 
   public get integrationBody(): {
@@ -22,6 +24,10 @@ export class MetaMessageProvider extends WhatsappMessageProvider {
           name: this.campaignId.replace(/\./g, '_'),
           language: this.lng,
           carousel: { body: this.generateBody(), cards: this.generateCards() },
+        },
+        metadata: {
+          storeId: this.storeId,
+          ...this.utm,
         },
       },
       metadata: this.metadataValues,

@@ -6,8 +6,6 @@ import * as META from '../mocks/meta-campaigns.mock.ts';
 import { ICampaignParameter } from '../mocks/interfaces.ts';
 import { TypeStoreParams } from '../types.ts';
 
-console.log(META.metaCampaignMap);
-
 export const getCampaignSegmentName = (params: TypeStoreParams): string => {
   const { storeStatus, storeValue, from, to } = params;
   const storeValueKey = storeValue ? `.${storeValue}` : '';
@@ -45,5 +43,3 @@ export const messagesPerCampaign = {
     max: CLEVERTAP.maxMessagesPerCampaign,
   },
 };
-
-console.log(campaignMap, messagesPerCampaign);

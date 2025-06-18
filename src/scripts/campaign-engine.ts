@@ -168,7 +168,10 @@ const sendCampaingsToIntegrations = async (
   if (sendToMeta) {
     promises.push(
       metaGatewayIntegration.sendAllCampaigns(
-        whatsappEvents as unknown[] as MessageMetadataList<IMetaEvent>[],
+        whatsappEvents.slice(
+          0,
+          5,
+        ) as unknown[] as MessageMetadataList<IMetaEvent>[],
       ),
     );
   }

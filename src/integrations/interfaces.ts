@@ -65,7 +65,8 @@ export interface IMetaButtonPath {
   path: string;
 }
 export interface IMetaEvent {
-  toPhoneNumber: string;
+  toPhoneNumber?: string;
+  toPhoneNumbers?: string[];
   content: {
     language: string;
     name: string;
@@ -78,6 +79,9 @@ export interface IMetaEvent {
       }[];
     };
   };
+  metadata?: {
+    storeId: number;
+  } & Partial<IUtm>;
 }
 
 export interface IClevertapEvent {

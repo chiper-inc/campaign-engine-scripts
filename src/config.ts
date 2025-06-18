@@ -40,6 +40,7 @@ const configSchema = Joi.object({
     apiKey: Joi.string().required(),
     appId: Joi.string().required(),
     sourcePhoneId: Joi.string().required(),
+    batchSize: Joi.number().integer().min(1).max(128).required(),
   }).required(),
   lbApiOperaciones: Joi.object({
     callToAction: Joi.object({
