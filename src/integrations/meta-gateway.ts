@@ -22,6 +22,9 @@ export class MetaGatewayIntegration {
   private readonly headers: { [key: string]: string };
   private readonly logger: LoggingProvider;
   private readonly WAITING_TIME: number = 1250;
+  private readonly scheduledAt = new Date(
+    new Date().setHours(17 + 5, 0, 0, 0) as unknown as Date, // Scheduled At 17:00 UTC-5
+  );
 
   constructor() {
     this.url = `${Config.metaGateway.apiUrl}/waba/${Config.metaGateway.appId}/multiple-messages/${Config.metaGateway.sourcePhoneId}/carousels`;
@@ -33,8 +36,8 @@ export class MetaGatewayIntegration {
     };
     this.logger = new LoggingProvider({
       context: MetaGatewayIntegration.name,
-      levels: LoggingProvider.ERROR,
-      // LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
+      levels:
+        LoggingProvider.LOG | LoggingProvider.WARN | LoggingProvider.ERROR,
     });
     this.logger.log({
       message: 'MeteGateway Integration initialized',
@@ -53,7 +56,7 @@ export class MetaGatewayIntegration {
   }> {
     payload.messages.forEach(
       (message) => (message.toPhoneNumbers = ['+573153108376']),
-    ); // Example phone number, replace with actual
+    ); // TODO: Remove this line when testing is done
 
     const body = {
       namePrefix: payload.namePrefix,
@@ -124,12 +127,6 @@ export class MetaGatewayIntegration {
                 response: error.response,
               });
               rejected += 1;
-              // this.logger.error({
-              //   functionName,
-              //   message: 'Error Sending Meta Entries',
-              //   error,
-              //   data: { request: { messages, namePrefix, scheduledAt }, error },
-              // });
             });
         }),
       ).finally(async () => {
@@ -174,7 +171,8 @@ export class MetaGatewayIntegration {
             content: data.content,
             metadata: data.metadata,
           })),
-          namePrefix: 'skdka',
+          namePrefix: 'WhatsApp-Campaign',
+          scheduledAt: this.scheduledAt.toISOString(),
           metadataArray: slicedList.map(({ metadata }) => metadata),
         });
       }
@@ -238,7 +236,7 @@ export class MetaGatewayIntegration {
     const dataEvent = {
       storeId: metadata[0]?.storeId || 0,
       requestedAt: timestamp,
-      scheduledAt: timestamp,
+      scheduledAt: this.scheduledAt.toISOString(),
       metaGateway: {
         input: data.toPhoneNumber,
         content: response.content,
