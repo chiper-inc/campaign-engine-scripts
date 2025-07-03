@@ -3,23 +3,23 @@ import { ICampaignParameter } from "./interfaces.ts";
 import * as UTILS from './utils.ts';
 
 const versions: [number, string][] = [
-   [5, "heuaho" ], [ 4, "bcrxxv" ], [ 3, "kynayr" ], [ 2, "ecugwo" ], // 1
-   [5, "hmcmek" ], [ 4, "ieqcja" ], [ 3, "amuqos" ], [ 2, "lictit" ], // 2
-   [5, "kgkvyj" ], [ 4, "dalkrn" ], [ 3, "kwfszr" ], [ 2, "smzljn" ], // 3
-   [5, "zaosoj" ], [ 4, "gribcf" ], [ 3, "ugcjir" ], [ 2, "kkszae" ], // 4
-   [5, "ezcadf" ], [ 4, "vrrqst" ], [ 3, "xglxmr" ], [ 2, "frsxpl" ], // 5
-   [5, "cjyuyj" ], [ 4, "rrvdtx" ], [ 3, "falejb" ], [ 2, "arwkqp" ], // 6
-   [5, "fqxjxu" ], [ 4, "gwgqry" ], [ 3, "vsdwfw" ], [ 2, "foqnbh" ], // 7
-   [5, "thpwae" ], [ 4, "mmzlcs" ], [ 3, "ftnnyu" ], // 8
-   [5, "cogiri" ], [ 4, "cjyird" ], [ 3, "bvfxoc" ], // 9
-   [5, "tqflwn" ], [ 4, "yowudn" ], [ 3, "dmxkez" ], // 10
-   [5, "ylxzjt" ], [ 4, "vxknbc" ], [ 3, "kkyzkk" ], // 11
-   [5, "bfznsv" ], [ 4, "fgzawf" ], // 12
-   [5, "zhyzfs" ], [ 4, "otoxmx" ], // 13
-   [5, "banwwd" ], // 14
-   [5, "jevuhn" ], // 15
-   [5, "jvjrib" ], // 16
-   [5, "rdrvfy" ], // 17
+   [5, "jfjbib" ], [ 4, "dduucu" ], [ 3, "dnrvnc" ], [ 2, "sgknqs" ], // 1
+   [5, "jqzeia" ], [ 4, "bhoeha" ], [ 3, "cawlii" ], [ 2, "codqly" ], // 2
+   [5, "hxuyog" ], [ 4, "fjuuqa" ], [ 3, "lldeje" ], [ 2, "wsgruv" ], // 3
+   [5, "puxvhd" ], [ 4, "fzirrn" ], [ 3, "livfmg" ], [ 2, "oqzalu" ], // 4
+   [5, "uuczhl" ], [ 4, "rkrdqv" ], [ 3, "kmxtkt" ], [ 2, "npbcgu" ], // 5
+   [5, "wbtprj" ], [ 4, "fxghdj" ], [ 3, "uwogio" ], [ 2, "gvmytd" ], // 6
+   [5, "qwtxbi" ], [ 4, "hgzyld" ], [ 3, "blovno" ], [ 2, "vmjqqj" ], // 7
+   [5, "udjviv" ], [ 4, "qsgmoh" ], [ 3, "gqwilv" ], // 8
+   [5, "wwwabd" ], [ 4, "hxojoo" ], [ 3, "imywmk" ], // 9
+   [5, "fykauu" ], [ 4, "fztptg" ], [ 3, "biwxix" ], // 10
+   [5, "axnwtp" ], [ 4, "dzfgil" ], [ 3, "hlqsly" ], // 11
+   [5, "rrypil" ], [ 4, "cniech" ], // 12
+   [5, "sknmzx" ], [ 4, "ptnils" ], // 13
+   [5, "qzrvdk" ], // 14
+   [5, "snmmxe" ], // 15
+   [5, "yrigrp" ], // 16
+   [5, "tlkcja" ], // 17
 ];
 
 export const minMessagesPerCampaign = 2
