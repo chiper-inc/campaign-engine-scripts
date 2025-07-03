@@ -37,7 +37,7 @@ export class BigQueryRepository {
     LOCATION.VLN,
     LOCATION.SAO,
   ].join(',');
-  private readonly communicationChannel = `IF(MG.locationId IN (${this.locationList}), 'Push Notification', MG.communicationChannel)`;
+  private readonly communicationChannel = `IF(MG.locationId IN (${this.locationList}), 'Whatsapp', MG.communicationChannel)`;
   private readonly masterQuery = `
     SELECT DISTINCT
       MG.country,
