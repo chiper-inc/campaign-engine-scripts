@@ -1,7 +1,7 @@
 import { CHANNEL } from '../enums.ts';
 import { IUtm } from '../integrations/interfaces.ts';
 import { ClevertapCampaignProvider } from './clevertap.campaign.provider.ts';
-import { ConnectlyCampaignProvider } from './connectly.campaign.provider.ts';
+import { WhatsappCampaignProvider } from './whatsapp.campaign.provider.ts';
 import { CampaignProvider } from './campaign.provider.ts';
 import { TypeCampaignVariables, TypeStore } from '../types.ts';
 
@@ -24,7 +24,7 @@ export class CampaignFactory {
           lng,
         );
       case CHANNEL.WhatsApp:
-        return new ConnectlyCampaignProvider(
+        return new WhatsappCampaignProvider(
           store,
           campaignName,
           variables,

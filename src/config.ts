@@ -35,6 +35,13 @@ const configSchema = Joi.object({
     businessId: Joi.string().uuid().required(),
     batchSize: Joi.number().integer().min(1).max(128).required(),
   }).required(),
+  metaGateway: Joi.object({
+    apiUrl: Joi.string().uri().required(),
+    apiKey: Joi.string().required(),
+    appId: Joi.string().required(),
+    sourcePhoneId: Joi.string().required(),
+    batchSize: Joi.number().integer().min(1).max(128).required(),
+  }).required(),
   lbApiOperaciones: Joi.object({
     callToAction: Joi.object({
       reference: Joi.number().integer().required(),
@@ -108,6 +115,13 @@ export const Config = {
     apiKey: process.env.CONNECTLY_API_KEY ?? '',
     apiUrl: process.env.CONNECTLY_API_URL ?? '',
     businessId: process.env.CONNECTLY_BUSINESS_ID ?? '',
+    batchSize: 32,
+  },
+  metaGateway: {
+    apiUrl: process.env.META_GATEWAY_API_URL ?? '',
+    apiKey: process.env.META_GATEWAY_API_KEY ?? '',
+    appId: process.env.META_GATEWAY_APP_ID ?? '',
+    sourcePhoneId: process.env.META_GATEWAY_SOURCE_PHONE ?? '',
     batchSize: 32,
   },
   lbApiOperaciones: {
